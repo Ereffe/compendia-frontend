@@ -121,5 +121,45 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at 14% 18%, color-mix(in oklab, #2dd4bf 24%, transparent), transparent 32%),
+      radial-gradient(circle at 87% 9%, color-mix(in oklab, #22d3ee 22%, transparent), transparent 34%),
+      linear-gradient(180deg, #f8fffd 0%, #eef7ff 58%, #ffffff 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .compendia-surface {
+    position: relative;
+  }
+
+  .compendia-noise {
+    opacity: 0.06;
+    background-image: radial-gradient(#0f172a 0.45px, transparent 0.45px);
+    background-size: 5px 5px;
+  }
+
+  .compendia-grid {
+    background-image:
+      linear-gradient(to right, rgba(15, 23, 42, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(circle at center, black 34%, transparent 86%);
+  }
+
+  .fade-in-up {
+    animation: compendiaFadeInUp 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes compendiaFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

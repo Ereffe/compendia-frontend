@@ -1,65 +1,106 @@
-import Image from "next/image";
+import Link from "next/link";
+import LoginModal from "../components/login-modal";
+
+const newestArticles = [
+  {
+    title: "Data Structures in Practice: Linked Lists, Trees, and Real Use Cases",
+    excerpt: "Lecture notes and visual examples that help CS students connect theory with implementation.",
+    category: "Algorithms",
+    publishedAt: "Apr 6, 2026",
+    author: "Dr. Marta Green",
+  },
+  {
+    title: "Operating Systems Lab: Process Scheduling Explained with Code",
+    excerpt: "A student-friendly breakdown of FCFS, SJF, and Round Robin with implementation snippets.",
+    category: "Systems",
+    publishedAt: "Apr 4, 2026",
+    author: "Adrian Cole",
+  },
+  {
+    title: "How to Write Better SQL for Coursework and Projects",
+    excerpt: "Lecturer-approved patterns for joins, indexing basics, and query optimization for beginners.",
+    category: "Databases",
+    publishedAt: "Apr 1, 2026",
+    author: "Compendia CS Faculty",
+  },
+  {
+    title: "Peer Code Review Checklist Before Your Programming Exam",
+    excerpt: "Share clear review notes on complexity, edge cases, and test coverage with your classmates.",
+    category: "Software Engineering",
+    publishedAt: "Mar 29, 2026",
+    author: "Nora Patel",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="compendia-surface min-h-screen overflow-x-clip text-slate-950">
+      <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
+      <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />
+
+      <header className="relative mx-auto max-w-6xl px-6 pt-6 sm:px-8 sm:pt-10">
+        <nav className="fade-in-up flex items-center justify-between rounded-full border border-slate-950/15 bg-white/75 px-4 py-2.5 backdrop-blur md:px-6">
+          <Link href="/" className="text-sm font-semibold tracking-[0.2em] text-slate-900">
+            COMPENDIA
+          </Link>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="#articles"
+              className="rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-widest text-slate-700 transition-colors duration-200 hover:bg-slate-900/5"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Newest Articles
+            </Link>
+            <Link
+              href="#"
+              className="rounded-full border border-slate-900/15 bg-white/80 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-slate-800 transition-colors duration-200 hover:bg-slate-900/5"
+              aria-label="Open messenger"
             >
-              Learning
-            </a>{" "}
-            center.
+              Messenger
+            </Link>
+            <LoginModal />
+          </div>
+        </nav>
+      </header>
+
+      <section id="articles" className="relative mx-auto max-w-6xl px-6 pb-14 pt-12 sm:px-8 sm:pb-16 sm:pt-16">
+        <div className="mb-8 fade-in-up" style={{ animationDelay: "80ms" }}>
+          <p className="text-xs font-bold uppercase tracking-[0.32em] text-teal-700">For Computer Science Students and Lecturers</p>
+          <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">Newest Articles</h1>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-700 sm:text-lg">
+            Compendia helps CS communities share knowledge through articles: lecture insights, coding patterns, lab
+            walkthroughs, debugging tips, and exam preparation resources in one searchable place.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {newestArticles.map((article, index) => (
+            <article
+              key={article.title}
+              className="fade-in-up rounded-2xl border border-slate-950/10 bg-white/75 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
+              style={{ animationDelay: `${160 + index * 90}ms` }}
+            >
+              <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
+                <span className="rounded-full bg-teal-100 px-2.5 py-1 text-teal-800">{article.category}</span>
+                <span className="text-slate-600">{article.publishedAt}</span>
+              </div>
+              <h2 className="mt-4 text-xl font-semibold text-slate-950">{article.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{article.excerpt}</p>
+              <p className="mt-4 text-sm font-medium text-slate-700">By {article.author}</p>
+            </article>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+
+      <footer className="mx-auto max-w-6xl px-6 pb-10 sm:px-8">
+        <div className="fade-in-up rounded-2xl border border-slate-950/10 bg-white/70 px-5 py-5 text-sm text-slate-700 backdrop-blur" style={{ animationDelay: "640ms" }}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-semibold tracking-[0.18em] text-slate-900">COMPENDIA</p>
+            <p>Built for computer science students and lecturers who learn better together.</p>
+            <p>© 2026 Compendia</p>
+          </div>
+        </div>
+      </footer>
+    </main>
   );
 }
