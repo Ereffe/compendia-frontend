@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Search } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -12,6 +13,7 @@ export type ArticleSearchItem = {
   category: string;
   publishedAt: string;
   author: string;
+  id: string;
 };
 
 type ArticleSearchModalProps = {
@@ -66,7 +68,7 @@ export default function ArticleSearchModal({ articles }: ArticleSearchModalProps
               <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
               <Input
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => setQuery(event.target.value)}``
                 placeholder="Search articles..."
                 className="h-11 rounded-xl border-slate-300 pl-10 text-sm"
                 autoFocus
@@ -80,15 +82,17 @@ export default function ArticleSearchModal({ articles }: ArticleSearchModalProps
                 </div>
               ) : (
                 filteredArticles.map((article) => (
-                  <article key={article.title} className="rounded-xl border border-slate-200 bg-white p-4">
-                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-widest">
-                      <span className="rounded-full bg-teal-100 px-2 py-0.5 text-teal-800">{article.category}</span>
-                      <span className="text-slate-500">{article.publishedAt}</span>
-                    </div>
-                    <h3 className="mt-2 text-base font-semibold text-slate-900">{article.title}</h3>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">{article.excerpt}</p>
-                    <p className="mt-2 text-xs font-medium text-slate-700">By {article.author}</p>
-                  </article>
+                  <Link href={`/articles/${article.id}`} className="contents" key={article.id} onClick={() => setOpen(false)}>
+                    <article className="rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:border-teal-700/30 hover:bg-teal-50/40">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-widest">
+                        <span className="rounded-full bg-teal-100 px-2 py-0.5 text-teal-800">{article.category}</span>
+                        <span className="text-slate-500">{article.publishedAt}</span>
+                      </div>
+                      <h3 className="mt-2 text-base font-semibold text-slate-900">{article.title}</h3>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">{article.excerpt}</p>
+                      <p className="mt-2 text-xs font-medium text-slate-700">By {article.author}</p>
+                    </article>
+                  </Link>
                 ))
               )}
             </div>

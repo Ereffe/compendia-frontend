@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import ArticleSearchModal from "@/components/article-search-modal";
 import LoginModal from "@/components/login-modal";
 import { authOptions } from "@/lib/auth";
+import { User } from "lucide-react";
 
 type GraphQLArticle = {
   id: string,
@@ -28,7 +29,7 @@ type ArticleSearchItem = {
   id: string;
 };
 
-const backendBaseUrl = process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
+const backendBaseUrl = process.env.BACKEND_URL;
 
 const newestArticlesQuery = `
   query GetNewestArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
@@ -118,6 +119,9 @@ export default async function ArticlesPage() {
 
   const newestArticles = await getNewestArticles(session.accessToken);
 
+  const hasAccess = Boolean(session?.accessToken) && session.error !== "RefreshAccessTokenError";
+
+
   return (
     <main className="compendia-surface min-h-screen overflow-x-clip text-slate-950">
       <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
@@ -143,7 +147,7 @@ export default async function ArticlesPage() {
             >
               Messenger
             </Link>
-            <LoginModal />
+           {hasAccess ? <User/> : <LoginModal />}
           </div>
         </nav>
       </header>
