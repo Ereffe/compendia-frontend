@@ -128,6 +128,13 @@
       linear-gradient(180deg, #f8fffd 0%, #eef7ff 58%, #ffffff 100%);
     min-height: 100vh;
   }
+
+  .dark body {
+    background-image:
+      radial-gradient(circle at 14% 18%, color-mix(in oklab, #0f766e 26%, transparent), transparent 38%),
+      radial-gradient(circle at 87% 9%, color-mix(in oklab, #155e75 24%, transparent), transparent 40%),
+      linear-gradient(180deg, #060b12 0%, #0a1220 56%, #09090b 100%);
+  }
 }
 
 @layer components {

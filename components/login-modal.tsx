@@ -9,7 +9,7 @@ export default function LoginModal() {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition-transform duration-200 hover:-translate-y-0.5"
+          className="rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5"
         >
           Login
         </button>
