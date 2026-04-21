@@ -3,29 +3,64 @@ import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import Markdown from "react-markdown";
+import ArticleComments from "@/components/article-comments";
 
 interface Article {
+  id: string;
+  title: string;
+  content: string;
+  datePosted: string;
+  complexity: string;
+  comments?: {
+    content: CommentItem[];
+  };
+  author?: {
+    name: string;
+  } | null;
+  subject?: {
+    name: string;
+  } | null;
+}
+
+interface CommentItem {
+  id: string;
+  content: string;
+  datePosted: string;
+  editedAt?: string | null;
+  user: {
     id: string;
-    title: string;
-    content: string;
-    datePosted: string;
-    complexity: string;
-    author?: {
-      name: string;
-    } | null;
-    subject?: {
-      name: string;
-    } | null;
+    name: string;
+  };
+  rating: {
+    positive: number;
+    negative: number;
+  };
 }
 
 const articleQuery = `
-query Article($id: String!) {
+query Article($id: String!, $page: Int!, $size: Int!) {
   article(id: $id) {
     id
     title
     content
     datePosted
     complexity
+    comments(page: $page, size: $size, sortBy: "datePosted", ascending: false) {
+      content {
+        id
+        content
+        datePosted
+        editedAt
+        user {
+          id
+          name
+        }
+        rating {
+          positive
+          negative
+        }
+      }
+    }
     author {
       name
     }
@@ -49,7 +84,7 @@ async function fetchArticle(id: string, accessToken: string): Promise<Article | 
       cache: "no-store",
       body: JSON.stringify({
         query: articleQuery,
-        variables: { id },
+        variables: { id, page: 0, size: 10 },
       }),
     });
 
@@ -71,7 +106,7 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
   }
 
   const article = await fetchArticle(id, session.accessToken);
-    if (!article) return <div>Article not found</div>;
+  if (!article) return <div>Article not found</div>;
 
   return (
     <main className="compendia-surface min-h-screen overflow-x-clip text-foreground">
@@ -128,6 +163,10 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
             <Markdown>{article.content}</Markdown>
           </div>
         </article>
+      </section>
+
+      <section className="relative mx-auto max-w-3xl px-6 pb-10 sm:px-8">
+        <ArticleComments articleId={article.id} initialComments={article.comments?.content ?? []} />
       </section>
 
       <footer className="mx-auto max-w-6xl px-6 pb-10 pt-8 sm:px-8">
