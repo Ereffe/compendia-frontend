@@ -7,67 +7,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { useVoteStore } from "@/hooks/stores/useVoteStore";
 import { useAuthStore } from "@/hooks/stores/useAuthStore";
-
-type CommentItem = {
-    id: string;
-    content: string;
-    datePosted: string;
-    editedAt?: string | null;
-    user: {
-        id: string;
-        name: string;
-    };
-    rating: {
-        positive: number;
-        negative: number;
-    };
-};
+import { CommentItem } from "@/types/comments";
+import {
+    createRateCommentHandler,
+    createSubmitCommentHandler,
+    getCommentsLabel,
+    getSessionLabel,
+} from "./articleCommentsController";
 
 type ArticleCommentsProps = Readonly<{
     articleId: string;
     initialComments: CommentItem[];
 }>;
-
-const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? process.env.BACKEND_URL ?? "http://localhost:8080";
-
-const addCommentMutation = `
-mutation AddComment($articleId: ID!, $content: String!, $parentCommentId: Int) {
-  addComment(articleId: $articleId, content: $content, parentCommentId: $parentCommentId) {
-    id
-    content
-    datePosted
-    editedAt
-    user {
-      id
-      name
-    }
-    rating {
-      positive
-      negative
-    }
-  }
-}
-`;
-
-const upvoteCommentMutation = `
-mutation RateComment($commentId: Int!, $positive: Boolean!) {
-  rateComment(commentId: $commentId, positive: $positive)
-}
-`
-
-const updateCommentRating = (comments: CommentItem[], commentId: string, voteType: "positive" | "negative", delta: 1 | -1) =>
-    comments.map((comment) =>
-        comment.id === commentId
-            ? {
-                ...comment,
-                rating: {
-                    ...comment.rating,
-                    [voteType]: comment.rating[voteType] + delta,
-                },
-            }
-            : comment
-    );
-
 export default function ArticleComments({ articleId, initialComments }: ArticleCommentsProps) {
     const { accessToken, isLoading, error: authError } = useAuthStore();
     const [comments, setComments] = useState<CommentItem[]>(initialComments);
@@ -87,102 +38,30 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
     }, [initialComments]);
 
     const canComment = Boolean(accessToken) && !authError;
-    let commentsLabel = "Be the first to comment on this article.";
-    if (comments.length > 0) {
-        commentsLabel = `${comments.length} comment${comments.length === 1 ? "" : "s"}`;
-    }
-
-    let sessionLabel = "You need to be signed in to comment.";
-    if (isLoading) {
-        sessionLabel = "Checking your session...";
-    } else if (canComment) {
-        sessionLabel = "";
-    }
-
-    const handleRateComment = (commentId: string, positive: boolean) => {
-        if (!accessToken || authError) {
-            setError("You must be signed in to vote");
-            return;
-        }
-
-        const voteType = positive ? "positive" : "negative";
-        setVote(articleId, commentId, voteType);
-        setComments((currentComments) => updateCommentRating(currentComments, commentId, voteType, 1));
-        setError(null);
-
-        void (async () => {
-            try {
-                const response = await fetch(`${backendBaseUrl}/graphql`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                    cache: "no-store",
-                    body: JSON.stringify({
-                        query: upvoteCommentMutation,
-                        variables: { commentId: Number.parseInt(commentId), positive },
-                    }),
-                });
-
-                const payload = (await response.json()) as { data?: { rateComment?: number }; errors?: Array<{ message?: string }> };
-
-                if (!response.ok || payload.data?.rateComment === undefined) {
-                    throw new Error(payload.errors?.[0]?.message ?? "Failed to rate comment");
-                }
-            } catch (rateError) {
-                clearVote(articleId, commentId);
-                setComments((currentComments) => updateCommentRating(currentComments, commentId, voteType, -1));
-                setError(rateError instanceof Error ? rateError.message : "Failed to rate comment");
-            }
-        })();
-    };
+    const commentsLabel = getCommentsLabel(comments.length);
+    const sessionLabel = getSessionLabel(isLoading, canComment);
+    const handleRateComment = createRateCommentHandler({
+        articleId,
+        accessToken,
+        authError,
+        setVote,
+        clearVote,
+        setComments,
+        setError,
+    });
+    const submitComment = createSubmitCommentHandler({
+        articleId,
+        canComment,
+        isSubmitting: isSubmitting,
+        setComments,
+        setContent,
+        setIsSubmitting,
+        setError,
+    });
 
     const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
-
-        const trimmedContent = content.trim();
-        if (!trimmedContent || !canComment || isSubmitting) {
-            return;
-        }
-
-        setIsSubmitting(true);
-        setError(null);
-
-        void (async () => {
-            try {
-                const response = await fetch(`${backendBaseUrl}/graphql`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                    cache: "no-store",
-                    body: JSON.stringify({
-                        query: addCommentMutation,
-                        variables: {
-                            articleId,
-                            content: trimmedContent,
-                            parentCommentId: null,
-                        },
-                    }),
-                });
-
-                const payload = (await response.json()) as { data?: { addComment?: CommentItem }; errors?: Array<{ message?: string }> };
-                const addedComment = payload.data?.addComment;
-
-                if (!response.ok || !addedComment) {
-                    throw new Error(payload.errors?.[0]?.message ?? "Failed to add comment");
-                }
-
-                setComments((currentComments) => [addedComment, ...currentComments]);
-                setContent("");
-            } catch (submitError) {
-                setError(submitError instanceof Error ? submitError.message : "Failed to add comment");
-            } finally {
-                setIsSubmitting(false);
-            }
-        })();
+        submitComment(content);
     };
 
     return (

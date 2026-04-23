@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import ArticleSearchModal from "@/components/article-search-modal";
+import ArticleSearchModal from "@/components/articleSearchModal";
 import { authOptions } from "@/lib/auth";
 import Header from "@/components/header";
 
@@ -125,7 +125,7 @@ export default async function ArticlesPage() {
       <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
       <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />
 
-      <Header hasAccess={hasAccess}/>
+      <Header hasAccess={hasAccess} />
 
       <section className="relative mx-auto flex min-h-[34vh] max-w-6xl items-center px-6 pt-10 sm:px-8 sm:pt-12">
         <div className="w-full fade-in-up" style={{ animationDelay: "60ms" }}>
@@ -146,20 +146,20 @@ export default async function ArticlesPage() {
         <div className="grid gap-4 md:grid-cols-2">
           {newestArticles.map((article, index) => (
             <Link href={`/articles/${article.id}`} className="contents" key={article.title}>
-            <article
-              key={article.title}
-              className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
-              style={{ animationDelay: `${160 + index * 90}ms` }}
+              <article
+                key={article.title}
+                className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
+                style={{ animationDelay: `${160 + index * 90}ms` }}
               >
-              <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
-                <span className="rounded-full bg-teal-100 px-2.5 py-1 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">{article.category}</span>
-                <span className="text-muted-foreground">{article.publishedAt}</span>
-              </div>
-              <h2 className="mt-4 text-xl font-semibold text-foreground">{article.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
-              <p className="mt-4 text-sm font-medium text-foreground/90">By {article.author}</p>
-            </article>
-              </Link>
+                <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
+                  <span className="rounded-full bg-teal-100 px-2.5 py-1 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">{article.category}</span>
+                  <span className="text-muted-foreground">{article.publishedAt}</span>
+                </div>
+                <h2 className="mt-4 text-xl font-semibold text-foreground">{article.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
+                <p className="mt-4 text-sm font-medium text-foreground/90">By {article.author}</p>
+              </article>
+            </Link>
           ))}
         </div>
       </section>

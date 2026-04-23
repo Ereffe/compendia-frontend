@@ -1,4 +1,4 @@
-import LoginCard from "@/components/login-card";
+import LoginCard from "@/components/loginCard";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 

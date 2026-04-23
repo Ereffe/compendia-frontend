@@ -1,5 +1,5 @@
 import Link from "next/link";
-import LoginCard from "@/components/login-card";
+import LoginCard from "@/components/loginCard";
 
 export default function LoginPage() {
   return (

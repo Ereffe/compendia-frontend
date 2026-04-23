@@ -3,7 +3,7 @@ import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import Markdown from "react-markdown";
-import ArticleComments from "@/components/article-comments";
+import ArticleComments from "@/components/articles/articleComments/articleComments";
 
 interface Article {
   id: string;
