@@ -12,7 +12,7 @@ export default function LoginPage() {
           href="/"
           className="rounded-full border border-border/70 bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-foreground backdrop-blur transition-colors hover:bg-accent"
         >
-          Back to Articles
+          Wróć na stronę główną
         </Link>
       </div>
 

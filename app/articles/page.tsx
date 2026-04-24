@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 
 import ArticleSearchModal from "@/components/articleSearchModal";
 import { authOptions } from "@/lib/auth";
-import Header from "@/components/header";
 
 type GraphQLArticle = {
   id: string,
@@ -49,11 +48,16 @@ const newestArticlesQuery = `
   }
 `;
 
-const articleDateFormatter = new Intl.DateTimeFormat("en-US", {
+const articleDateFormatter = new Intl.DateTimeFormat("pl-PL", {
   month: "short",
   day: "numeric",
   year: "numeric",
 });
+
+const pageIntro = {
+  title: "Najnowsze artykuły",
+  description: "Przeglądaj najnowsze wpisy, otwieraj pełne artykuły i wracaj do czytania bez utraty kontekstu.",
+};
 
 const trimArticleExcerpt = (content: string) => {
   const normalizedContent = content.replaceAll(/\s+/g, " ").trim();
@@ -70,6 +74,62 @@ const mapArticleToSearchItem = (article: GraphQLArticle): ArticleSearchItem => (
   publishedAt: articleDateFormatter.format(new Date(article.datePosted)),
   author: article.author?.name ?? "Unknown author",
 });
+
+function ArticleCard({ article, index }: Readonly<{ article: ArticleSearchItem; index: number }>) {
+  return (
+    <Link href={`/articles/${article.id}`} className="contents">
+      <article
+        className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
+        style={{ animationDelay: `${160 + index * 90}ms` }}
+      >
+        <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
+          <span className="rounded-full bg-teal-100 px-2.5 py-1 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">
+            {article.category}
+          </span>
+          <span className="text-muted-foreground">{article.publishedAt}</span>
+        </div>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">{article.title}</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
+        <p className="mt-4 text-sm font-medium text-foreground/90">By {article.author}</p>
+      </article>
+    </Link>
+  );
+}
+
+function ArticlesGrid({ articles }: Readonly<{ articles: ArticleSearchItem[] }>) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {articles.map((article, index) => (
+        <ArticleCard key={article.id} article={article} index={index} />
+      ))}
+    </div>
+  );
+}
+
+function ArticlesIntro() {
+  return (
+    <div className="mb-8 fade-in-up" style={{ animationDelay: "80ms" }}>
+      <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">{pageIntro.title}</h1>
+      <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{pageIntro.description}</p>
+    </div>
+  );
+}
+
+function ArticlesFooter() {
+  const currentYear = new Date().getFullYear();
+  return (
+    <footer className="mx-auto max-w-2xl px-6 pb-10 sm:px-8">
+      <div
+        className="fade-in-up rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur"
+        style={{ animationDelay: "640ms" }}
+      >
+        <div className="flex justify-center">
+          <p>{currentYear} Compendia</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
 
 async function getNewestArticles(accessToken: string): Promise<ArticleSearchItem[]> {
   try {
@@ -111,71 +171,29 @@ async function getNewestArticles(accessToken: string): Promise<ArticleSearchItem
 
 export default async function ArticlesPage() {
   const session = await getServerSession(authOptions);
+  const accessToken = session?.accessToken;
+  const hasAccess = Boolean(session?.accessToken) && session?.error !== "RefreshAccessTokenError";
 
-  if (!session?.accessToken || session.error === "RefreshAccessTokenError") {
+  if (!hasAccess) {
     redirect("/");
   }
 
-  const newestArticles = await getNewestArticles(session.accessToken);
-
-  const hasAccess = Boolean(session?.accessToken) && session.error !== "RefreshAccessTokenError";
+  const newestArticles = await getNewestArticles(accessToken!);
 
   return (
-    <main className="compendia-surface min-h-screen overflow-x-clip text-foreground">
-      <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
-      <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />
-
-      <Header hasAccess={hasAccess} />
-
-      <section className="relative mx-auto flex min-h-[34vh] max-w-6xl items-center px-6 pt-10 sm:px-8 sm:pt-12">
+    <>
+      <section className="relative mx-auto flex min-h-[20vh] max-w-6xl items-center px-6 pt-10 sm:px-8 sm:pt-12">
         <div className="w-full fade-in-up" style={{ animationDelay: "60ms" }}>
           <ArticleSearchModal articles={newestArticles} />
         </div>
       </section>
 
       <section id="articles" className="relative mx-auto max-w-6xl px-6 pb-14 pt-4 sm:px-8 sm:pb-16 sm:pt-6">
-        <div className="mb-8 fade-in-up" style={{ animationDelay: "80ms" }}>
-          <p className="text-xs font-bold uppercase tracking-[0.32em] text-teal-700 dark:text-teal-300">For Computer Science Students and Lecturers</p>
-          <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">Newest Articles</h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Compendia helps CS communities share knowledge through articles: lecture insights, coding patterns, lab
-            walkthroughs, debugging tips, and exam preparation resources in one searchable place.
-          </p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          {newestArticles.map((article, index) => (
-            <Link href={`/articles/${article.id}`} className="contents" key={article.title}>
-              <article
-                key={article.title}
-                className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
-                style={{ animationDelay: `${160 + index * 90}ms` }}
-              >
-                <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
-                  <span className="rounded-full bg-teal-100 px-2.5 py-1 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">{article.category}</span>
-                  <span className="text-muted-foreground">{article.publishedAt}</span>
-                </div>
-                <h2 className="mt-4 text-xl font-semibold text-foreground">{article.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
-                <p className="mt-4 text-sm font-medium text-foreground/90">By {article.author}</p>
-              </article>
-            </Link>
-          ))}
-        </div>
+        <ArticlesIntro />
+        <ArticlesGrid articles={newestArticles} />
       </section>
 
-      <footer className="mx-auto max-w-6xl px-6 pb-10 sm:px-8">
-        <div
-          className="fade-in-up rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur"
-          style={{ animationDelay: "640ms" }}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-semibold tracking-[0.18em] text-foreground">COMPENDIA</p>
-            <p>Built for computer science students and lecturers who learn better together.</p>
-            <p>© 2026 Compendia</p>
-          </div>
-        </div>
-      </footer>
-    </main>
+      <ArticlesFooter />
+    </>
   );
 }

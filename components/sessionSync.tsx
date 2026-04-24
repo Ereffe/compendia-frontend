@@ -24,7 +24,7 @@ export default function SessionSync() {
         }
 
         if ((session as any)?.error === "RefreshAccessTokenError") {
-            setError("Session expired. Please sign in again.");
+            setError("Sesja wygasła. Zaloguj się ponownie.");
         }
     }, [session, status, setUser, setAccessToken, setLoading, setError]);
 

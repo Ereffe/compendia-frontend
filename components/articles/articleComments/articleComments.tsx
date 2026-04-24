@@ -67,7 +67,7 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
     return (
         <Card className="border-border/70 bg-card/80 backdrop-blur">
             <CardHeader className="border-b border-border">
-                <CardTitle className="text-xl text-foreground">Comments</CardTitle>
+                <CardTitle className="text-xl text-foreground">Komentarze</CardTitle>
                 <CardDescription>{commentsLabel}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
@@ -75,14 +75,14 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                     <Textarea
                         value={content}
                         onChange={(event) => setContent(event.target.value)}
-                        placeholder={canComment ? "Write a comment..." : "Sign in to write a comment"}
+                        placeholder={canComment ? "Napisz komentarz..." : "Zaloguj się, aby napisać komentarz"}
                         className="min-h-28 rounded-xl border-border bg-background text-foreground"
                         disabled={!canComment || isSubmitting}
                     />
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm text-muted-foreground">{sessionLabel}</p>
                         <Button type="submit" disabled={!canComment || isSubmitting || content.trim().length === 0}>
-                            {isSubmitting ? "Posting..." : "Post comment"}
+                            {isSubmitting ? "Publikowanie..." : "Dodaj komentarz"}
                         </Button>
                     </div>
                     {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -91,7 +91,7 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                 <div className="space-y-4">
                     {comments.length === 0 ? (
                         <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-6 text-sm text-muted-foreground">
-                            No comments yet.
+                            Brak komentarzy.
                         </div>
                     ) : (
                         comments.map((comment) => (
@@ -100,14 +100,14 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                                     <div>
                                         <p className="text-sm font-semibold text-foreground">{comment.user.name}</p>
                                         <p className="text-xs text-muted-foreground">
-                                            {new Date(comment.datePosted).toLocaleString("en-US", {
+                                            {new Date(comment.datePosted).toLocaleString("pl-PL", {
                                                 month: "short",
                                                 day: "numeric",
                                                 year: "numeric",
                                                 hour: "numeric",
                                                 minute: "2-digit",
                                             })}
-                                            {comment.editedAt ? " · edited" : ""}
+                                            {comment.editedAt ? " · edytowano" : ""}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                                                             style={{ backgroundColor: "green", color: "white" }}
                                                             onClick={() => handleRateComment(comment.id, true)}
                                                             disabled={hasVoted}
-                                                            title={hasVoted ? "Already voted" : "Upvote"}
+                                                            title={hasVoted ? "Już zagłosowano" : "Głos pozytywny"}
                                                         >
                                                             +{comment.rating.positive}
                                                         </Button>
@@ -135,7 +135,7 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                                                             style={{ backgroundColor: "red", color: "white" }}
                                                             onClick={() => handleRateComment(comment.id, false)}
                                                             disabled={hasVoted}
-                                                            title={hasVoted ? "Already voted" : "Downvote"}
+                                                            title={hasVoted ? "Już zagłosowano" : "Głos negatywny"}
                                                         >
                                                             -{comment.rating.negative}
                                                         </Button>

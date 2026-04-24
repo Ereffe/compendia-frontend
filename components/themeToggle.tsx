@@ -23,8 +23,8 @@ export default function ThemeToggle() {
       size="icon-sm"
       className="rounded-full border-border/80 bg-background/95 text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-      title={isDark ? "Light mode" : "Dark mode"}
+      aria-label={isDark ? "Przełącz na jasny motyw" : "Przełącz na ciemny motyw"}
+      title={isDark ? "Jasny motyw" : "Ciemny motyw"}
     >
       {isDark ? <Sun className="size-4 text-amber-500" /> : <Moon className="size-4 text-sky-600" />}
     </Button>

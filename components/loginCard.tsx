@@ -12,7 +12,7 @@ export default function LoginCard() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const actionLabel = mode === "login" ? "Log in" : "Sign in";
+  const actionLabel = mode === "login" ? "Zaloguj się" : "Zarejestruj się";
 
   const handleCredentialsSignIn = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -22,7 +22,7 @@ export default function LoginCard() {
     }
 
     if (!email || !password || (mode === "signin" && !name.trim())) {
-      setError(mode === "signin" ? "Please enter name, email, and password." : "Please enter both email and password.");
+      setError(mode === "signin" ? "Wpisz imię, e-mail i hasło." : "Wpisz e-mail i hasło.");
       return;
     }
 
@@ -54,12 +54,12 @@ export default function LoginCard() {
         }
 
         if (response?.error === "CredentialsSignin") {
-          setError(mode === "signin" ? "Sign in failed. Try another email or check backend logs." : "Invalid email or password.");
+          setError(mode === "signin" ? "Rejestracja nie powiodła się. Spróbuj innego e-maila albo sprawdź logi backendu." : "Nieprawidłowy e-mail lub hasło.");
         } else {
-          setError(response?.error ?? "Invalid email or password.");
+          setError(response?.error ?? "Nieprawidłowy e-mail lub hasło.");
         }
       } catch {
-        setError("Request failed. Check backend URL and server status.");
+        setError("Żądanie nie powiodło się. Sprawdź adres backendu i status serwera.");
       } finally {
         setIsLoading(false);
       }
@@ -74,40 +74,38 @@ export default function LoginCard() {
         <button
           type="button"
           onClick={() => setMode("login")}
-          className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-            mode === "login" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-          }`}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${mode === "login" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+            }`}
         >
-          Log in
+          Zaloguj się
         </button>
         <button
           type="button"
           onClick={() => setMode("signin")}
-          className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-            mode === "signin" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-          }`}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${mode === "signin" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+            }`}
         >
-          Sign in
+          Zarejestruj się
         </button>
       </div>
 
       <h1 className="mt-3 text-3xl font-bold text-foreground">{actionLabel}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        {mode === "login" ? "Enter your email and password to continue." : "Create your account with name, email, and password."}
+        {mode === "login" ? "Wpisz e-mail i hasło, aby kontynuować." : "Utwórz konto, podając imię, e-mail i hasło."}
       </p>
 
       <form onSubmit={handleCredentialsSignIn} className="mt-6 space-y-3">
         {mode === "signin" ? (
           <>
             <label htmlFor="name" className="text-sm font-medium text-foreground/90">
-              Name
+              Imię
             </label>
             <input
               id="name"
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Your name"
+              placeholder="Twoje imię"
               autoComplete="name"
               className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
             />
@@ -115,27 +113,27 @@ export default function LoginCard() {
         ) : null}
 
         <label htmlFor="email" className="text-sm font-medium text-foreground/90">
-          Email
+          E-mail
         </label>
         <input
           id="email"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="student@university.edu"
+          placeholder="student@uczelnia.edu"
           autoComplete="email"
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
         />
 
         <label htmlFor="password" className="text-sm font-medium text-foreground/90">
-          Password
+          Hasło
         </label>
         <input
           id="password"
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          placeholder="Enter your password"
+          placeholder="Wpisz hasło"
           autoComplete="current-password"
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
         />

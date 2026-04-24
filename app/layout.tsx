@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import AuthProvider from "@/components/authProvider";
 import "./globals.css";
+import Header from "@/components/header";
 
 const geistSans = Space_Grotesk({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Compendia",
-  description: "Compendia organizes your notes, ideas, and projects into one living knowledge hub.",
+  description: "Compendia porządkuje notatki, pomysły i projekty w jednym żyjącym centrum wiedzy.",
 };
 
 export default function RootLayout({
@@ -24,11 +25,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pl" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <main className="compendia-surface min-h-screen overflow-x-clip text-foreground">
+            <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
+            <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />
+            <Header hasAccess={true} />
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );

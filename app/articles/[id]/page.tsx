@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
@@ -106,25 +105,10 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
   }
 
   const article = await fetchArticle(id, session.accessToken);
-  if (!article) return <div>Article not found</div>;
+  if (!article) return <div>Nie znaleziono artykułu</div>;
 
   return (
-    <main className="compendia-surface min-h-screen overflow-x-clip text-foreground">
-      <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
-      <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />
-
-      <header className="relative mx-auto max-w-6xl px-6 pt-6 sm:px-8 sm:pt-10">
-        <nav className="fade-in-up flex items-center gap-4 rounded-full border border-border/70 bg-card/80 px-4 py-2.5 backdrop-blur md:px-6">
-          <Link href="/articles" className="rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-widest text-foreground/90 transition-colors duration-200 hover:bg-accent">
-            ← Back
-          </Link>
-          <div className="h-6 w-px bg-border" />
-          <span className="text-xs font-semibold tracking-[0.2em] text-foreground">
-            {article.subject?.name || 'ARTICLE'}
-          </span>
-        </nav>
-      </header>
-
+    <>
       <section className="relative mx-auto max-w-3xl px-6 py-10 sm:px-8 sm:py-16">
         <article className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
           <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-border pb-6">
@@ -140,7 +124,7 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
             )}
             {article.datePosted && (
               <span className="ml-auto text-xs font-medium text-muted-foreground">
-                {new Date(article.datePosted).toLocaleDateString('en-US', {
+                {new Date(article.datePosted).toLocaleDateString('pl-PL', {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
@@ -173,11 +157,12 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
         <div className="fade-in-up rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="font-semibold tracking-[0.18em] text-foreground">COMPENDIA</p>
-            <p>Built for computer science students and lecturers who learn better together.</p>
+            <p>Stworzone dla studentów i wykładowców, którzy uczą się lepiej razem.</p>
             <p>© 2026 Compendia</p>
           </div>
         </div>
       </footer>
-    </main>
+
+    </>
   );
 }

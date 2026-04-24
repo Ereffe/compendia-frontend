@@ -23,22 +23,30 @@ export const updateCommentRating = (comments: CommentItem[], commentId: string, 
 
 export const getCommentsLabel = (commentsCount: number) => {
     if (commentsCount === 0) {
-        return "Be the first to comment on this article.";
+        return "Bądź pierwszą osobą, która skomentuje ten artykuł.";
     }
 
-    return `${commentsCount} comment${commentsCount === 1 ? "" : "s"}`;
+    let suffix = "komentarzy";
+
+    if (commentsCount === 1) {
+        suffix = "komentarz";
+    } else if (commentsCount >= 2 && commentsCount <= 4) {
+        suffix = "komentarze";
+    }
+
+    return `${commentsCount} ${suffix}`;
 };
 
 export const getSessionLabel = (isLoading: boolean, canComment: boolean) => {
     if (isLoading) {
-        return "Checking your session...";
+        return "Sprawdzanie sesji...";
     }
 
     if (canComment) {
         return "";
     }
 
-    return "You need to be signed in to comment.";
+    return "Musisz być zalogowany, aby komentować.";
 };
 
 type CreateRateCommentHandlerParams = {
@@ -61,7 +69,7 @@ export const createRateCommentHandler = ({
     setError,
 }: CreateRateCommentHandlerParams) => (commentId: string, positive: boolean) => {
     if (!accessToken || authError) {
-        setError("You must be signed in to vote");
+        setError("Musisz być zalogowany, aby głosować");
         return;
     }
 
@@ -76,7 +84,7 @@ export const createRateCommentHandler = ({
         } catch (rateError) {
             clearVote(articleId, commentId);
             setComments((currentComments) => updateCommentRating(currentComments, commentId, voteType, -1));
-            setError(rateError instanceof Error ? rateError.message : "Failed to rate comment");
+            setError(rateError instanceof Error ? rateError.message : "Nie udało się ocenić komentarza");
         }
     })();
 };
@@ -113,7 +121,7 @@ export const createSubmitCommentHandler = ({
         setComments((currentComments) => [addedComment, ...currentComments]);
         setContent("");
     } catch (submitError) {
-        setError(submitError instanceof Error ? submitError.message : "Failed to add comment");
+        setError(submitError instanceof Error ? submitError.message : "Nie udało się dodać komentarza");
     } finally {
         setIsSubmitting(false);
     }
