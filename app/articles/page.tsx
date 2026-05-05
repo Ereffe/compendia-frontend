@@ -6,7 +6,7 @@ import ArticleSearchModal from "@/components/articleSearchModal";
 import { authOptions } from "@/lib/auth";
 
 type GraphQLArticle = {
-  id: string,
+  id: string;
   title: string;
   content: string;
   datePosted: string;
@@ -20,14 +20,16 @@ type GraphQLArticle = {
 
 type ArticleSearchItem = {
   title: string;
-  excerpt: string;
   category: string;
   publishedAt: string;
   author: string;
   id: string;
 };
 
-const backendBaseUrl = process.env.BACKEND_URL;
+const backendBaseUrl =
+  process.env.BACKEND_URL ??
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  "http://localhost:8080";
 
 const newestArticlesQuery = `
   query GetNewestArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
@@ -56,26 +58,24 @@ const articleDateFormatter = new Intl.DateTimeFormat("pl-PL", {
 
 const pageIntro = {
   title: "Najnowsze artykuły",
-  description: "Przeglądaj najnowsze wpisy, otwieraj pełne artykuły i wracaj do czytania bez utraty kontekstu.",
+  description:
+    "Przeglądaj najnowsze wpisy, otwieraj pełne artykuły i wracaj do czytania bez utraty kontekstu.",
 };
 
-const trimArticleExcerpt = (content: string) => {
-  const normalizedContent = content.replaceAll(/\s+/g, " ").trim();
-  const excerpt = normalizedContent.slice(0, 120);
-
-  return normalizedContent.length > excerpt.length ? `${excerpt}...` : excerpt;
-};
-
-const mapArticleToSearchItem = (article: GraphQLArticle): ArticleSearchItem => ({
+const mapArticleToSearchItem = (
+  article: GraphQLArticle,
+): ArticleSearchItem => ({
   id: article.id,
   title: article.title,
-  excerpt: trimArticleExcerpt(article.content),
   category: article.subject?.name ?? "Uncategorized",
   publishedAt: articleDateFormatter.format(new Date(article.datePosted)),
   author: article.author?.name ?? "Unknown author",
 });
 
-function ArticleCard({ article, index }: Readonly<{ article: ArticleSearchItem; index: number }>) {
+function ArticleCard({
+  article,
+  index,
+}: Readonly<{ article: ArticleSearchItem; index: number }>) {
   return (
     <Link href={`/articles/${article.id}`} className="contents">
       <article
@@ -88,15 +88,20 @@ function ArticleCard({ article, index }: Readonly<{ article: ArticleSearchItem; 
           </span>
           <span className="text-muted-foreground">{article.publishedAt}</span>
         </div>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">{article.title}</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
-        <p className="mt-4 text-sm font-medium text-foreground/90">By {article.author}</p>
+        <h2 className="mt-4 text-center text-xl font-semibold text-foreground">
+          {article.title}
+        </h2>
+        <p className="mt-4 text-sm font-medium text-foreground/90">
+          By {article.author}
+        </p>
       </article>
     </Link>
   );
 }
 
-function ArticlesGrid({ articles }: Readonly<{ articles: ArticleSearchItem[] }>) {
+function ArticlesGrid({
+  articles,
+}: Readonly<{ articles: ArticleSearchItem[] }>) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {articles.map((article, index) => (
@@ -109,8 +114,12 @@ function ArticlesGrid({ articles }: Readonly<{ articles: ArticleSearchItem[] }>)
 function ArticlesIntro() {
   return (
     <div className="mb-8 fade-in-up" style={{ animationDelay: "80ms" }}>
-      <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">{pageIntro.title}</h1>
-      <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{pageIntro.description}</p>
+      <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">
+        {pageIntro.title}
+      </h1>
+      <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+        {pageIntro.description}
+      </p>
     </div>
   );
 }
@@ -131,7 +140,9 @@ function ArticlesFooter() {
   );
 }
 
-async function getNewestArticles(accessToken: string): Promise<ArticleSearchItem[]> {
+async function getNewestArticles(
+  accessToken: string,
+): Promise<ArticleSearchItem[]> {
   try {
     const response = await fetch(`${backendBaseUrl}/graphql`, {
       method: "POST",
@@ -172,7 +183,9 @@ async function getNewestArticles(accessToken: string): Promise<ArticleSearchItem
 export default async function ArticlesPage() {
   const session = await getServerSession(authOptions);
   const accessToken = session?.accessToken;
-  const hasAccess = Boolean(session?.accessToken) && session?.error !== "RefreshAccessTokenError";
+  const hasAccess =
+    Boolean(session?.accessToken) &&
+    session?.error !== "RefreshAccessTokenError";
 
   if (!hasAccess) {
     redirect("/");
@@ -188,7 +201,10 @@ export default async function ArticlesPage() {
         </div>
       </section>
 
-      <section id="articles" className="relative mx-auto max-w-6xl px-6 pb-14 pt-4 sm:px-8 sm:pb-16 sm:pt-6">
+      <section
+        id="articles"
+        className="relative mx-auto max-w-6xl px-6 pb-14 pt-4 sm:px-8 sm:pb-16 sm:pt-6"
+      >
         <ArticlesIntro />
         <ArticlesGrid articles={newestArticles} />
       </section>

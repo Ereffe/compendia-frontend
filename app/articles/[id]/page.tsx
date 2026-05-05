@@ -1,6 +1,6 @@
-import { authOptions } from '@/lib/auth';
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { redirect, notFound } from "next/navigation";
 import Markdown from "react-markdown";
 import ArticleComments from "@/components/articles/articleComments/articleComments";
 
@@ -68,11 +68,17 @@ query Article($id: String!, $page: Int!, $size: Int!) {
     }
   }
 }
-`
+`;
 
-const backendBaseUrl = process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
+const backendBaseUrl =
+  process.env.BACKEND_URL ??
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  "http://localhost:8080";
 
-async function fetchArticle(id: string, accessToken: string): Promise<Article | null> {
+async function fetchArticle(
+  id: string,
+  accessToken: string,
+): Promise<Article | null> {
   try {
     const response = await fetch(`${backendBaseUrl}/graphql`, {
       method: "POST",
@@ -96,7 +102,9 @@ async function fetchArticle(id: string, accessToken: string): Promise<Article | 
   }
 }
 
-export default async function ArticlePage({ params }: Readonly<{ params: Promise<{ id: string }> }>) {
+export default async function ArticlePage({
+  params,
+}: Readonly<{ params: Promise<{ id: string }> }>) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
 
@@ -105,7 +113,9 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
   }
 
   const article = await fetchArticle(id, session.accessToken);
-  if (!article) return <div>Nie znaleziono artykułu</div>;
+  if (!article) {
+    notFound();
+  }
 
   return (
     <>
@@ -124,10 +134,10 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
             )}
             {article.datePosted && (
               <span className="ml-auto text-xs font-medium text-muted-foreground">
-                {new Date(article.datePosted).toLocaleDateString('pl-PL', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
+                {new Date(article.datePosted).toLocaleDateString("pl-PL", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
                 })}
               </span>
             )}
@@ -150,19 +160,26 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
       </section>
 
       <section className="relative mx-auto max-w-3xl px-6 pb-10 sm:px-8">
-        <ArticleComments articleId={article.id} initialComments={article.comments?.content ?? []} />
+        <ArticleComments
+          articleId={article.id}
+          initialComments={article.comments?.content ?? []}
+        />
       </section>
 
       <footer className="mx-auto max-w-6xl px-6 pb-10 pt-8 sm:px-8">
         <div className="fade-in-up rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-semibold tracking-[0.18em] text-foreground">COMPENDIA</p>
-            <p>Stworzone dla studentów i wykładowców, którzy uczą się lepiej razem.</p>
+            <p className="font-semibold tracking-[0.18em] text-foreground">
+              COMPENDIA
+            </p>
+            <p>
+              Stworzone dla studentów i wykładowców, którzy uczą się lepiej
+              razem.
+            </p>
             <p>© 2026 Compendia</p>
           </div>
         </div>
       </footer>
-
     </>
   );
 }

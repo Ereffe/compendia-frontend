@@ -18,6 +18,10 @@ COPY --from=builder /app/next.config.ts ./next.config.ts
 
 #TODO: add envs
 
+COPY --from=builder /app/.env ./.env
+COPY --from=builder /app/.env.local ./.env.local
+
+
 EXPOSE 3000
 
 CMD ["npm", "start"]

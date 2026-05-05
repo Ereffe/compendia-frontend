@@ -4,12 +4,17 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
 export type ArticleSearchItem = {
   title: string;
-  excerpt: string;
   category: string;
   publishedAt: string;
   author: string;
@@ -20,7 +25,9 @@ type ArticleSearchModalProps = {
   articles: ArticleSearchItem[];
 };
 
-export default function ArticleSearchModal({ articles }: Readonly<ArticleSearchModalProps>) {
+export default function ArticleSearchModal({
+  articles,
+}: Readonly<ArticleSearchModalProps>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -29,7 +36,9 @@ export default function ArticleSearchModal({ articles }: Readonly<ArticleSearchM
     if (!normalizedQuery) return articles;
 
     return articles.filter((article) => {
-      const haystack = [article.title, article.excerpt, article.category, article.author].join(" ").toLowerCase();
+      const haystack = [article.title, article.category, article.author]
+        .join(" ")
+        .toLowerCase();
       return haystack.includes(normalizedQuery);
     });
   }, [articles, query]);
@@ -46,8 +55,12 @@ export default function ArticleSearchModal({ articles }: Readonly<ArticleSearchM
           <Search className="size-5" />
         </span>
         <div className="flex-1">
-          <p className="text-base font-semibold text-foreground sm:text-lg">Szukaj artykułów, tematów lub autorów</p>
-          <p className="mt-1 text-sm text-muted-foreground">Przykład: optymalizacja SQL, planowanie procesów, listy wiązane...</p>
+          <p className="text-base font-semibold text-foreground sm:text-lg">
+            Szukaj artykułów, tematów lub autorów
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Przykład: optymalizacja SQL, planowanie procesów, listy wiązane...
+          </p>
         </div>
         <span className="hidden rounded-lg border border-border/70 bg-background px-2.5 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground sm:inline-block">
           Otwórz
@@ -55,11 +68,17 @@ export default function ArticleSearchModal({ articles }: Readonly<ArticleSearchM
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-full max-w-3xl rounded-2xl border-border p-0 sm:max-w-3xl" showCloseButton>
+        <DialogContent
+          className="w-full max-w-3xl rounded-2xl border-border p-0 sm:max-w-3xl"
+          showCloseButton
+        >
           <DialogHeader className="border-b border-border px-6 pb-4 pt-6 text-left">
-            <DialogTitle className="text-xl font-semibold text-foreground">Wyszukiwanie artykułów</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-foreground">
+              Wyszukiwanie artykułów
+            </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Zacznij pisać, aby filtrować po tytule, kategorii, fragmencie lub autorze.
+              Zacznij pisać, aby filtrować po tytule, kategorii, fragmencie lub
+              autorze.
             </DialogDescription>
           </DialogHeader>
 
@@ -82,15 +101,27 @@ export default function ArticleSearchModal({ articles }: Readonly<ArticleSearchM
                 </div>
               ) : (
                 filteredArticles.map((article) => (
-                  <Link href={`/articles/${article.id}`} className="contents" key={article.id} onClick={() => setOpen(false)}>
+                  <Link
+                    href={`/articles/${article.id}`}
+                    className="block"
+                    key={article.id}
+                    onClick={() => setOpen(false)}
+                  >
                     <article className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-teal-700/30 hover:bg-teal-50/40 dark:hover:bg-teal-950/30">
                       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-widest">
-                        <span className="rounded-full bg-teal-100 px-2 py-0.5 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">{article.category}</span>
-                        <span className="text-muted-foreground">{article.publishedAt}</span>
+                        <span className="rounded-full bg-teal-100 px-2 py-0.5 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">
+                          {article.category}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {article.publishedAt}
+                        </span>
                       </div>
-                      <h3 className="mt-2 text-base font-semibold text-foreground">{article.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
-                      <p className="mt-2 text-xs font-medium text-foreground/90">By {article.author}</p>
+                      <h3 className="mt-2 text-base font-semibold text-foreground">
+                        {article.title}
+                      </h3>
+                      <p className="mt-2 text-xs font-medium text-foreground/90">
+                        By {article.author}
+                      </p>
                     </article>
                   </Link>
                 ))
