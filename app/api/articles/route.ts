@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 
-const backendBaseUrl = process.env.BACKEND_URL;
+const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const addArticleMutation = `
   mutation AddArticle($title: String!, $content: String!, $subjectId: Int!, $complexity: String!) {

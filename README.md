@@ -27,7 +27,7 @@ npm install
 
 Create a local environment file with the values used by the app (to get variables, contact developer in dm)
 
-The frontend reads `BACKEND_URL` directly from `.env.local`.
+The frontend reads `NEXT_PUBLIC_BACKEND_URL` directly from `.env.local`.
 
 Start the development server:
 

@@ -31,7 +31,7 @@ type PaginatedResponse = {
 };
 
 const ARTICLES_PER_PAGE = 12;
-const backendBaseUrl = process.env.BACKEND_URL;
+const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const allArticlesQuery = `
   query GetAllArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {

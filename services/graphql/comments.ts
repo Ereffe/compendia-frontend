@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { CommentItem } from "@/types/comments";
 
-const backendBaseUrl = process.env.BACKEND_URL;
+const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 
 

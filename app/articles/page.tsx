@@ -26,7 +26,7 @@ type ArticleSearchItem = {
   id: string;
 };
 
-const backendBaseUrl = process.env.BACKEND_URL;
+const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const newestArticlesQuery = `
   query GetNewestArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
