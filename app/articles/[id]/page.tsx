@@ -77,10 +77,7 @@ query Article($id: String!, $page: Int!, $size: Int!) {
 }
 `;
 
-const backendBaseUrl =
-  process.env.BACKEND_URL ??
-  process.env.NEXT_PUBLIC_BACKEND_URL ??
-  "http://localhost:8080";
+const backendBaseUrl = process.env.BACKEND_URL;
 
 async function fetchArticle(
   id: string,

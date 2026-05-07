@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Compendia Frontend
 
-## Getting Started
+Compendia is a Next.js app for reading, creating, and discussing educational articles. It connects to the Compendia backend through GraphQL and uses server-rendered pages with client-side interactions for authentication, article search, article creation, and nested comment threads.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js 16 with the App Router
+- React 19 + TypeScript
+- Tailwind CSS 4
+- next-auth for session management
+- GraphQL-based data fetching against the Compendia backend
+- Zustand for client-side vote state
+
+## Requirements
+
+- Node.js 20 or newer
+- npm
+- A running Compendia backend, available by default at `http://localhost:8080`
+
+## Setup
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a local environment file with the values used by the app (to get variables, contact developer in dm)
+
+The frontend reads `BACKEND_URL` directly from `.env.local`.
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - start the development server
+- `npm run build` - create a production build
+- `npm run start` - run the production server
+- `npm run lint` - run ESLint
+- `npm run test` - run Vitest
 
-## Learn More
+## Main Routes
 
-To learn more about Next.js, take a look at the following resources:
+- `/` - landing page with sign-in / sign-up card
+- `/login` - dedicated authentication page
+- `/articles` - newest articles, article search modal, and article cards
+- `/articles/create` - article submission form
+- `/articles/[id]` - single article view with nested comments and replies
+- `/all-articles/[page]` - paginated article archive
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Authentication with next-auth credentials flow
+- Article browsing and search across title, category, and author
+- Markdown article creation form
+- Nested comment threads with inline replies
+- Comment voting with optimistic client-side updates
+- Server-side protected pages that redirect unauthenticated users
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/` - App Router pages, layouts, and API routes
+- `components/` - reusable UI and feature components
+- `components/articles/` - article-specific UI and controllers
+- `services/graphql/` - GraphQL requests and mappers
+- `hooks/` - shared client hooks and stores
+- `lib/` - auth and utility helpers
+- `types/` - shared TypeScript types

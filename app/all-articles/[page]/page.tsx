@@ -31,10 +31,7 @@ type PaginatedResponse = {
 };
 
 const ARTICLES_PER_PAGE = 12;
-const backendBaseUrl =
-  process.env.BACKEND_URL ??
-  process.env.NEXT_PUBLIC_BACKEND_URL ??
-  "http://localhost:8080";
+const backendBaseUrl = process.env.BACKEND_URL;
 
 const allArticlesQuery = `
   query GetAllArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
@@ -239,7 +236,7 @@ export default async function AllArticlesPage({
   }
 
   // Parse page number (1-indexed from URL, 0-indexed for API)
-  const page = Math.max(0, parseInt(pageStr, 10) - 1);
+  const page = Math.max(0, Number.parseInt(pageStr, 10) - 1);
 
   // Fetch articles
   const data = await fetchArticles(page, session.accessToken);

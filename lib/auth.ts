@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const backendBaseUrl = process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
+const backendBaseUrl = process.env.BACKEND_URL;
 
 const refreshTokenGraceMs = 5_000;
 
@@ -10,7 +10,7 @@ const parseTokenExpiryMs = (token: string): number | null => {
     const [, payloadSegment] = token.split(".");
     if (!payloadSegment) return null;
 
-    const normalized = payloadSegment.replace(/-/g, "+").replace(/_/g, "/");
+    const normalized = payloadSegment.replaceAll("-", "+").replaceAll("_", "/");
     const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
     const payload = JSON.parse(Buffer.from(padded, "base64").toString("utf-8")) as { exp?: number };
 
