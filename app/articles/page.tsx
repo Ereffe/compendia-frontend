@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import ArticleSearchModal from "@/components/articleSearchModal";
+import ArticleSearchModal from "@/components/articleSearchModal/articleSearchModal";
 import { authOptions } from "@/lib/auth";
 
 type GraphQLArticle = {

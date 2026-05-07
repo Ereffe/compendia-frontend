@@ -8,18 +8,85 @@ type VoteType = "positive" | "negative";
 type SetVote = (articleId: string, commentId: string, voteType: VoteType) => void;
 type ClearVote = (articleId: string, commentId: string) => void;
 
-export const updateCommentRating = (comments: CommentItem[], commentId: string, voteType: VoteType, delta: 1 | -1) =>
-    comments.map((comment) =>
-        comment.id === commentId
-            ? {
+const normalizeComment = (comment: CommentItem): CommentItem => ({
+    ...comment,
+    replies: [],
+});
+
+export const buildCommentTree = (comments: CommentItem[]): CommentItem[] => {
+    const commentById = new Map<string, CommentItem>();
+    const roots: CommentItem[] = [];
+
+    for (const comment of comments) {
+        commentById.set(comment.id, normalizeComment(comment));
+    }
+
+    for (const comment of comments) {
+        const normalizedComment = commentById.get(comment.id);
+        if (!normalizedComment) {
+            continue;
+        }
+
+        const parentCommentId = normalizedComment.parentCommentId;
+        if (!parentCommentId) {
+            roots.push(normalizedComment);
+            continue;
+        }
+
+        const parent = commentById.get(parentCommentId);
+        if (!parent) {
+            roots.push(normalizedComment);
+            continue;
+        }
+
+        parent.replies = [...(parent.replies ?? []), normalizedComment];
+    }
+
+    return roots;
+};
+
+export const countComments = (comments: CommentItem[]): number =>
+    comments.reduce((total, comment) => total + 1 + countComments(comment.replies ?? []), 0);
+
+export const updateCommentRating = (
+    comments: CommentItem[],
+    commentId: string,
+    voteType: VoteType,
+    delta: 1 | -1
+): CommentItem[] =>
+    comments.map((comment) => {
+        const updatedReplies = comment.replies ? updateCommentRating(comment.replies, commentId, voteType, delta) : undefined;
+        if (comment.id === commentId) {
+            return {
                 ...comment,
                 rating: {
                     ...comment.rating,
                     [voteType]: comment.rating[voteType] + delta,
                 },
-            }
-            : comment
-    );
+                replies: updatedReplies,
+            };
+        }
+
+        return {
+            ...comment,
+            replies: updatedReplies,
+        };
+    });
+
+export const insertReply = (comments: CommentItem[], parentCommentId: string, reply: CommentItem): CommentItem[] =>
+    comments.map((comment) => {
+        if (comment.id === parentCommentId) {
+            return {
+                ...comment,
+                replies: [reply, ...(comment.replies ?? [])],
+            };
+        }
+
+        return {
+            ...comment,
+            replies: comment.replies ? insertReply(comment.replies, parentCommentId, reply) : [],
+        };
+    });
 
 export const getCommentsLabel = (commentsCount: number) => {
     if (commentsCount === 0) {
@@ -92,37 +159,52 @@ export const createRateCommentHandler = ({
 type CreateSubmitCommentHandlerParams = {
     articleId: string;
     canComment: boolean;
-    isSubmitting: boolean;
     setComments: Dispatch<SetStateAction<CommentItem[]>>;
-    setContent: Dispatch<SetStateAction<string>>;
     setIsSubmitting: Dispatch<SetStateAction<boolean>>;
     setError: Dispatch<SetStateAction<string | null>>;
+};
+
+type SubmitCommentParams = {
+    content: string;
+    isSubmitting: boolean;
+    parentCommentId?: string;
 };
 
 export const createSubmitCommentHandler = ({
     articleId,
     canComment,
-    isSubmitting,
     setComments,
-    setContent,
     setIsSubmitting,
     setError,
-}: CreateSubmitCommentHandlerParams) => async (content: string) => {
-    const trimmedContent = content.trim();
-    if (!trimmedContent || !canComment || isSubmitting) {
-        return;
-    }
+}: CreateSubmitCommentHandlerParams) => async ({
+    content,
+    isSubmitting,
+    parentCommentId,
+}: SubmitCommentParams) => {
+        const trimmedContent = content.trim();
+        if (!trimmedContent || !canComment || isSubmitting) {
+            return false;
+        }
 
-    setIsSubmitting(true);
-    setError(null);
+        setIsSubmitting(true);
+        setError(null);
 
-    try {
-        const addedComment = await addComment(articleId, trimmedContent);
-        setComments((currentComments) => [addedComment, ...currentComments]);
-        setContent("");
-    } catch (submitError) {
-        setError(submitError instanceof Error ? submitError.message : "Nie udało się dodać komentarza");
-    } finally {
-        setIsSubmitting(false);
-    }
-};
+        try {
+            const addedComment = await addComment(articleId, trimmedContent, parentCommentId ?? null);
+
+            setComments((currentComments) => {
+                if (parentCommentId) {
+                    return insertReply(currentComments, parentCommentId, addedComment);
+                }
+
+                return [addedComment, ...currentComments];
+            });
+
+            return true;
+        } catch (submitError) {
+            setError(submitError instanceof Error ? submitError.message : "Nie udało się dodać komentarza");
+            return false;
+        } finally {
+            setIsSubmitting(false);
+        }
+    };

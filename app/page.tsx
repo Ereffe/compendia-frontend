@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import LoginCard from "@/components/loginCard";
+import LoginCard from "@/components/loginCard/loginCard";
 import { authOptions } from "@/lib/auth";
 
 const landingHighlights = [

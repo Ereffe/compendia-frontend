@@ -1,8 +1,12 @@
 "use client";
 
-import { type SyntheticEvent, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, signIn } from "next-auth/react";
+import {
+  createHandleCredentialsSignIn,
+  getActionLabel,
+  getDescriptionLabel,
+} from "./loginCardController";
 
 export default function LoginCard() {
   const router = useRouter();
@@ -12,59 +16,19 @@ export default function LoginCard() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const actionLabel = mode === "login" ? "Zaloguj się" : "Zarejestruj się";
 
-  const handleCredentialsSignIn = (event: SyntheticEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (isLoading) {
-      return;
-    }
-
-    if (!email || !password || (mode === "signin" && !name.trim())) {
-      setError(mode === "signin" ? "Wpisz imię, e-mail i hasło." : "Wpisz e-mail i hasło.");
-      return;
-    }
-
-    setError(null);
-    setIsLoading(true);
-
-    void (async () => {
-      try {
-        const response = await signIn("credentials", {
-          mode,
-          name: name.trim(),
-          email,
-          password,
-          callbackUrl: "/articles",
-          redirect: false,
-        });
-
-        if (response?.ok || response?.url) {
-          router.replace("/articles");
-          router.refresh();
-          return;
-        }
-
-        const session = await getSession();
-        if (session) {
-          router.replace("/articles");
-          router.refresh();
-          return;
-        }
-
-        if (response?.error === "CredentialsSignin") {
-          setError(mode === "signin" ? "Rejestracja nie powiodła się. Spróbuj innego e-maila albo sprawdź logi backendu." : "Nieprawidłowy e-mail lub hasło.");
-        } else {
-          setError(response?.error ?? "Nieprawidłowy e-mail lub hasło.");
-        }
-      } catch {
-        setError("Żądanie nie powiodło się. Sprawdź adres backendu i status serwera.");
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  };
+  const actionLabel = getActionLabel(mode);
+  const descriptionLabel = getDescriptionLabel(mode);
+  const handleCredentialsSignIn = createHandleCredentialsSignIn({
+    mode,
+    email,
+    password,
+    name,
+    isLoading,
+    setError,
+    setIsLoading,
+    router,
+  });
 
   return (
     <section className="w-full max-w-md rounded-3xl border border-border/70 bg-card/85 p-6 shadow-[0_20px_80px_-42px_rgba(15,23,42,0.7)] backdrop-blur sm:p-8">
@@ -90,9 +54,7 @@ export default function LoginCard() {
       </div>
 
       <h1 className="mt-3 text-3xl font-bold text-foreground">{actionLabel}</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        {mode === "login" ? "Wpisz e-mail i hasło, aby kontynuować." : "Utwórz konto, podając imię, e-mail i hasło."}
-      </p>
+      <p className="mt-2 text-sm text-muted-foreground">{descriptionLabel}</p>
 
       <form onSubmit={handleCredentialsSignIn} className="mt-6 space-y-3">
         {mode === "signin" ? (

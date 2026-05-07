@@ -29,6 +29,9 @@ mutation AddComment($articleId: ID!, $content: String!, $parentCommentId: Int) {
       positive
       negative
     }
+        parentComment {
+            id
+        }
   }
 }
 `;
@@ -57,7 +60,23 @@ export async function rateComment(commentId: string, positive: boolean) {
     }
 }
 
-export async function addComment(articleId: string, trimmedContent: string) {
+type GraphqlCommentItem = Omit<CommentItem, "parentCommentId" | "replies"> & {
+    parentComment?: {
+        id: string;
+    } | null;
+};
+
+const mapGraphqlCommentToCommentItem = (comment: GraphqlCommentItem): CommentItem => ({
+    id: comment.id,
+    content: comment.content,
+    datePosted: comment.datePosted,
+    editedAt: comment.editedAt,
+    user: comment.user,
+    rating: comment.rating,
+    parentCommentId: comment.parentComment?.id ?? null,
+});
+
+export async function addComment(articleId: string, trimmedContent: string, parentCommentId: string | null = null) {
     const response = await fetch(`${backendBaseUrl}/graphql`, {
         method: "POST",
         headers: buildHeaders(),
@@ -67,17 +86,20 @@ export async function addComment(articleId: string, trimmedContent: string) {
             variables: {
                 articleId,
                 content: trimmedContent,
-                parentCommentId: null,
+                parentCommentId: parentCommentId ? Number.parseInt(parentCommentId) : null,
             },
         }),
     });
 
-    const payload = (await response.json()) as { data?: { addComment?: CommentItem }; errors?: Array<{ message?: string }> };
+    const payload = (await response.json()) as {
+        data?: { addComment?: GraphqlCommentItem };
+        errors?: Array<{ message?: string }>;
+    };
     const addedComment = payload.data?.addComment;
 
     if (!response.ok || !addedComment) {
         throw new Error(payload.errors?.[0]?.message ?? "Failed to add comment");
     }
 
-    return addedComment;
+    return mapGraphqlCommentToCommentItem(addedComment);
 }

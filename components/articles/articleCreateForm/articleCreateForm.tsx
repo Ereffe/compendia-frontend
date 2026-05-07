@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type SyntheticEvent, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -9,11 +9,11 @@ import { Input } from "@/components/ui/input";
 import MDEditor from "@uiw/react-md-editor";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
-
-type CreatedArticle = {
-  id: string;
-  title: string;
-};
+import {
+  createHandleArticleSubmit,
+  getComplexityOptions,
+  getFormSubmitLabel,
+} from "./articleCreateFormController";
 
 export default function ArticleCreateForm() {
   const router = useRouter();
@@ -31,67 +31,17 @@ export default function ArticleCreateForm() {
     setIsMounted(true);
   }, []);
 
-  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const trimmedTitle = title.trim();
-    const trimmedContent = content.trim();
-    const parsedSubjectId = Number.parseInt(subjectId, 10);
-
-    if (
-      !trimmedTitle ||
-      !trimmedContent ||
-      Number.isNaN(parsedSubjectId) ||
-      parsedSubjectId <= 0
-    ) {
-      setError("Uzupełnij tytuł, treść i poprawny Subject ID.");
-      return;
-    }
-
-    if (isSubmitting) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const response = await fetch("/api/articles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: trimmedTitle,
-          content: trimmedContent,
-          subjectId: parsedSubjectId,
-          complexity,
-        }),
-      });
-
-      const payload = (await response.json()) as {
-        article?: CreatedArticle;
-        error?: string;
-      };
-
-      if (!response.ok || !payload.article) {
-        throw new Error(payload.error ?? "Nie udało się utworzyć artykułu.");
-      }
-
-      setSuccess("Artykuł został utworzony.");
-      router.push(`/articles/${payload.article.id}`);
-      router.refresh();
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Nie udało się utworzyć artykułu.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const handleSubmit = createHandleArticleSubmit({
+    title,
+    content,
+    subjectId,
+    complexity,
+    isSubmitting,
+    setIsSubmitting,
+    setError,
+    setSuccess,
+    router,
+  });
 
   return (
     <form
@@ -177,9 +127,11 @@ export default function ArticleCreateForm() {
               onChange={(event) => setComplexity(event.target.value)}
               className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
             >
-              <option value="SIMPLE">Proste</option>
-              <option value="INTERMEDIATE">Średnie</option>
-              <option value="COMPLEX">Zaawansowane</option>
+              {getComplexityOptions().map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -194,7 +146,7 @@ export default function ArticleCreateForm() {
             disabled={isSubmitting}
             className="w-full sm:w-auto"
           >
-            {isSubmitting ? "Tworzenie..." : "Utwórz artykuł"}
+            {getFormSubmitLabel(isSubmitting)}
           </Button>
         </div>
 

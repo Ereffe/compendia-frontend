@@ -1,6 +1,6 @@
 "use client";
 
-import LoginCard from "@/components/loginCard";
+import LoginCard from "@/components/loginCard/loginCard";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function LoginModal() {

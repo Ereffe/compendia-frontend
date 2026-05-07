@@ -2,7 +2,8 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import Markdown from "react-markdown";
-import ArticleComments from "@/components/articles/articleComments/articleComments";
+import ArticleComments from "../../../components/articles/articleComments/articleComments";
+import type { CommentItem } from "@/types/comments";
 
 interface Article {
   id: string;
@@ -21,11 +22,14 @@ interface Article {
   } | null;
 }
 
-interface CommentItem {
+interface GraphqlCommentItem {
   id: string;
   content: string;
   datePosted: string;
   editedAt?: string | null;
+  parentComment?: {
+    id: string;
+  } | null;
   user: {
     id: string;
     name: string;
@@ -57,6 +61,9 @@ query Article($id: String!, $page: Int!, $size: Int!) {
         rating {
           positive
           negative
+        }
+        parentComment {
+          id
         }
       }
     }
@@ -95,8 +102,38 @@ async function fetchArticle(
 
     if (!response.ok) return null;
 
-    const payload = (await response.json()) as { data?: { article?: Article } };
-    return payload.data?.article ?? null;
+    const payload = (await response.json()) as {
+      data?: {
+        article?: Omit<Article, "comments"> & {
+          comments?: {
+            content: GraphqlCommentItem[];
+          };
+        };
+      };
+    };
+
+    const article = payload.data?.article;
+    if (!article) {
+      return null;
+    }
+
+    const normalizedComments: CommentItem[] =
+      article.comments?.content.map((comment) => ({
+        id: comment.id,
+        content: comment.content,
+        datePosted: comment.datePosted,
+        editedAt: comment.editedAt,
+        parentCommentId: comment.parentComment?.id ?? null,
+        user: comment.user,
+        rating: comment.rating,
+      })) ?? [];
+
+    return {
+      ...article,
+      comments: {
+        content: normalizedComments,
+      },
+    };
   } catch {
     return null;
   }

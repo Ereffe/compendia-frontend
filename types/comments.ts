@@ -3,6 +3,7 @@ export type CommentItem = {
     content: string;
     datePosted: string;
     editedAt?: string | null;
+    parentCommentId?: string | null;
     user: {
         id: string;
         name: string;
@@ -11,4 +12,5 @@ export type CommentItem = {
         positive: number;
         negative: number;
     };
+    replies?: CommentItem[];
 };

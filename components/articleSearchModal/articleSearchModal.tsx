@@ -12,14 +12,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-
-export type ArticleSearchItem = {
-  title: string;
-  category: string;
-  publishedAt: string;
-  author: string;
-  id: string;
-};
+import {
+  type ArticleSearchItem,
+  filterArticles,
+  getNoResultsMessage,
+  getSearchButtonLabel,
+  getSearchExample,
+  getSearchPlaceholder,
+} from "./articleSearchModalController";
 
 type ArticleSearchModalProps = {
   articles: ArticleSearchItem[];
@@ -31,17 +31,7 @@ export default function ArticleSearchModal({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
-  const filteredArticles = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return articles;
-
-    return articles.filter((article) => {
-      const haystack = [article.title, article.category, article.author]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(normalizedQuery);
-    });
-  }, [articles, query]);
+  const filteredArticles = useMemo(() => filterArticles(articles, query), [articles, query]);
 
   return (
     <>
@@ -56,10 +46,10 @@ export default function ArticleSearchModal({
         </span>
         <div className="flex-1">
           <p className="text-base font-semibold text-foreground sm:text-lg">
-            Szukaj artykułów, tematów lub autorów
+            {getSearchButtonLabel()}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Przykład: optymalizacja SQL, planowanie procesów, listy wiązane...
+            {getSearchExample()}
           </p>
         </div>
         <span className="hidden rounded-lg border border-border/70 bg-background px-2.5 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground sm:inline-block">
@@ -88,7 +78,7 @@ export default function ArticleSearchModal({
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Szukaj artykułów..."
+                placeholder={getSearchPlaceholder()}
                 className="h-11 rounded-xl border-border pl-10 text-sm"
                 autoFocus
               />
@@ -97,7 +87,7 @@ export default function ArticleSearchModal({
             <div className="mt-4 max-h-[52vh] space-y-3 overflow-y-auto pr-1">
               {filteredArticles.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-border bg-muted/40 p-6 text-center text-sm text-muted-foreground">
-                  Nie znaleziono artykułów dla tego zapytania.
+                  {getNoResultsMessage()}
                 </div>
               ) : (
                 filteredArticles.map((article) => (
