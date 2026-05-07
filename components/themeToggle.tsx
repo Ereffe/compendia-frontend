@@ -11,11 +11,11 @@ export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
+    const frame = globalThis.requestAnimationFrame(() => {
       setMounted(true);
     });
 
-    return () => window.cancelAnimationFrame(frame);
+    return () => globalThis.cancelAnimationFrame(frame);
   }, []);
 
   const isDark = mounted && resolvedTheme === "dark";
