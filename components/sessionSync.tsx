@@ -13,7 +13,7 @@ export default function SessionSync() {
             setLoading(true);
         } else if (status === "authenticated" && session) {
             setUser(session.user);
-            setAccessToken((session as any).accessToken || null);
+            setAccessToken((session).accessToken || null);
             setLoading(false);
             setError(null);
         } else if (status === "unauthenticated") {
@@ -23,7 +23,7 @@ export default function SessionSync() {
             setError(null);
         }
 
-        if ((session as any)?.error === "RefreshAccessTokenError") {
+        if ((session)?.error === "RefreshAccessTokenError") {
             setError("Sesja wygasła. Zaloguj się ponownie.");
         }
     }, [session, status, setUser, setAccessToken, setLoading, setError]);

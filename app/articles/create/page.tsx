@@ -5,13 +5,6 @@ import { redirect } from "next/navigation";
 import ArticleCreateForm from "@/components/articles/articleCreateForm/articleCreateForm";
 import { authOptions } from "@/lib/auth";
 
-const creationTips = [
-  "Tytuł powinien być jasny i opisowy – ułatwia znalezienie artykułu innym użytkownikom.",
-  "Zacznij od krótkiego wprowadzenia, a następnie podziel treść na logiczne sekcje.",
-  "Używaj formatowania Markdown do wyróżnienia ważnych elementów i poprawy czytelności.",
-  "Wybierz poprawny poziom zaawansowania – pomoże to innym w wyborze odpowiedniego materiału.",
-];
-
 export default async function CreateArticlePage() {
   const session = await getServerSession(authOptions);
   const hasAccess =

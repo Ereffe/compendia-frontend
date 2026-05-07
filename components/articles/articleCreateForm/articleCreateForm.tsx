@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ import {
 export default function ArticleCreateForm() {
   const router = useRouter();
   const { theme } = useTheme();
-  const [isMounted, setIsMounted] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [subjectId, setSubjectId] = useState("1");
@@ -27,9 +26,7 @@ export default function ArticleCreateForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+
 
   const handleSubmit = createHandleArticleSubmit({
     title,
@@ -72,28 +69,23 @@ export default function ArticleCreateForm() {
           >
             Treść
           </label>
-          {isMounted && (
-            <div
-              className="rounded-xl border border-border overflow-hidden"
-              data-color-mode={theme || "light"}
-            >
-              <MDEditor
-                value={content}
-                onChange={(value) => setContent(value ?? "")}
-                preview="live"
-                height={288}
-                visibleDragbar={false}
-                hideToolbar={false}
-                textareaProps={{
-                  placeholder: "Rozpocznij pisać markdown...",
-                }}
-                className="bg-background text-sm"
-              />
-            </div>
-          )}
-          {!isMounted && (
-            <div className="min-h-72 rounded-xl border border-border bg-background" />
-          )}
+          <div
+            className="rounded-xl border border-border overflow-hidden"
+            data-color-mode={theme || "light"}
+          >
+            <MDEditor
+              value={content}
+              onChange={(value) => setContent(value ?? "")}
+              preview="live"
+              height={288}
+              visibleDragbar={false}
+              hideToolbar={false}
+              textareaProps={{
+                placeholder: "Rozpocznij pisać markdown...",
+              }}
+              className="bg-background text-sm"
+            />
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

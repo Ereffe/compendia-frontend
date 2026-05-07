@@ -135,7 +135,7 @@ function PaginationControls({
     const halfWindow = Math.floor(maxVisible / 2);
 
     let startPage = Math.max(0, currentPage - halfWindow);
-    let endPage = Math.min(totalPages - 1, startPage + maxVisible - 1);
+    const endPage = Math.min(totalPages - 1, startPage + maxVisible - 1);
 
     if (endPage - startPage < maxVisible - 1) {
       startPage = Math.max(0, endPage - maxVisible + 1);
