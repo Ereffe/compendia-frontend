@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import ArticleCreateForm from "@/components/articles/articleCreateForm/articleCreateForm";
+import ArticleCreateContainer from "@/components/articles/articleCreateContainer";
 import { authOptions } from "@/lib/auth";
 
 export default async function CreateArticlePage() {
@@ -41,7 +41,7 @@ export default async function CreateArticlePage() {
       </div>
 
       <div className="fade-in-up space-y-6" style={{ animationDelay: "80ms" }}>
-        <ArticleCreateForm />
+        <ArticleCreateContainer />
       </div>
     </section>
   );

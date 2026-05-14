@@ -194,7 +194,6 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
             <article
                 key={comment.id}
                 className="rounded-2xl border border-border bg-background p-4"
-                style={{ marginLeft: depth === 0 ? 0 : Math.min(depth, 5) * 16 }}
             >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>

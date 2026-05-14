@@ -10,6 +10,7 @@ type CreateHandleArticleSubmitParams = {
     title: string;
     content: string;
     subjectId: string;
+    references?: Array<string>;
     complexity: string;
     isSubmitting: boolean;
     setIsSubmitting: Dispatch<SetStateAction<boolean>>;
@@ -49,6 +50,7 @@ export const createHandleArticleSubmit =
         title,
         content,
         subjectId,
+        references = [],
         complexity,
         isSubmitting,
         setIsSubmitting,
@@ -84,8 +86,17 @@ export const createHandleArticleSubmit =
                         content: content.trim(),
                         subjectId: Number.parseInt(subjectId, 10),
                         complexity,
+                        references,
                     }),
                 });
+
+                console.log(JSON.stringify({
+                    title: title.trim(),
+                    content: content.trim(),
+                    subjectId: Number.parseInt(subjectId, 10),
+                    complexity,
+                    references,
+                }),)
 
                 const payload = (await response.json()) as {
                     article?: CreatedArticle;
