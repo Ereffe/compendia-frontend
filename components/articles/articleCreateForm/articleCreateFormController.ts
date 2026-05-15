@@ -7,6 +7,7 @@ export type CreatedArticle = {
 };
 
 type CreateHandleArticleSubmitParams = {
+    isScientific?: boolean;
     title: string;
     content: string;
     subjectId: string;
@@ -47,6 +48,7 @@ export const getFormSubmitLabel = (isSubmitting: boolean): string => {
 
 export const createHandleArticleSubmit =
     ({
+        isScientific,
         title,
         content,
         subjectId,
@@ -96,7 +98,7 @@ export const createHandleArticleSubmit =
                     subjectId: Number.parseInt(subjectId, 10),
                     complexity,
                     references,
-                }),)
+                }),);
 
                 const payload = (await response.json()) as {
                     article?: CreatedArticle;

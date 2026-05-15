@@ -29,6 +29,7 @@ export default function ArticleCreateForm() {
 
 
   const handleSubmit = createHandleArticleSubmit({
+    isScientific: false,
     title,
     content,
     subjectId,

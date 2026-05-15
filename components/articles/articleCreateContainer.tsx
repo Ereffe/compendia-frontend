@@ -10,7 +10,7 @@ export default function ArticleCreateContainer() {
 
     return (
         <>
-            <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-white px-4 py-2 hover:bg-muted/50">
+            <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-card/80 px-4 py-2 hover:bg-muted/50">
                 <Checkbox
                     id="scientific-article"
                     checked={isScientificArticle}

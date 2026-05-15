@@ -19,6 +19,7 @@ export default function ArticleScientificCreateForm() {
     const router = useRouter();
     const { theme } = useTheme();
     const [title, setTitle] = useState("");
+    const [doi, setDoi] = useState("");
     const [content, setContent] = useState("");
     const [subjectId, setSubjectId] = useState("1");
     const [complexity, setComplexity] = useState("SIMPLE");
@@ -29,9 +30,11 @@ export default function ArticleScientificCreateForm() {
 
 
     const handleSubmit = createHandleArticleSubmit({
+        isScientific: true,
         title,
         content,
         subjectId,
+        references: [doi],
         complexity,
         isSubmitting,
         setIsSubmitting,
@@ -72,8 +75,8 @@ export default function ArticleScientificCreateForm() {
                     <Input
                         id="doi"
 
-                        value={title}
-                        onChange={(event) => setTitle(event.target.value)}
+                        value={doi}
+                        onChange={(event) => setDoi(event.target.value)}
                         placeholder="Np. 10.1234/56789"
                         className="h-11 rounded-xl border-border bg-background text-sm"
                     />

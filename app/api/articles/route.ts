@@ -6,8 +6,8 @@ import { authOptions } from "@/lib/auth";
 const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const addArticleMutation = `
-  mutation AddArticle($title: String!, $content: String!, $subjectId: Int!, $complexity: String!) {
-    addArticle(title: $title, content: $content, subjectId: $subjectId, complexity: $complexity) {
+  mutation AddArticle($title: String!, $content: String!, $subjectId: Int!, $complexity: String!, $references: [String!]!) {
+    addArticle(title: $title, content: $content, subjectId: $subjectId, complexity: $complexity, references: $references) {
       id
       title
     }
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
         content?: string;
         subjectId?: number;
         complexity?: string;
+        references?: Array<string>;
     };
 
     try {
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
     const content = body.content?.trim();
     const subjectId = body.subjectId;
     const complexity = body.complexity?.trim();
+    const references = body.references ?? [];
 
     if (!title || !content || !Number.isInteger(subjectId) || !complexity) {
         return NextResponse.json({ error: "Uzupełnij wszystkie pola formularza." }, { status: 400 });
@@ -58,6 +60,7 @@ export async function POST(request: Request) {
                 content,
                 subjectId,
                 complexity,
+                references,
             },
         }),
     });

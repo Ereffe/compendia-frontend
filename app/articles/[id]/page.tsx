@@ -20,6 +20,13 @@ interface Article {
   subject?: {
     name: string;
   } | null;
+  references?: Array<{
+    doi: string;
+    title: string;
+    authors: string;
+    description: string;
+    url: string;
+  }>;
 }
 
 interface GraphqlCommentItem {
@@ -38,6 +45,7 @@ interface GraphqlCommentItem {
     positive: number;
     negative: number;
   };
+
 }
 
 const articleQuery = `
@@ -66,6 +74,14 @@ query Article($id: String!, $page: Int!, $size: Int!) {
           id
         }
       }
+    }
+    tags
+    references {
+      doi
+      title
+      authors
+      description
+      url
     }
     author {
       name
@@ -191,6 +207,41 @@ export default async function ArticlePage({
             <Markdown>{article.content}</Markdown>
           </div>
         </article>
+      </section>
+      <section className="mx-auto max-w-3xl px-6 py-2 sm:px-8 sm:py-4">
+        {article.references && article.references.length > 0 && (
+          <div className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
+            <h2 className="mb-4 text-2xl font-bold leading-tight text-foreground">
+              Źródła
+            </h2>
+            <ul className="list-disc list-inside space-y-3 text-muted-foreground">
+              {article.references.map((reference) => (
+                <li key={reference.doi}>
+                  <a
+                    href={reference.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-teal-600 hover:underline"
+                  >
+                    {reference.title}
+                  </a>
+                  <p className="text-sm text-muted-foreground">
+                    {reference.authors}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {reference.description}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    DOI: {reference.doi}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    URL: {reference.url}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       <section className="relative mx-auto max-w-3xl px-6 pb-10 sm:px-8">
