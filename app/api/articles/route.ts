@@ -5,6 +5,8 @@ import { authOptions } from "@/lib/auth";
 
 const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+
+//TODO: Remove subjectID when backend will implement it
 const addArticleMutation = `
   mutation AddArticle($title: String!, $content: String!, $subjectId: Int!, $complexity: String!, $references: [String!]!) {
     addArticle(title: $title, content: $content, subjectId: $subjectId, complexity: $complexity, references: $references) {
@@ -38,7 +40,7 @@ export async function POST(request: Request) {
 
     const title = body.title?.trim();
     const content = body.content?.trim();
-    const subjectId = body.subjectId;
+    const subjectId = 1;
     const complexity = body.complexity?.trim();
     const references = body.references ?? [];
 

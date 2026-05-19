@@ -21,7 +21,6 @@ export default function ArticleScientificCreateForm() {
     const [title, setTitle] = useState("");
     const [doi, setDoi] = useState("");
     const [content, setContent] = useState("");
-    const [subjectId, setSubjectId] = useState("1");
     const [complexity, setComplexity] = useState("SIMPLE");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -33,7 +32,6 @@ export default function ArticleScientificCreateForm() {
         isScientific: true,
         title,
         content,
-        subjectId,
         references: [doi],
         complexity,
         isSubmitting,
@@ -109,23 +107,6 @@ export default function ArticleScientificCreateForm() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="grid gap-2">
-                        <label
-                            htmlFor="subjectId"
-                            className="text-sm font-medium text-foreground/90"
-                        >
-                            Id przemiotu (Subject ID)
-                        </label>
-                        <Input
-                            id="subjectId"
-                            type="number"
-                            min="1"
-                            value={subjectId}
-                            onChange={(event) => setSubjectId(event.target.value)}
-                            className="h-11 rounded-xl border-border bg-background text-sm"
-                        />
-                    </div>
-
                     <div className="grid gap-2">
                         <label
                             htmlFor="complexity"

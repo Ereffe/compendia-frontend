@@ -10,7 +10,6 @@ type CreateHandleArticleSubmitParams = {
     isScientific?: boolean;
     title: string;
     content: string;
-    subjectId: string;
     references?: Array<string>;
     complexity: string;
     isSubmitting: boolean;
@@ -23,14 +22,12 @@ type CreateHandleArticleSubmitParams = {
 export const validateArticleFormInputs = (
     title: string,
     content: string,
-    subjectId: string,
 ): string | null => {
     const trimmedTitle = title.trim();
     const trimmedContent = content.trim();
-    const parsedSubjectId = Number.parseInt(subjectId, 10);
 
-    if (!trimmedTitle || !trimmedContent || Number.isNaN(parsedSubjectId) || parsedSubjectId <= 0) {
-        return "Uzupełnij tytuł, treść i poprawny Subject ID.";
+    if (!trimmedTitle || !trimmedContent) {
+        return "Uzupełnij tytuł i treść.";
     }
 
     return null;
@@ -51,7 +48,6 @@ export const createHandleArticleSubmit =
         isScientific,
         title,
         content,
-        subjectId,
         references = [],
         complexity,
         isSubmitting,
@@ -63,7 +59,7 @@ export const createHandleArticleSubmit =
         async (event: React.SyntheticEvent<HTMLFormElement>) => {
             event.preventDefault();
 
-            const validationError = validateArticleFormInputs(title, content, subjectId);
+            const validationError = validateArticleFormInputs(title, content);
             if (validationError) {
                 setError(validationError);
                 return;
@@ -86,7 +82,6 @@ export const createHandleArticleSubmit =
                     body: JSON.stringify({
                         title: title.trim(),
                         content: content.trim(),
-                        subjectId: Number.parseInt(subjectId, 10),
                         complexity,
                         references,
                     }),
@@ -95,7 +90,6 @@ export const createHandleArticleSubmit =
                 console.log(JSON.stringify({
                     title: title.trim(),
                     content: content.trim(),
-                    subjectId: Number.parseInt(subjectId, 10),
                     complexity,
                     references,
                 }),);
