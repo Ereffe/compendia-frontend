@@ -17,9 +17,6 @@ type GraphQLArticle = {
   id: string;
   title: string;
   datePosted: string;
-  subject?: {
-    name: string;
-  } | null;
 };
 
 type PaginatedResponse = {
@@ -40,9 +37,6 @@ const allArticlesQuery = `
         id
         title
         datePosted
-        subject {
-          name
-        }
       }
       totalPages
       totalElements
@@ -107,9 +101,6 @@ function ArticleCard({
         style={{ animationDelay: `${index * 30}ms` }}
       >
         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
-          <span className="rounded-full bg-teal-100 px-2.5 py-1 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">
-            {article.subject?.name ?? "Uncategorized"}
-          </span>
           <span className="text-muted-foreground">
             {articleDateFormatter.format(new Date(article.datePosted))}
           </span>

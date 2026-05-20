@@ -17,9 +17,6 @@ interface Article {
   author?: {
     name: string;
   } | null;
-  subject?: {
-    name: string;
-  } | null;
   references?: Array<{
     doi: string;
     title: string;
@@ -86,9 +83,6 @@ query Article($id: String!, $page: Int!, $size: Int!) {
     author {
       name
     }
-    subject {
-      name
-    }
   }
 }
 `;
@@ -100,6 +94,8 @@ async function fetchArticle(
   accessToken: string,
 ): Promise<Article | null> {
   try {
+    console.log("Fetching article with ID:", id);
+
     const response = await fetch(`${backendBaseUrl}/graphql`, {
       method: "POST",
       headers: {
@@ -113,7 +109,18 @@ async function fetchArticle(
       }),
     });
 
-    if (!response.ok) return null;
+    // Log response status for diagnostics (server-side)
+    console.log("Fetching article from backend:", `${backendBaseUrl}/graphql`, "status:", response.status);
+
+    if (!response.ok) {
+      try {
+        const text = await response.text();
+        console.error("GraphQL non-ok response body:", text);
+      } catch (e) {
+        console.error("Failed to read non-ok response body", e);
+      }
+      return null;
+    }
 
     const payload = (await response.json()) as {
       data?: {
@@ -123,10 +130,12 @@ async function fetchArticle(
           };
         };
       };
+      errors?: Array<{ message?: string }>;
     };
 
     const article = payload.data?.article;
     if (!article) {
+      console.error("GraphQL returned no article for id:", id, "payload:", payload);
       return null;
     }
 
@@ -147,7 +156,8 @@ async function fetchArticle(
         content: normalizedComments,
       },
     };
-  } catch {
+  } catch (err) {
+    console.error("fetchArticle error:", err);
     return null;
   }
 }
@@ -172,11 +182,6 @@ export default async function ArticlePage({
       <section className="relative mx-auto max-w-3xl px-6 py-10 sm:px-8 sm:py-16">
         <article className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
           <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-border pb-6">
-            {article.subject?.name && (
-              <span className="rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">
-                {article.subject.name}
-              </span>
-            )}
             {article.complexity && (
               <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 {article.complexity}

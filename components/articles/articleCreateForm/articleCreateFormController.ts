@@ -45,7 +45,6 @@ export const getFormSubmitLabel = (isSubmitting: boolean): string => {
 
 export const createHandleArticleSubmit =
     ({
-        isScientific,
         title,
         content,
         references = [],

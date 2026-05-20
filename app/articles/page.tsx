@@ -10,9 +10,6 @@ type GraphQLArticle = {
   title: string;
   content: string;
   datePosted: string;
-  subject?: {
-    name: string;
-  } | null;
   author?: {
     name: string;
   } | null;
@@ -20,7 +17,6 @@ type GraphQLArticle = {
 
 type ArticleSearchItem = {
   title: string;
-  category: string;
   publishedAt: string;
   author: string;
   id: string;
@@ -36,9 +32,6 @@ const newestArticlesQuery = `
         title
         content
         datePosted
-        subject {
-          name
-        }
         author {
           name
         }
@@ -64,7 +57,6 @@ const mapArticleToSearchItem = (
 ): ArticleSearchItem => ({
   id: article.id,
   title: article.title,
-  category: article.subject?.name ?? "Uncategorized",
   publishedAt: articleDateFormatter.format(new Date(article.datePosted)),
   author: article.author?.name ?? "Unknown author",
 });
@@ -80,9 +72,6 @@ function ArticleCard({
         style={{ animationDelay: `${160 + index * 90}ms` }}
       >
         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
-          <span className="rounded-full bg-teal-100 px-2.5 py-1 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">
-            {article.category}
-          </span>
           <span className="text-muted-foreground">{article.publishedAt}</span>
         </div>
         <h2 className="mt-4 text-center text-xl font-semibold text-foreground">

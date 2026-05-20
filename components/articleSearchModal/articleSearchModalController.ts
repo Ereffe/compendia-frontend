@@ -1,6 +1,5 @@
 export type ArticleSearchItem = {
     title: string;
-    category: string;
     publishedAt: string;
     author: string;
     id: string;
@@ -13,7 +12,7 @@ export const filterArticles = (articles: ArticleSearchItem[], query: string): Ar
     }
 
     return articles.filter((article) => {
-        const haystack = [article.title, article.category, article.author].join(" ").toLowerCase();
+        const haystack = [article.title, article.author].join(" ").toLowerCase();
         return haystack.includes(normalizedQuery);
     });
 };

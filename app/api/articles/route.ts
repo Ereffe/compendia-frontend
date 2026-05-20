@@ -6,10 +6,9 @@ import { authOptions } from "@/lib/auth";
 const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 
-//TODO: Remove subjectID when backend will implement it
 const addArticleMutation = `
-  mutation AddArticle($title: String!, $content: String!, $subjectId: Int!, $complexity: String!, $references: [String!]!) {
-    addArticle(title: $title, content: $content, subjectId: $subjectId, complexity: $complexity, references: $references) {
+  mutation AddArticle($title: String!, $content: String!, $complexity: String!, $references: [String!]!) {
+    addArticle(title: $title, content: $content, complexity: $complexity, references: $references) {
       id
       title
     }
@@ -27,7 +26,6 @@ export async function POST(request: Request) {
     let body: {
         title?: string;
         content?: string;
-        subjectId?: number;
         complexity?: string;
         references?: Array<string>;
     };
@@ -40,11 +38,10 @@ export async function POST(request: Request) {
 
     const title = body.title?.trim();
     const content = body.content?.trim();
-    const subjectId = 1;
     const complexity = body.complexity?.trim();
     const references = body.references ?? [];
 
-    if (!title || !content || !Number.isInteger(subjectId) || !complexity) {
+    if (!title || !content || !complexity) {
         return NextResponse.json({ error: "Uzupełnij wszystkie pola formularza." }, { status: 400 });
     }
 
@@ -60,7 +57,6 @@ export async function POST(request: Request) {
             variables: {
                 title,
                 content,
-                subjectId,
                 complexity,
                 references,
             },
