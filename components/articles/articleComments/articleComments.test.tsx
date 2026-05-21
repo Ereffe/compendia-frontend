@@ -83,6 +83,9 @@ describe("ArticleComments", () => {
 
         expect(screen.getByText("2 komentarze")).toBeInTheDocument();
         expect(screen.getByText("Pierwszy komentarz")).toBeInTheDocument();
+        expect(screen.queryByText("Odpowiedź")).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole("button", { name: "Pokaż 1 odpowiedź" }));
         expect(screen.getByText("Odpowiedź")).toBeInTheDocument();
 
         await user.click(screen.getAllByRole("button", { name: "Odpowiedz" })[0]);

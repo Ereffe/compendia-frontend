@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const backendBaseUrl = process.env.BACKEND_URL;
+const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const refreshTokenGraceMs = 5_000;
 

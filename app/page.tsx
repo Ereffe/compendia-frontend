@@ -42,7 +42,7 @@ function LandingHighlights() {
       {landingHighlights.map((item, index) => (
         <div
           key={item.title}
-          className="fade-in-up rounded-2xl border border-border/70 bg-card/70 p-4 backdrop-blur"
+          className="rounded-2xl border border-border/70 bg-card/70 p-4 backdrop-blur"
           style={{ animationDelay: `${140 + index * 70}ms` }}
         >
           <p className="text-sm font-semibold text-foreground">{item.title}</p>
@@ -64,7 +64,7 @@ export default async function Home() {
   return (
     <LandingShell>
       <div className="flex w-full flex-col gap-6 text-center lg:text-left">
-        <div className="fade-in-up space-y-4" style={{ animationDelay: "40ms" }}>
+        <div className="space-y-4" style={{ animationDelay: "40ms" }}>
           <p className="text-xs font-bold uppercase tracking-[0.32em] text-teal-700 dark:text-teal-300">Compendia</p>
           <h1 className="max-w-xl text-4xl font-bold leading-tight sm:text-5xl">
             Jedno miejsce na notatki, artykuły i uporządkowaną naukę.
@@ -77,7 +77,7 @@ export default async function Home() {
         <LandingHighlights />
       </div>
 
-      <div className="fade-in-up flex w-full justify-center lg:justify-end" style={{ animationDelay: "120ms" }}>
+      <div className="flex w-full justify-center lg:justify-end" style={{ animationDelay: "120ms" }}>
         <LoginCard />
       </div>
     </LandingShell>

@@ -12,14 +12,13 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { authOptions } from "@/lib/auth";
+import { query } from "../../ApolloClient";
+import { gql } from "@apollo/client";
 
 type GraphQLArticle = {
   id: string;
   title: string;
   datePosted: string;
-  subject?: {
-    name: string;
-  } | null;
 };
 
 type PaginatedResponse = {
@@ -31,18 +30,15 @@ type PaginatedResponse = {
 };
 
 const ARTICLES_PER_PAGE = 12;
-const backendBaseUrl = process.env.BACKEND_URL;
+const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const allArticlesQuery = `
+const ALL_ARTICLES_QUERY = gql`
   query GetAllArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
     articles(page: $page, size: $size, sortBy: $sortBy, ascending: $ascending) {
       content {
         id
         title
         datePosted
-        subject {
-          name
-        }
       }
       totalPages
       totalElements
@@ -58,40 +54,25 @@ const articleDateFormatter = new Intl.DateTimeFormat("pl-PL", {
   year: "numeric",
 });
 
-async function fetchArticles(
-  page: number,
-  accessToken: string,
-): Promise<PaginatedResponse | null> {
+async function fetchArticles(page: number, accessToken: string): Promise<PaginatedResponse | null> {
   try {
-    const response = await fetch(`${backendBaseUrl}/graphql`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const result = await query<{ articles: PaginatedResponse }>({
+      query: ALL_ARTICLES_QUERY,
+      variables: {
+        page,
+        size: ARTICLES_PER_PAGE,
+        sortBy: "datePosted",
+        ascending: false,
       },
-      cache: "no-store",
-      body: JSON.stringify({
-        query: allArticlesQuery,
-        variables: {
-          page,
-          size: ARTICLES_PER_PAGE,
-          sortBy: "datePosted",
-          ascending: false,
-        },
-      }),
+      context: {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        fetchOptions: { next: { revalidate: 0 } },
+      },
     });
 
-    if (!response.ok) return null;
-
-    const payload = (await response.json()) as {
-      data?: {
-        articles?: PaginatedResponse;
-      };
-    };
-
-    return payload.data?.articles ?? null;
+    return result.data?.articles ?? null;
   } catch (error) {
-    console.error("Error fetching articles:", error);
+    console.error("Error fetching articles (apollo):", error);
     return null;
   }
 }
@@ -103,13 +84,10 @@ function ArticleCard({
   return (
     <Link href={`/articles/${article.id}`} className="contents">
       <article
-        className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur transition-all hover:shadow-[0_18px_60px_-36px_rgba(15,23,42,0.8)] hover:border-teal-700/30"
+        className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur transition-all hover:shadow-[0_18px_60px_-36px_rgba(15,23,42,0.8)] hover:border-teal-700/30"
         style={{ animationDelay: `${index * 30}ms` }}
       >
         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
-          <span className="rounded-full bg-teal-100 px-2.5 py-1 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">
-            {article.subject?.name ?? "Uncategorized"}
-          </span>
           <span className="text-muted-foreground">
             {articleDateFormatter.format(new Date(article.datePosted))}
           </span>
@@ -255,7 +233,7 @@ export default async function AllArticlesPage({
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 my-3 sm:px-8 sm:py-12">
-      <div className="fade-in-up space-y-4" style={{ animationDelay: "40ms" }}>
+      <div className="space-y-4" style={{ animationDelay: "40ms" }}>
         <div>
           <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
             Wszystkie artykuły

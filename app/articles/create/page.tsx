@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import ArticleCreateForm from "@/components/articles/articleCreateForm/articleCreateForm";
+import ArticleCreateContainer from "@/components/articles/articleCreateContainer";
 import { authOptions } from "@/lib/auth";
 
 export default async function CreateArticlePage() {
@@ -21,7 +21,7 @@ export default async function CreateArticlePage() {
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 my-3 sm:px-8 sm:py-12 bg-card/60 rounded-2xl">
-      <div className="fade-in-up space-y-4" style={{ animationDelay: "40ms" }}>
+      <div className="space-y-4" style={{ animationDelay: "40ms" }}>
         <Link
           href="/articles"
           className="inline-flex rounded-full border border-border/70 bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-foreground backdrop-blur transition-colors hover:bg-accent"
@@ -40,8 +40,8 @@ export default async function CreateArticlePage() {
         </div>
       </div>
 
-      <div className="fade-in-up space-y-6" style={{ animationDelay: "80ms" }}>
-        <ArticleCreateForm />
+      <div className="space-y-6" style={{ animationDelay: "80ms" }}>
+        <ArticleCreateContainer />
       </div>
     </section>
   );

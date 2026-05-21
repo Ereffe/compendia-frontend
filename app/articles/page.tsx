@@ -4,15 +4,16 @@ import { redirect } from "next/navigation";
 
 import ArticleSearchModal from "@/components/articleSearchModal/articleSearchModal";
 import { authOptions } from "@/lib/auth";
+import { query } from "../ApolloClient";
+import { gql } from "@apollo/client";
+import ArticleCard from "./ArticleCard";
+
 
 type GraphQLArticle = {
   id: string;
   title: string;
   content: string;
   datePosted: string;
-  subject?: {
-    name: string;
-  } | null;
   author?: {
     name: string;
   } | null;
@@ -20,15 +21,15 @@ type GraphQLArticle = {
 
 type ArticleSearchItem = {
   title: string;
-  category: string;
   publishedAt: string;
   author: string;
   id: string;
+  content: string;
 };
 
-const backendBaseUrl = process.env.BACKEND_URL;
+const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const newestArticlesQuery = `
+const NEWEST_ARTICLES_QUERY = gql`
   query GetNewestArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
     articles(page: $page, size: $size, sortBy: $sortBy, ascending: $ascending) {
       content {
@@ -36,9 +37,6 @@ const newestArticlesQuery = `
         title
         content
         datePosted
-        subject {
-          name
-        }
         author {
           name
         }
@@ -64,37 +62,42 @@ const mapArticleToSearchItem = (
 ): ArticleSearchItem => ({
   id: article.id,
   title: article.title,
-  category: article.subject?.name ?? "Uncategorized",
   publishedAt: articleDateFormatter.format(new Date(article.datePosted)),
   author: article.author?.name ?? "Unknown author",
+  content: article.content,
 });
 
-function ArticleCard({
-  article,
-  index,
-}: Readonly<{ article: ArticleSearchItem; index: number }>) {
-  return (
-    <Link href={`/articles/${article.id}`} className="contents">
-      <article
-        className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
-        style={{ animationDelay: `${160 + index * 90}ms` }}
-      >
-        <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
-          <span className="rounded-full bg-teal-100 px-2.5 py-1 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">
-            {article.category}
-          </span>
-          <span className="text-muted-foreground">{article.publishedAt}</span>
-        </div>
-        <h2 className="mt-4 text-center text-xl font-semibold text-foreground">
-          {article.title}
-        </h2>
-        <p className="mt-4 text-sm font-medium text-foreground/90">
-          By {article.author}
-        </p>
-      </article>
-    </Link>
-  );
-}
+// function ArticleCard({
+//   article,
+//   index,
+// }: Readonly<{ article: ArticleSearchItem; index: number }>) {
+
+//   const excerpt = article.content.length > 100 ? `${article.content.slice(0, 100)}...` : article.content;
+
+//   return (
+
+//     <Link href={`/articles/${article.id}`} className="contents">
+//       <article
+//         className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
+//         style={{ animationDelay: `${160 + index * 90}ms` }}
+//       >
+//         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
+//           <span className="text-muted-foreground">{article.publishedAt}</span>
+//         </div>
+//         <h2 className="mt-4 text-center text-xl font-semibold text-foreground">
+//           {article.title}
+//         </h2>
+//         <p className="mt-4 text-sm font-medium text-foreground/90">
+//           By {article.author}
+//         </p>
+//       </article>
+//     </Link>
+
+//   );
+// }
+
+
+
 
 function ArticlesGrid({
   articles,
@@ -126,7 +129,7 @@ function ArticlesFooter() {
   return (
     <footer className="mx-auto max-w-2xl px-6 pb-10 sm:px-8">
       <div
-        className="fade-in-up rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur"
+        className="rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur"
         style={{ animationDelay: "640ms" }}
       >
         <div className="flex justify-center">
@@ -137,42 +140,17 @@ function ArticlesFooter() {
   );
 }
 
-async function getNewestArticles(
-  accessToken: string,
-): Promise<ArticleSearchItem[]> {
+async function getNewestArticles(accessToken: string): Promise<ArticleSearchItem[]> {
   try {
-    const response = await fetch(`${backendBaseUrl}/graphql`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      cache: "no-store",
-      body: JSON.stringify({
-        query: newestArticlesQuery,
-        variables: {
-          page: 0,
-          size: 4,
-          sortBy: "datePosted",
-          ascending: false,
-        },
-      }),
+    const res = await query<{ articles: { content: GraphQLArticle[] } }>({
+      query: NEWEST_ARTICLES_QUERY,
+      variables: { page: 0, size: 4, sortBy: "datePosted", ascending: false },
+      context: { headers: { Authorization: `Bearer ${accessToken}` }, fetchOptions: { next: { revalidate: 0 } } },
     });
 
-    if (!response.ok) {
-      return [];
-    }
-
-    const payload = (await response.json()) as {
-      data?: {
-        articles?: {
-          content?: GraphQLArticle[];
-        };
-      };
-    };
-
-    return (payload.data?.articles?.content ?? []).map(mapArticleToSearchItem);
-  } catch {
+    return (res.data?.articles?.content ?? []).map(mapArticleToSearchItem);
+  } catch (e) {
+    console.error("getNewestArticles (apollo) error:", e);
     return [];
   }
 }

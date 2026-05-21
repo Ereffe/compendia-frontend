@@ -1,5 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useRouter } from "next/navigation";
+import type React from "react";
+import type { ApolloClient } from "@apollo/client";
+import { gql } from "@apollo/client";
+import getBrowserClient from "@/lib/apolloBrowser";
 
 export type CreatedArticle = {
     id: string;
@@ -7,28 +10,30 @@ export type CreatedArticle = {
 };
 
 type CreateHandleArticleSubmitParams = {
+    client?: ApolloClient;
+    isScientific?: boolean;
     title: string;
     content: string;
-    subjectId: string;
+    subjectId?: number;
+    tags?: Array<string>;
+    references?: Array<string>;
     complexity: string;
     isSubmitting: boolean;
     setIsSubmitting: Dispatch<SetStateAction<boolean>>;
     setError: Dispatch<SetStateAction<string | null>>;
     setSuccess: Dispatch<SetStateAction<string | null>>;
-    router: ReturnType<typeof useRouter>;
+    router: ReturnType<typeof import("next/navigation").useRouter>;
 };
 
 export const validateArticleFormInputs = (
     title: string,
     content: string,
-    subjectId: string,
 ): string | null => {
     const trimmedTitle = title.trim();
     const trimmedContent = content.trim();
-    const parsedSubjectId = Number.parseInt(subjectId, 10);
 
-    if (!trimmedTitle || !trimmedContent || Number.isNaN(parsedSubjectId) || parsedSubjectId <= 0) {
-        return "Uzupełnij tytuł, treść i poprawny Subject ID.";
+    if (!trimmedTitle || !trimmedContent) {
+        return "Uzupełnij tytuł i treść.";
     }
 
     return null;
@@ -48,7 +53,7 @@ export const createHandleArticleSubmit =
     ({
         title,
         content,
-        subjectId,
+        references = [],
         complexity,
         isSubmitting,
         setIsSubmitting,
@@ -59,7 +64,7 @@ export const createHandleArticleSubmit =
         async (event: React.SyntheticEvent<HTMLFormElement>) => {
             event.preventDefault();
 
-            const validationError = validateArticleFormInputs(title, content, subjectId);
+            const validationError = validateArticleFormInputs(title, content);
             if (validationError) {
                 setError(validationError);
                 return;
@@ -74,30 +79,47 @@ export const createHandleArticleSubmit =
             setSuccess(null);
 
             try {
-                const response = await fetch("/api/articles", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        title: title.trim(),
-                        content: content.trim(),
-                        subjectId: Number.parseInt(subjectId, 10),
-                        complexity,
-                    }),
-                });
+                const ADD_ARTICLE = gql`
+                    mutation AddArticle(
+                        $title: String!
+                        $content: String!
+                        $complexity: String!
+                        $references: [String!]
+                    ) {
+                        addArticle(
+                            title: $title
+                            content: $content
+                            complexity: $complexity
+                            references: $references
+                        ) {
+                            id
+                            title
+                        }
+                    }
+                `;
 
-                const payload = (await response.json()) as {
-                    article?: CreatedArticle;
-                    error?: string;
+                const variables = {
+                    title: title.trim(),
+                    content: content.trim(),
+                    complexity,
+                    references,
                 };
 
-                if (!response.ok || !payload.article) {
-                    throw new Error(payload.error ?? "Nie udało się utworzyć artykułu.");
+                const apolloClient = getBrowserClient();
+
+                const result = await apolloClient.mutate<{ addArticle: CreatedArticle }>({
+                    mutation: ADD_ARTICLE,
+                    variables,
+                });
+
+                const created = result.data?.addArticle;
+
+                if (!created) {
+                    throw new Error("Nie udało się utworzyć artykułu.");
                 }
 
                 setSuccess("Artykuł został utworzony.");
-                router.push(`/articles/${payload.article.id}`);
+                router.push(`/articles/${created.id}`);
                 router.refresh();
             } catch (submitError) {
                 setError(

@@ -29,6 +29,7 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
     const [content, setContent] = useState("");
     const [activeReplyCommentId, setActiveReplyCommentId] = useState<string | null>(null);
     const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+    const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isHydrated, setIsHydrated] = useState(false);
@@ -122,9 +123,35 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                 ...currentDrafts,
                 [parentCommentId]: "",
             }));
+            setExpandedReplies((currentState) => ({
+                ...currentState,
+                [parentCommentId]: true,
+            }));
             setActiveReplyCommentId(null);
         }
     };
+
+    const toggleReplies = useCallback((commentId: string) => {
+        setExpandedReplies((currentState) => ({
+            ...currentState,
+            [commentId]: !currentState[commentId],
+        }));
+    }, []);
+
+    const getRepliesToggleLabel = useCallback((repliesCount: number, isExpanded: boolean) => {
+        if (isExpanded) {
+            return "Ukryj odpowiedzi";
+        }
+
+        if (repliesCount === 0) {
+            return "Brak odpowiedzi";
+        }
+
+        if (repliesCount === 1) {
+            return "Pokaż 1 odpowiedź";
+        }
+        return `Pokaż ${repliesCount} odpowiedzi`;
+    }, []);
 
     const renderVoteButtons = (comment: CommentItem, hasVoted: boolean, isPositiveVote: boolean, isNegativeVote: boolean) => {
         if (!isHydrated) {
@@ -183,50 +210,136 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
         </form>
     );
 
-    const renderComment = (comment: CommentItem, depth = 0): ReactNode => {
-        const userVote = isHydrated ? getVote(articleId, comment.id) : undefined;
+    const renderComment = (
+        comment: CommentItem,
+        depth = 0
+    ): ReactNode => {
+        const userVote = isHydrated
+            ? getVote(articleId, comment.id)
+            : undefined;
+
         const isPositiveVote = userVote === "positive";
         const isNegativeVote = userVote === "negative";
         const hasVoted = userVote !== undefined;
-        const isReplyFormVisible = activeReplyCommentId === comment.id;
+
+        const isReplyFormVisible =
+            activeReplyCommentId === comment.id;
+
+        const repliesCount = countComments(comment.replies ?? []);
+
+        const hasReplies = repliesCount > 0;
+
+        const isRepliesExpanded =
+            expandedReplies[comment.id] ?? false;
 
         return (
-            <article
-                key={comment.id}
-                className="rounded-2xl border border-border bg-background p-4"
-                style={{ marginLeft: depth === 0 ? 0 : Math.min(depth, 5) * 16 }}
-            >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <p className="text-sm font-semibold text-foreground">{comment.user.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                            {dateFormatter.format(new Date(comment.datePosted))}
-                            {comment.editedAt ? " · edytowano" : ""}
-                        </p>
+            <div key={comment.id} className="w-full">
+                <article
+                    className={[
+                        "w-full rounded-2xl transition-all duration-200",
+                        depth === 0
+                            ? "border border-border bg-background p-4 shadow-sm"
+                            : "bg-muted/30 p-3",
+                    ].join(" ")}
+                >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                                <p className="text-sm font-semibold text-foreground">
+                                    {comment.user.name}
+                                </p>
+
+                                {depth > 0 ? (
+                                    <span className="text-xs text-muted-foreground">
+                                        odpowiedź
+                                    </span>
+                                ) : null}
+                            </div>
+
+                            <p className="text-xs text-muted-foreground">
+                                {dateFormatter.format(
+                                    new Date(comment.datePosted)
+                                )}
+
+                                {comment.editedAt
+                                    ? " · edytowano"
+                                    : ""}
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            {renderVoteButtons(
+                                comment,
+                                hasVoted,
+                                isPositiveVote,
+                                isNegativeVote
+                            )}
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        {renderVoteButtons(comment, hasVoted, isPositiveVote, isNegativeVote)}
+
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground/90">
+                        {comment.content}
+                    </p>
+
+                    <div className="mt-4 flex items-center justify-between">
+                        <Button
+                            variant="ghost"
+                            size="xs"
+                            className="h-auto px-0 text-muted-foreground hover:text-foreground"
+                            onClick={() =>
+                                toggleReplyForm(comment.id)
+                            }
+                            disabled={!canComment}
+                        >
+                            {isReplyFormVisible
+                                ? "Anuluj"
+                                : "Odpowiedz"}
+                        </Button>
+
+                        {hasReplies ? (
+                            <Button
+                                variant="ghost"
+                                size="xs"
+                                className="h-auto px-0 text-muted-foreground hover:text-foreground"
+                                onClick={() =>
+                                    toggleReplies(comment.id)
+                                }
+                            >
+                                {getRepliesToggleLabel(
+                                    repliesCount,
+                                    isRepliesExpanded
+                                )}
+                            </Button>
+                        ) : <Button
+                            variant="ghost"
+                            size="xs"
+                            className="h-auto px-0 text-muted-foreground hover:text-foreground"
+                            disabled
+                        >
+                            {getRepliesToggleLabel(
+                                repliesCount,
+                                isRepliesExpanded
+                            )}
+                        </Button>}
                     </div>
-                </div>
 
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{comment.content}</p>
+                    {isReplyFormVisible
+                        ? renderReplyForm(comment.id)
+                        : null}
+                </article>
 
-                <div className="mt-4 flex justify-end">
-                    <Button variant="outline" size="xs" onClick={() => toggleReplyForm(comment.id)} disabled={!canComment}>
-                        {isReplyFormVisible ? "Anuluj" : "Odpowiedz"}
-                    </Button>
-                </div>
-
-                {isReplyFormVisible ? renderReplyForm(comment.id) : null}
-
-                {comment.replies && comment.replies.length > 0 ? (
-                    <div className="mt-4 space-y-3 border-l border-border/60 pl-3">
-                        {comment.replies.map((reply) => renderComment(reply, depth + 1))}
+                {hasReplies && isRepliesExpanded ? (
+                    <div className="relative mt-3 border-l border-border/50 pl-4 space-y-3">
+                        {comment.replies?.map((reply) =>
+                            renderComment(reply, depth + 1)
+                        )}
                     </div>
                 ) : null}
-            </article>
+            </div>
         );
     };
+
+
 
     return (
         <Card className="border-border/70 bg-card/80 backdrop-blur">

@@ -99,9 +99,6 @@ export default function ArticleSearchModal({
                   >
                     <article className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-teal-700/30 hover:bg-teal-50/40 dark:hover:bg-teal-950/30">
                       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-widest">
-                        <span className="rounded-full bg-teal-100 px-2 py-0.5 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200">
-                          {article.category}
-                        </span>
                         <span className="text-muted-foreground">
                           {article.publishedAt}
                         </span>
