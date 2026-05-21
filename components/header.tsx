@@ -52,13 +52,6 @@ export default function Header({ hasAccess }: Readonly<HeaderProps>) {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link
-            href="#"
-            className="rounded-full border border-border/60 bg-background/80 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-foreground transition-colors duration-200 hover:bg-accent"
-            aria-label="Otwórz wiadomości"
-          >
-            Wiadomości
-          </Link>
           {hasAccess ? (
             <button
               type="button"

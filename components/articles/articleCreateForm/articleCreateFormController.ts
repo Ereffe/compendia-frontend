@@ -1,5 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useRouter } from "next/navigation";
+import type React from "react";
+import type { ApolloClient } from "@apollo/client";
+import { gql } from "@apollo/client";
+import getBrowserClient from "@/lib/apolloBrowser";
 
 export type CreatedArticle = {
     id: string;
@@ -7,16 +10,19 @@ export type CreatedArticle = {
 };
 
 type CreateHandleArticleSubmitParams = {
+    client?: ApolloClient;
     isScientific?: boolean;
     title: string;
     content: string;
+    subjectId?: number;
+    tags?: Array<string>;
     references?: Array<string>;
     complexity: string;
     isSubmitting: boolean;
     setIsSubmitting: Dispatch<SetStateAction<boolean>>;
     setError: Dispatch<SetStateAction<string | null>>;
     setSuccess: Dispatch<SetStateAction<string | null>>;
-    router: ReturnType<typeof useRouter>;
+    router: ReturnType<typeof import("next/navigation").useRouter>;
 };
 
 export const validateArticleFormInputs = (
@@ -73,37 +79,47 @@ export const createHandleArticleSubmit =
             setSuccess(null);
 
             try {
-                const response = await fetch("/api/articles", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        title: title.trim(),
-                        content: content.trim(),
-                        complexity,
-                        references,
-                    }),
-                });
+                const ADD_ARTICLE = gql`
+                    mutation AddArticle(
+                        $title: String!
+                        $content: String!
+                        $complexity: String!
+                        $references: [String!]
+                    ) {
+                        addArticle(
+                            title: $title
+                            content: $content
+                            complexity: $complexity
+                            references: $references
+                        ) {
+                            id
+                            title
+                        }
+                    }
+                `;
 
-                console.log(JSON.stringify({
+                const variables = {
                     title: title.trim(),
                     content: content.trim(),
                     complexity,
                     references,
-                }),);
-
-                const payload = (await response.json()) as {
-                    article?: CreatedArticle;
-                    error?: string;
                 };
 
-                if (!response.ok || !payload.article) {
-                    throw new Error(payload.error ?? "Nie udało się utworzyć artykułu.");
+                const apolloClient = getBrowserClient();
+
+                const result = await apolloClient.mutate<{ addArticle: CreatedArticle }>({
+                    mutation: ADD_ARTICLE,
+                    variables,
+                });
+
+                const created = result.data?.addArticle;
+
+                if (!created) {
+                    throw new Error("Nie udało się utworzyć artykułu.");
                 }
 
                 setSuccess("Artykuł został utworzony.");
-                router.push(`/articles/${payload.article.id}`);
+                router.push(`/articles/${created.id}`);
                 router.refresh();
             } catch (submitError) {
                 setError(
