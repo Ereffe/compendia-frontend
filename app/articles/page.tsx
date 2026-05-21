@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 
 import ArticleSearchModal from "@/components/articleSearchModal/articleSearchModal";
 import { authOptions } from "@/lib/auth";
+import { query } from "../ApolloClient";
+import { gql } from "@apollo/client";
 
 type GraphQLArticle = {
   id: string;
@@ -24,7 +26,7 @@ type ArticleSearchItem = {
 
 const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const newestArticlesQuery = `
+const NEWEST_ARTICLES_QUERY = gql`
   query GetNewestArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
     articles(page: $page, size: $size, sortBy: $sortBy, ascending: $ascending) {
       content {
@@ -126,42 +128,17 @@ function ArticlesFooter() {
   );
 }
 
-async function getNewestArticles(
-  accessToken: string,
-): Promise<ArticleSearchItem[]> {
+async function getNewestArticles(accessToken: string): Promise<ArticleSearchItem[]> {
   try {
-    const response = await fetch(`${backendBaseUrl}/graphql`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      cache: "no-store",
-      body: JSON.stringify({
-        query: newestArticlesQuery,
-        variables: {
-          page: 0,
-          size: 4,
-          sortBy: "datePosted",
-          ascending: false,
-        },
-      }),
+    const res = await query<{ articles: { content: GraphQLArticle[] } }>({
+      query: NEWEST_ARTICLES_QUERY,
+      variables: { page: 0, size: 4, sortBy: "datePosted", ascending: false },
+      context: { headers: { Authorization: `Bearer ${accessToken}` }, fetchOptions: { next: { revalidate: 0 } } },
     });
 
-    if (!response.ok) {
-      return [];
-    }
-
-    const payload = (await response.json()) as {
-      data?: {
-        articles?: {
-          content?: GraphQLArticle[];
-        };
-      };
-    };
-
-    return (payload.data?.articles?.content ?? []).map(mapArticleToSearchItem);
-  } catch {
+    return (res.data?.articles?.content ?? []).map(mapArticleToSearchItem);
+  } catch (e) {
+    console.error("getNewestArticles (apollo) error:", e);
     return [];
   }
 }

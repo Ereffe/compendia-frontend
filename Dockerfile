@@ -1,8 +1,9 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --frozen-lockfile
+COPY .env.local .
+COPY package*.json .
+RUN npm install 
 
 COPY . .
 RUN npm run build
@@ -15,12 +16,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.ts ./next.config.ts
-
-#TODO: add envs
-
-COPY --from=builder /app/.env ./.env
-COPY --from=builder /app/.env.local ./.env.local
-
 
 EXPOSE 3000
 

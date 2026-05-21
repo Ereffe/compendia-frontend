@@ -4,6 +4,8 @@ import { redirect, notFound } from "next/navigation";
 import Markdown from "react-markdown";
 import ArticleComments from "../../../components/articles/articleComments/articleComments";
 import type { CommentItem } from "@/types/comments";
+import { query } from "../../ApolloClient";
+import { gql } from "@apollo/client";
 
 interface Article {
   id: string;
@@ -45,99 +47,64 @@ interface GraphqlCommentItem {
 
 }
 
-const articleQuery = `
-query Article($id: String!, $page: Int!, $size: Int!) {
-  article(id: $id) {
-    id
-    title
-    content
-    datePosted
-    complexity
-    comments(page: $page, size: $size, sortBy: "datePosted", ascending: false) {
-      content {
-        id
-        content
-        datePosted
-        editedAt
-        user {
+const ARTICLE_QUERY = gql`
+  query Article($id: String!, $page: Int!, $size: Int!) {
+    article(id: $id) {
+      id
+      title
+      content
+      datePosted
+      complexity
+      comments(page: $page, size: $size, sortBy: "datePosted", ascending: false) {
+        content {
           id
-          name
-        }
-        rating {
-          positive
-          negative
-        }
-        parentComment {
-          id
+          content
+          datePosted
+          editedAt
+          user {
+            id
+            name
+          }
+          rating {
+            positive
+            negative
+          }
+          parentComment {
+            id
+          }
         }
       }
-    }
-    tags
-    references {
-      doi
-      title
-      authors
-      description
-      url
-    }
-    author {
-      name
+      tags
+      references {
+        doi
+        title
+        authors
+        description
+        url
+      }
+      author {
+        name
+      }
     }
   }
-}
 `;
 
 const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-async function fetchArticle(
-  id: string,
-  accessToken: string,
-): Promise<Article | null> {
+async function fetchArticle(id: string, accessToken: string): Promise<Article | null> {
   try {
-    console.log("Fetching article with ID:", id);
-
-    const response = await fetch(`${backendBaseUrl}/graphql`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const result = await query<{ article: Article }>({
+      query: ARTICLE_QUERY,
+      variables: { id, page: 0, size: 10 },
+      context: {
+        // forward auth header to backend
+        headers: { Authorization: `Bearer ${accessToken}` },
+        fetchOptions: { next: { revalidate: 0 } },
       },
-      cache: "no-store",
-      body: JSON.stringify({
-        query: articleQuery,
-        variables: { id, page: 0, size: 10 },
-      }),
     });
 
-    // Log response status for diagnostics (server-side)
-    console.log("Fetching article from backend:", `${backendBaseUrl}/graphql`, "status:", response.status);
-
-    if (!response.ok) {
-      try {
-        const text = await response.text();
-        console.error("GraphQL non-ok response body:", text);
-      } catch (e) {
-        console.error("Failed to read non-ok response body", e);
-      }
-      return null;
-    }
-
-    const payload = (await response.json()) as {
-      data?: {
-        article?: Omit<Article, "comments"> & {
-          comments?: {
-            content: GraphqlCommentItem[];
-          };
-        };
-      };
-      errors?: Array<{ message?: string }>;
-    };
-
-    const article = payload.data?.article;
-    if (!article) {
-      console.error("GraphQL returned no article for id:", id, "payload:", payload);
-      return null;
-    }
+    const article = result.data?.article;
+    if (!article) return null;
 
     const normalizedComments: CommentItem[] =
       article.comments?.content.map((comment) => ({
@@ -145,19 +112,17 @@ async function fetchArticle(
         content: comment.content,
         datePosted: comment.datePosted,
         editedAt: comment.editedAt,
-        parentCommentId: comment.parentComment?.id ?? null,
+        parentCommentId: comment.parentCommentId ?? null,
         user: comment.user,
         rating: comment.rating,
       })) ?? [];
 
     return {
       ...article,
-      comments: {
-        content: normalizedComments,
-      },
+      comments: { content: normalizedComments },
     };
   } catch (err) {
-    console.error("fetchArticle error:", err);
+    console.error("fetchArticle (apollo) error:", err);
     return null;
   }
 }

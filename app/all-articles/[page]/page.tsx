@@ -12,6 +12,8 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { authOptions } from "@/lib/auth";
+import { query } from "../../ApolloClient";
+import { gql } from "@apollo/client";
 
 type GraphQLArticle = {
   id: string;
@@ -30,7 +32,7 @@ type PaginatedResponse = {
 const ARTICLES_PER_PAGE = 12;
 const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const allArticlesQuery = `
+const ALL_ARTICLES_QUERY = gql`
   query GetAllArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
     articles(page: $page, size: $size, sortBy: $sortBy, ascending: $ascending) {
       content {
@@ -52,40 +54,25 @@ const articleDateFormatter = new Intl.DateTimeFormat("pl-PL", {
   year: "numeric",
 });
 
-async function fetchArticles(
-  page: number,
-  accessToken: string,
-): Promise<PaginatedResponse | null> {
+async function fetchArticles(page: number, accessToken: string): Promise<PaginatedResponse | null> {
   try {
-    const response = await fetch(`${backendBaseUrl}/graphql`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const result = await query<{ articles: PaginatedResponse }>({
+      query: ALL_ARTICLES_QUERY,
+      variables: {
+        page,
+        size: ARTICLES_PER_PAGE,
+        sortBy: "datePosted",
+        ascending: false,
       },
-      cache: "no-store",
-      body: JSON.stringify({
-        query: allArticlesQuery,
-        variables: {
-          page,
-          size: ARTICLES_PER_PAGE,
-          sortBy: "datePosted",
-          ascending: false,
-        },
-      }),
+      context: {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        fetchOptions: { next: { revalidate: 0 } },
+      },
     });
 
-    if (!response.ok) return null;
-
-    const payload = (await response.json()) as {
-      data?: {
-        articles?: PaginatedResponse;
-      };
-    };
-
-    return payload.data?.articles ?? null;
+    return result.data?.articles ?? null;
   } catch (error) {
-    console.error("Error fetching articles:", error);
+    console.error("Error fetching articles (apollo):", error);
     return null;
   }
 }

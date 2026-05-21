@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { gql } from "@apollo/client";
+import getClient from "@/app/ApolloClient";
 
 import { authOptions } from "@/lib/auth";
-
-const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 
 const addArticleMutation = `
@@ -45,42 +45,23 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Uzupełnij wszystkie pola formularza." }, { status: 400 });
     }
 
-    const response = await fetch(`${backendBaseUrl}/graphql`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-        },
-        cache: "no-store",
-        body: JSON.stringify({
-            query: addArticleMutation,
-            variables: {
-                title,
-                content,
-                complexity,
-                references,
-            },
-        }),
-    });
+    try {
+        const client = getClient();
+        const res = await client.mutate<{ addArticle: GraphQLArticle }>({
+            mutation: gql`
+                ${addArticleMutation}
+            `,
+            variables: { title, content, complexity, references },
+            context: { headers: { Authorization: `Bearer ${accessToken}` } },
+        });
 
-    const payload = (await response.json()) as {
-        data?: {
-            addArticle?: {
-                id: string;
-                title: string;
-            };
-        };
-        errors?: Array<{ message?: string }>;
-    };
+        const createdArticle = res.data?.addArticle;
+        if (!createdArticle) {
+            return NextResponse.json({ error: "Nie udało się utworzyć artykułu." }, { status: 502 });
+        }
 
-    const createdArticle = payload.data?.addArticle;
-
-    if (!response.ok || !createdArticle) {
-        return NextResponse.json(
-            { error: payload.errors?.[0]?.message ?? "Nie udało się utworzyć artykułu." },
-            { status: 502 }
-        );
+        return NextResponse.json({ article: createdArticle });
+    } catch (e: any) {
+        return NextResponse.json({ error: e?.message ?? "Nie udało się utworzyć artykułu." }, { status: 502 });
     }
-
-    return NextResponse.json({ article: createdArticle });
 }

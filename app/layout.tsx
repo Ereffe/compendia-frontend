@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import AuthProvider from "@/components/authProvider";
+import { ApolloWrapper } from "./ApolloWrapper";
 import "./globals.css";
 import Header from "@/components/header";
 
@@ -29,15 +30,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <main className="compendia-surface min-h-screen overflow-x-clip text-foreground">
-            <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
-            <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />
-            <Header hasAccess={true} />
-            {children}
-          </main>
-        </AuthProvider>
+        <ApolloWrapper>
+          <AuthProvider>
+            <main className="compendia-surface min-h-screen overflow-x-clip text-foreground">
+              <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
+              <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />
+              <Header hasAccess={true} />
+              {children}
+            </main>
+          </AuthProvider>
+        </ApolloWrapper>
       </body>
-    </html>
+    </html >
   );
 }
