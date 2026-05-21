@@ -19,7 +19,7 @@ export default function ArticleCard({
                 <TooltipTrigger asChild>
                     <Link href={`/articles/${article.id}`}>
                         <article
-                            className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
+                            className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
                             style={{ animationDelay: `${160 + index * 90}ms` }}
                         >
                             <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">

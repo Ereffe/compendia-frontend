@@ -15,7 +15,7 @@ export default function NotFound() {
       <section className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center px-6 py-12 sm:px-8">
         <div className="w-full text-center">
           <div
-            className="fade-in-up space-y-6"
+            className="space-y-6"
             style={{ animationDelay: "40ms" }}
           >
             <div className="space-y-2">

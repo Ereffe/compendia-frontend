@@ -1,6 +1,7 @@
-import { CommentItem } from "@/types/comments";
 import { gql } from "@apollo/client";
+
 import getBrowserClient from "@/lib/apolloBrowser";
+import { CommentItem } from "@/types/comments";
 
 const addCommentMutation = gql`
     mutation AddComment($articleId: ID!, $content: String!, $parentCommentId: Int) {
@@ -42,13 +43,13 @@ export async function rateComment(commentId: string, positive: boolean) {
     }
 }
 
-type GraphqlCommentItem = Omit<CommentItem, "parentCommentId" | "replies"> & {
+export type GraphqlCommentItem = Omit<CommentItem, "parentCommentId" | "replies"> & {
     parentComment?: {
         id: string;
     } | null;
 };
 
-const mapGraphqlCommentToCommentItem = (comment: GraphqlCommentItem): CommentItem => ({
+export const mapGraphqlCommentToCommentItem = (comment: GraphqlCommentItem): CommentItem => ({
     id: comment.id,
     content: comment.content,
     datePosted: comment.datePosted,

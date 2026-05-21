@@ -78,7 +78,7 @@ const mapArticleToSearchItem = (
 
 //     <Link href={`/articles/${article.id}`} className="contents">
 //       <article
-//         className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
+//         className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
 //         style={{ animationDelay: `${160 + index * 90}ms` }}
 //       >
 //         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
@@ -129,7 +129,7 @@ function ArticlesFooter() {
   return (
     <footer className="mx-auto max-w-2xl px-6 pb-10 sm:px-8">
       <div
-        className="fade-in-up rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur"
+        className="rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur"
         style={{ animationDelay: "640ms" }}
       >
         <div className="flex justify-center">

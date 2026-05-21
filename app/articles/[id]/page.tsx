@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import { mapGraphqlCommentToCommentItem, type GraphqlCommentItem } from "@/services/graphql/comments";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import Markdown from "react-markdown";
@@ -14,7 +15,7 @@ interface Article {
   datePosted: string;
   complexity: string;
   comments?: {
-    content: CommentItem[];
+    content: GraphqlCommentItem[];
   };
   author?: {
     name: string;
@@ -26,25 +27,6 @@ interface Article {
     description: string;
     url: string;
   }>;
-}
-
-interface GraphqlCommentItem {
-  id: string;
-  content: string;
-  datePosted: string;
-  editedAt?: string | null;
-  parentComment?: {
-    id: string;
-  } | null;
-  user: {
-    id: string;
-    name: string;
-  };
-  rating: {
-    positive: number;
-    negative: number;
-  };
-
 }
 
 const ARTICLE_QUERY = gql`
@@ -107,15 +89,7 @@ async function fetchArticle(id: string, accessToken: string): Promise<Article | 
     if (!article) return null;
 
     const normalizedComments: CommentItem[] =
-      article.comments?.content.map((comment) => ({
-        id: comment.id,
-        content: comment.content,
-        datePosted: comment.datePosted,
-        editedAt: comment.editedAt,
-        parentCommentId: comment.parentCommentId ?? null,
-        user: comment.user,
-        rating: comment.rating,
-      })) ?? [];
+      article.comments?.content.map(mapGraphqlCommentToCommentItem) ?? [];
 
     return {
       ...article,
@@ -145,7 +119,7 @@ export default async function ArticlePage({
   return (
     <>
       <section className="relative mx-auto max-w-3xl px-6 py-10 sm:px-8 sm:py-16">
-        <article className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
+        <article className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
           <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-border pb-6">
             {article.complexity && (
               <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -180,7 +154,7 @@ export default async function ArticlePage({
       </section>
       <section className="mx-auto max-w-3xl px-6 py-2 sm:px-8 sm:py-4">
         {article.references && article.references.length > 0 && (
-          <div className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
+          <div className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
             <h2 className="mb-4 text-2xl font-bold leading-tight text-foreground">
               Źródła
             </h2>
@@ -222,7 +196,7 @@ export default async function ArticlePage({
       </section>
 
       <footer className="mx-auto max-w-6xl px-6 pb-10 pt-8 sm:px-8">
-        <div className="fade-in-up rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur">
+        <div className="rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="font-semibold tracking-[0.18em] text-foreground">
               COMPENDIA

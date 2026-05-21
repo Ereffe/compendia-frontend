@@ -84,7 +84,7 @@ function ArticleCard({
   return (
     <Link href={`/articles/${article.id}`} className="contents">
       <article
-        className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur transition-all hover:shadow-[0_18px_60px_-36px_rgba(15,23,42,0.8)] hover:border-teal-700/30"
+        className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur transition-all hover:shadow-[0_18px_60px_-36px_rgba(15,23,42,0.8)] hover:border-teal-700/30"
         style={{ animationDelay: `${index * 30}ms` }}
       >
         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
@@ -233,7 +233,7 @@ export default async function AllArticlesPage({
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 my-3 sm:px-8 sm:py-12">
-      <div className="fade-in-up space-y-4" style={{ animationDelay: "40ms" }}>
+      <div className="space-y-4" style={{ animationDelay: "40ms" }}>
         <div>
           <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
             Wszystkie artykuły
