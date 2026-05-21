@@ -25,7 +25,7 @@ export default function Header({ hasAccess }: Readonly<HeaderProps>) {
 
   return pathname == "/" ? null : (
     <header className="sticky mx-auto w-full px-6 pt-6 sm:px-8 sm:pt-10">
-      <nav className="fade-in-up flex items-center justify-between rounded-full border border-border/60 bg-card/75 px-4 py-2.5 backdrop-blur md:px-6">
+      <nav className="flex items-center justify-between rounded-full border border-border/60 bg-card/75 px-4 py-2.5 backdrop-blur md:px-6">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Link
             href="/articles"

@@ -3,6 +3,7 @@ export type ArticleSearchItem = {
     publishedAt: string;
     author: string;
     id: string;
+    content: string;
 };
 
 export const filterArticles = (articles: ArticleSearchItem[], query: string): ArticleSearchItem[] => {

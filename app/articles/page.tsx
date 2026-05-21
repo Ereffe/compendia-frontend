@@ -6,6 +6,8 @@ import ArticleSearchModal from "@/components/articleSearchModal/articleSearchMod
 import { authOptions } from "@/lib/auth";
 import { query } from "../ApolloClient";
 import { gql } from "@apollo/client";
+import ArticleCard from "./ArticleCard";
+
 
 type GraphQLArticle = {
   id: string;
@@ -22,6 +24,7 @@ type ArticleSearchItem = {
   publishedAt: string;
   author: string;
   id: string;
+  content: string;
 };
 
 const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -61,31 +64,40 @@ const mapArticleToSearchItem = (
   title: article.title,
   publishedAt: articleDateFormatter.format(new Date(article.datePosted)),
   author: article.author?.name ?? "Unknown author",
+  content: article.content,
 });
 
-function ArticleCard({
-  article,
-  index,
-}: Readonly<{ article: ArticleSearchItem; index: number }>) {
-  return (
-    <Link href={`/articles/${article.id}`} className="contents">
-      <article
-        className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
-        style={{ animationDelay: `${160 + index * 90}ms` }}
-      >
-        <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
-          <span className="text-muted-foreground">{article.publishedAt}</span>
-        </div>
-        <h2 className="mt-4 text-center text-xl font-semibold text-foreground">
-          {article.title}
-        </h2>
-        <p className="mt-4 text-sm font-medium text-foreground/90">
-          By {article.author}
-        </p>
-      </article>
-    </Link>
-  );
-}
+// function ArticleCard({
+//   article,
+//   index,
+// }: Readonly<{ article: ArticleSearchItem; index: number }>) {
+
+//   const excerpt = article.content.length > 100 ? `${article.content.slice(0, 100)}...` : article.content;
+
+//   return (
+
+//     <Link href={`/articles/${article.id}`} className="contents">
+//       <article
+//         className="fade-in-up rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur"
+//         style={{ animationDelay: `${160 + index * 90}ms` }}
+//       >
+//         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
+//           <span className="text-muted-foreground">{article.publishedAt}</span>
+//         </div>
+//         <h2 className="mt-4 text-center text-xl font-semibold text-foreground">
+//           {article.title}
+//         </h2>
+//         <p className="mt-4 text-sm font-medium text-foreground/90">
+//           By {article.author}
+//         </p>
+//       </article>
+//     </Link>
+
+//   );
+// }
+
+
+
 
 function ArticlesGrid({
   articles,
