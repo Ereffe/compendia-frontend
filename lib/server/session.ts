@@ -86,7 +86,6 @@ export async function authedQuery<TData>(
     return result.data as TData;
 }
 
-/** Runs an authenticated mutation on behalf of the current user (for Server Actions). */
 export async function authedMutate<TData>(
     accessToken: string,
     mutation: DocumentNode,

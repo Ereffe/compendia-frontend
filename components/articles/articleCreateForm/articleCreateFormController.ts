@@ -49,7 +49,6 @@ export const validateArticleFormInputs = (
 /** Matches the backend column (articles.title VARCHAR(200)). */
 export const TITLE_MAX_LENGTH = 200;
 
-/** Labels come from the `complexity` translation namespace. */
 export const COMPLEXITY_OPTIONS: ArticleComplexity[] = ["SIMPLE", "INTERMEDIATE", "COMPLEX"];
 
 export const createHandleArticleSubmit =

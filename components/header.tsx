@@ -55,7 +55,6 @@ export default function Header() {
           <Link href="/articles" className="text-sm font-semibold tracking-[0.2em] text-foreground">
             COMPENDIA
           </Link>
-          {/* Desktop: theme toggle and the first link sit next to the logo. */}
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
             <Link href={navLinks[0].href} className={pillLink}>
@@ -87,7 +86,6 @@ export default function Header() {
           {status === "loading" ? <Skeleton className="size-9 rounded-full" aria-hidden /> : null}
         </div>
 
-        {/* Phones and small tablets: everything else lives in a slide-out menu. */}
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
             <button

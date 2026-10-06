@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 
 import { ArchiveCardSkeleton, LoadingRegion, PageHeadingSkeleton } from "@/components/skeletons";
 
-/** Shown while an archive page loads (mirrors app/all-articles/[page]/page.tsx). */
 export default function ArchiveLoading() {
   const t = useTranslations("common");
 

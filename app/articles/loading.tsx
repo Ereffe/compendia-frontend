@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 
 import { ArticleCardSkeleton, LoadingRegion, PageHeadingSkeleton, SearchBarSkeleton } from "@/components/skeletons";
 
-/** Shown while /articles loads its newest articles (mirrors app/articles/page.tsx). */
 export default function ArticlesLoading() {
   const t = useTranslations("common");
 

@@ -1,17 +1,20 @@
 import { useTranslations } from "next-intl";
 
-import { CreateFormSkeleton, LoadingRegion, PageHeadingSkeleton, Skeleton } from "@/components/skeletons";
+import { CreateFormSkeleton, LoadingRegion, Skeleton } from "@/components/skeletons";
 
-/** Shown while the create page loads (mirrors app/articles/create/page.tsx). */
 export default function CreateArticleLoading() {
   const t = useTranslations("common");
 
   return (
     <LoadingRegion label={t("loading")}>
-      <section className="container-page my-3 flex flex-col gap-8 py-8 sm:py-12">
-        <div className="space-y-3">
-          <Skeleton className="h-8 w-44 rounded-full" />
-          <PageHeadingSkeleton />
+      <section className="container-page flex flex-col gap-8 py-8 sm:py-12">
+        <div>
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="mt-5 h-10 w-72 sm:h-12 sm:w-md" />
+          <div className="mt-4 max-w-2xl space-y-2.5">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
         </div>
         <CreateFormSkeleton />
       </section>

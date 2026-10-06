@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { JetBrains_Mono, Newsreader, Space_Grotesk } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -19,6 +19,13 @@ const geistMono = JetBrains_Mono({
   subsets: ["latin", "latin-ext"],
 });
 
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin", "latin-ext"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+});
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
   return {
@@ -35,13 +42,10 @@ export default async function RootLayout({
   return (
     <html lang={await getLocale()} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} antialiased`}
       >
-        {/* Inherits locale, messages and time zone from i18n/request.ts. */}
         <NextIntlClientProvider>
         <AuthProvider>
-          {/* Sticky footer: the shell is a full-height column and <main> grows to fill it. Pages render
-              directly into a flex column, so top-level elements using mx-auto also need w-full. */}
           <div className="compendia-surface flex min-h-screen flex-col overflow-x-clip text-foreground">
             <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
             <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />

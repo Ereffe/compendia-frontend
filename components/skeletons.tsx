@@ -3,20 +3,14 @@ import type { ReactNode } from "react";
 import { Skeleton as BaseSkeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-/** shadcn's bg-accent is almost invisible on the app's white cards, so tint with the text color instead. */
 export function Skeleton({ className, ...props }: React.ComponentProps<typeof BaseSkeleton>) {
     return <BaseSkeleton className={cn("bg-foreground/8 dark:bg-foreground/12", className)} {...props} />;
 }
 
-/*
- * Loading placeholders shaped like the real components, so the page doesn't jump when data arrives.
- * Used by route `loading.tsx` files and by client components while they fetch. Keep the dimensions in
- * sync with the components they mirror.
- */
 
 const card = "rounded-2xl border border-border/70 bg-card/80 backdrop-blur";
+const readingColumn = "mx-auto w-full max-w-[40rem]";
 
-/** Wraps a skeleton region: announces "loading" to screen readers and hides the shapes from them. */
 export function LoadingRegion({ label, className, children }: Readonly<{ label: string; className?: string; children: ReactNode }>) {
     return (
         <div role="status" aria-busy="true" aria-live="polite" className={className}>
@@ -28,7 +22,6 @@ export function LoadingRegion({ label, className, children }: Readonly<{ label: 
     );
 }
 
-/** Lines of text with a shorter last line. */
 export function TextLinesSkeleton({ lines = 3, className }: Readonly<{ lines?: number; className?: string }>) {
     return (
         <div className={cn("space-y-2.5", className)}>
@@ -39,7 +32,6 @@ export function TextLinesSkeleton({ lines = 3, className }: Readonly<{ lines?: n
     );
 }
 
-/** Page title + description, like the h1/p at the top of list pages. */
 export function PageHeadingSkeleton({ withMeta = false }: Readonly<{ withMeta?: boolean }>) {
     return (
         <div className="space-y-4">
@@ -53,7 +45,6 @@ export function PageHeadingSkeleton({ withMeta = false }: Readonly<{ withMeta?: 
     );
 }
 
-/** Mirrors app/articles/ArticleCard.tsx (date, centered title, author). */
 export function ArticleCardSkeleton() {
     return (
         <div className={cn(card, "p-5")}>
@@ -64,7 +55,6 @@ export function ArticleCardSkeleton() {
     );
 }
 
-/** Mirrors the archive card (date, two-line title, author). */
 export function ArchiveCardSkeleton() {
     return (
         <div className={cn(card, "p-5")}>
@@ -76,7 +66,6 @@ export function ArchiveCardSkeleton() {
     );
 }
 
-/** Mirrors the search entry button on /articles. */
 export function SearchBarSkeleton() {
     return (
         <div className={cn(card, "flex items-center gap-3 px-5 py-5")}>
@@ -89,7 +78,6 @@ export function SearchBarSkeleton() {
     );
 }
 
-/** One search result row in the search modal. */
 export function SearchResultSkeleton() {
     return (
         <div className="rounded-xl border border-border bg-card p-4">
@@ -100,51 +88,50 @@ export function SearchResultSkeleton() {
     );
 }
 
-/** Mirrors the article card on /articles/[id] (badge, date, title, author, body). */
-export function ArticleBodySkeleton() {
+export function ArticleSheetSkeleton() {
     return (
-        <div className={cn(card, "p-5 sm:p-10")}>
-            <div className="flex items-center justify-between border-b border-border pb-6">
-                <Skeleton className="h-6 w-20 rounded-full" />
-                <Skeleton className="h-3.5 w-20" />
+        <div className="sheet">
+            <div className="px-5 pb-12 pt-10 sm:px-12 sm:pb-16 sm:pt-16">
+                <div className={readingColumn}>
+                    <Skeleton className="h-10 w-4/5 sm:h-13" />
+                    <Skeleton className="mt-3 h-10 w-1/2 sm:hidden" />
+                    <Skeleton className="mt-6 h-4 w-64 max-w-full" />
+                </div>
+                <div className={cn(readingColumn, "mt-10 border-t border-border pt-10")}>
+                    <TextLinesSkeleton lines={4} />
+                    <TextLinesSkeleton lines={3} className="mt-7" />
+                </div>
             </div>
-            <Skeleton className="mt-6 h-9 w-4/5 sm:h-12" />
-            <Skeleton className="mt-3 h-9 w-1/2 sm:hidden" />
-            <Skeleton className="mt-5 h-4 w-40" />
-            <div className="mt-8 border-t border-border pt-8">
-                <TextLinesSkeleton lines={4} />
-                <TextLinesSkeleton lines={3} className="mt-6" />
+            <div className="border-t border-border px-5 py-10 sm:px-12 sm:py-14">
+                <div className={readingColumn}>
+                    <CommentsSkeleton />
+                </div>
             </div>
         </div>
     );
 }
 
-/** Card header used by references, graph and comments (icon, title, subtitle). */
-function SectionHeaderSkeleton({ withIcon = true }: Readonly<{ withIcon?: boolean }>) {
+function SectionHeadingSkeleton() {
     return (
-        <div className="flex items-center gap-3 border-b border-border/70 p-4 sm:p-6">
-            {withIcon ? <Skeleton className="size-10 shrink-0 rounded-xl" /> : null}
-            <div className="flex-1 space-y-2">
-                <Skeleton className="h-5 w-40" />
-                <Skeleton className="h-3.5 w-full max-w-xs" />
-            </div>
+        <div className="flex items-baseline gap-3">
+            <Skeleton className="h-7 w-36" />
+            <Skeleton className="h-3.5 w-16" />
         </div>
     );
 }
 
-/** Mirrors components/articles/articleReferences.tsx. */
 export function ReferencesSkeleton({ rows = 2 }: Readonly<{ rows?: number }>) {
     return (
-        <div className={cn(card, "overflow-hidden")}>
-            <SectionHeaderSkeleton />
-            <div className="flex flex-col gap-3 p-4 sm:p-6">
+        <div>
+            <SectionHeadingSkeleton />
+            <div className="mt-6">
                 {Array.from({ length: rows }, (_, i) => (
-                    <div key={i} className="flex gap-3 rounded-xl border border-border/60 p-4 sm:gap-4">
-                        <Skeleton className="size-7 shrink-0 rounded-full" />
-                        <div className="flex-1 space-y-2.5">
-                            <Skeleton className="h-4 w-11/12" />
+                    <div key={i} className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-2 border-t border-border py-5 first:border-t-0 first:pt-0 sm:grid-cols-[2.25rem_minmax(0,1fr)]">
+                        <Skeleton className="h-4 w-4" />
+                        <div className="space-y-2.5">
+                            <Skeleton className="h-4.5 w-11/12" />
                             <Skeleton className="h-3.5 w-1/2" />
-                            <Skeleton className="mt-3 h-6 w-56 rounded-lg" />
+                            <Skeleton className="h-3 w-56 max-w-full" />
                         </div>
                     </div>
                 ))}
@@ -153,7 +140,6 @@ export function ReferencesSkeleton({ rows = 2 }: Readonly<{ rows?: number }>) {
     );
 }
 
-/** The graph canvas area: a ring of placeholder nodes around a center. Used inside the graph card. */
 export function GraphCanvasSkeleton({ className }: Readonly<{ className?: string }>) {
     const ring = 10;
     return (
@@ -177,49 +163,50 @@ export function GraphCanvasSkeleton({ className }: Readonly<{ className?: string
     );
 }
 
-/** Mirrors the whole citation graph card (header, picker, toolbar, canvas, details). */
 export function GraphCardSkeleton() {
     return (
-        <div className={cn(card, "overflow-hidden")}>
-            <SectionHeaderSkeleton />
-            <div className="flex flex-wrap gap-4 border-b border-border/70 px-4 py-3 sm:px-6">
-                <Skeleton className="h-8 w-44 rounded-lg" />
-                <Skeleton className="h-8 w-60 rounded-lg" />
+        <div>
+            <div className={cn(readingColumn, "space-y-3")}>
+                <Skeleton className="h-7 w-44" />
+                <Skeleton className="h-3.5 w-full max-w-xs" />
             </div>
-            <div className="grid lg:grid-cols-[minmax(0,1fr)_18rem]">
-                <div className="h-80 sm:h-115">
-                    <GraphCanvasSkeleton />
+            <div className="mt-6 overflow-hidden rounded-md border border-border">
+                <div className="flex flex-wrap gap-4 border-b border-border px-4 py-3 sm:px-6">
+                    <Skeleton className="h-8 w-44 rounded-md" />
+                    <Skeleton className="h-8 w-60 rounded-md" />
                 </div>
-                <div className="space-y-3 border-t border-border/70 p-4 sm:p-5 lg:border-l lg:border-t-0">
-                    <Skeleton className="size-5 rounded-md" />
-                    <Skeleton className="h-4 w-4/5" />
-                    <Skeleton className="h-3.5 w-3/5" />
+                <div className="grid lg:grid-cols-[minmax(0,1fr)_18rem]">
+                    <div className="h-80 sm:h-115">
+                        <GraphCanvasSkeleton />
+                    </div>
+                    <div className="space-y-3 border-t border-border p-4 sm:p-5 lg:border-l lg:border-t-0">
+                        <Skeleton className="size-5 rounded-md" />
+                        <Skeleton className="h-4 w-4/5" />
+                        <Skeleton className="h-3.5 w-3/5" />
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
 
-/** Mirrors the comments card (header, textarea, button, two comments). */
 export function CommentsSkeleton() {
     return (
-        <div className={cn(card, "overflow-hidden")}>
-            <SectionHeaderSkeleton withIcon={false} />
-            <div className="space-y-6 p-4 sm:p-6">
-                <Skeleton className="h-28 w-full rounded-xl" />
-                <div className="flex justify-end">
-                    <Skeleton className="h-9 w-36 rounded-md" />
-                </div>
+        <div>
+            <SectionHeadingSkeleton />
+            <Skeleton className="mt-6 h-24 w-full rounded-md" />
+            <div className="mt-3 flex justify-end">
+                <Skeleton className="h-9 w-36 rounded-md" />
+            </div>
+            <div className="mt-8 divide-y divide-border border-t border-border">
                 {Array.from({ length: 2 }, (_, i) => (
-                    <div key={i} className="rounded-2xl border border-border p-4">
-                        <div className="flex justify-between gap-3">
-                            <div className="space-y-2">
-                                <Skeleton className="h-3.5 w-28" />
-                                <Skeleton className="h-3 w-36" />
-                            </div>
-                            <Skeleton className="h-6 w-20 rounded-md" />
+                    <div key={i} className="py-5">
+                        <div className="flex items-baseline gap-2">
+                            <Skeleton className="h-3.5 w-28" />
+                            <Skeleton className="h-3 w-32" />
                         </div>
-                        <TextLinesSkeleton lines={2} className="mt-4" />
+                        <TextLinesSkeleton lines={2} className="mt-3" />
+                        <Skeleton className="mt-3 h-5 w-40 rounded-md" />
                     </div>
                 ))}
             </div>
@@ -227,7 +214,6 @@ export function CommentsSkeleton() {
     );
 }
 
-/** Mirrors the Markdown editor (toolbar + text area). */
 export function EditorSkeleton({ className }: Readonly<{ className?: string }>) {
     return (
         <div className={cn("flex flex-col", className)}>
@@ -244,35 +230,45 @@ export function EditorSkeleton({ className }: Readonly<{ className?: string }>) 
     );
 }
 
-/** Mirrors the create form (main column + settings sidebar). */
 export function CreateFormSkeleton() {
     return (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-            <div className={cn(card, "space-y-6 p-4 sm:p-6")}>
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-12 w-full rounded-xl" />
-                </div>
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-20" />
-                    <div className="overflow-hidden rounded-xl border border-border">
-                        <EditorSkeleton className="h-72 lg:h-120" />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
+            <div className="sheet overflow-hidden">
+                <div className="px-5 pt-5 sm:px-8 sm:pt-7">
+                    <Skeleton className="h-4 w-14" />
+                    <div className="border-b border-border pb-4 pt-3">
+                        <Skeleton className="h-9 w-3/4" />
                     </div>
                 </div>
-            </div>
-            <div className="flex flex-col gap-6">
-                <div className={cn(card, "space-y-3 p-4 sm:p-5")}>
-                    <Skeleton className="h-4 w-28" />
-                    <Skeleton className="h-16 w-full rounded-xl" />
-                    <Skeleton className="h-16 w-full rounded-xl" />
-                    <Skeleton className="mt-2 h-4 w-32" />
-                    {Array.from({ length: 3 }, (_, i) => (
-                        <Skeleton key={i} className="h-12 w-full rounded-xl" />
-                    ))}
+                <div className="px-5 pb-2 pt-6 sm:px-8">
+                    <Skeleton className="h-4 w-16" />
                 </div>
-                <div className={cn(card, "space-y-3 p-4 sm:p-5")}>
+                <div className="px-5 sm:px-8">
+                    <div className="overflow-hidden rounded-md border border-border">
+                        <EditorSkeleton className="h-75 md:h-125" />
+                    </div>
+                </div>
+                <div className="px-5 py-4 sm:px-8">
+                    <Skeleton className="h-3.5 w-80 max-w-full" />
+                </div>
+            </div>
+            <div className="sheet divide-y divide-border">
+                {[2, 3].map((rows) => (
+                    <div key={rows} className="space-y-3 p-5">
+                        <Skeleton className="h-4 w-28" />
+                        <div className="divide-y divide-border rounded-md border border-border">
+                            {Array.from({ length: rows }, (_, i) => (
+                                <div key={i} className="space-y-1.5 px-3 py-2.5">
+                                    <Skeleton className="h-3.5 w-24" />
+                                    <Skeleton className="h-3 w-4/5" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+                <div className="space-y-3 p-5">
                     <Skeleton className="h-10 w-full rounded-md" />
-                    <Skeleton className="mx-auto h-3 w-3/4" />
+                    <Skeleton className="h-3 w-3/4" />
                 </div>
             </div>
         </div>

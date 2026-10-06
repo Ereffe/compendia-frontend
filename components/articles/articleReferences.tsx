@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Check, Copy, ExternalLink, Network } from "lucide-react";
+import { Check, Copy, ExternalLink, Network } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -19,26 +19,25 @@ export default function ArticleReferences({ references }: Readonly<{ references:
     const t = useTranslations("references");
 
     return (
-        <section className="overflow-hidden rounded-2xl border border-border/70 bg-card/85 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur">
-            <header className="flex items-center gap-3 border-b border-border/70 p-4 sm:p-6">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-teal-100 text-teal-700 dark:bg-teal-950/70 dark:text-teal-300">
-                    <BookOpen className="size-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                    <h2 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">{t("title")}</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-                </div>
-                <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-                    {t("count", { count: references.length })}
-                </span>
-            </header>
-
-            <ol className="flex flex-col gap-3 p-4 sm:p-6">
+        <div>
+            <SectionHeading title={t("title")} meta={t("count", { count: references.length })} />
+            <ol className="mt-6">
                 {references.map((reference, index) => (
                     <ReferenceItem key={reference.doi} reference={reference} index={index} />
                 ))}
             </ol>
-        </section>
+        </div>
+    );
+}
+
+export function SectionHeading({ id, title, meta }: Readonly<{ id?: string; title: string; meta?: string }>) {
+    return (
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h2 id={id} className="font-serif text-2xl font-medium tracking-[-0.01em] text-foreground sm:text-[1.75rem]">
+                {title}
+            </h2>
+            {meta ? <span className="text-sm tabular-nums text-muted-foreground">{meta}</span> : null}
+        </div>
     );
 }
 
@@ -59,20 +58,18 @@ function ReferenceItem({ reference, index }: Readonly<{ reference: ArticleRefere
     };
 
     return (
-        <li className="flex gap-3 rounded-xl border border-border/60 bg-background/60 p-4 transition-colors hover:border-teal-600/40 sm:gap-4">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-teal-50 text-xs font-semibold text-teal-700 dark:bg-teal-950/60 dark:text-teal-300">
-                {index + 1}
-            </span>
+        <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-2 border-t border-border py-5 first:border-t-0 first:pt-0 sm:grid-cols-[2.25rem_minmax(0,1fr)]">
+            <span className="pt-px font-serif text-base tabular-nums text-muted-foreground">{index + 1}.</span>
 
-            <div className="min-w-0 flex-1 wrap-anywhere">
+            <div className="min-w-0 wrap-anywhere">
                 <a
                     href={reference.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group inline font-semibold leading-snug text-foreground transition-colors hover:text-teal-700 dark:hover:text-teal-300"
+                    className="font-serif text-[1.0625rem] font-medium leading-snug text-foreground underline decoration-border decoration-1 underline-offset-[3px] transition-colors hover:decoration-foreground"
                 >
                     {reference.title || reference.doi}
-                    <ExternalLink className="ml-1 inline size-3.5 align-[-2px] text-muted-foreground transition-colors group-hover:text-teal-600" />
+                    <ExternalLink className="ml-1 inline size-3.5 align-[-1px] text-muted-foreground" aria-hidden />
                 </a>
 
                 {authors.length > 0 ? (
@@ -83,24 +80,30 @@ function ReferenceItem({ reference, index }: Readonly<{ reference: ArticleRefere
                 ) : null}
 
                 {reference.description ? (
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground/90">{reference.description}</p>
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-foreground/75">{reference.description}</p>
                 ) : null}
 
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <span className="inline-flex max-w-full items-center gap-1 rounded-lg border border-border bg-muted/40 py-0.5 pl-2.5 pr-0.5">
-                        <code className="truncate text-xs text-foreground">{reference.doi}</code>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={() => void copyDoi()}
-                            aria-label={copied ? t("copied") : t("copyDoi")}
-                            title={copied ? t("copied") : t("copyDoi")}
-                        >
-                            {copied ? <Check className="text-teal-600" /> : <Copy />}
-                        </Button>
-                    </span>
-                    <Button type="button" variant="ghost" size="xs" onClick={() => showReferenceInGraph(reference.doi)} className="text-teal-700 dark:text-teal-300">
+                <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted-foreground">
+                    <span className="mr-1 truncate font-mono">doi:{reference.doi}</span>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => void copyDoi()}
+                        aria-label={copied ? t("copied") : t("copyDoi")}
+                        title={copied ? t("copied") : t("copyDoi")}
+                        className="text-muted-foreground"
+                    >
+                        {copied ? <Check className="text-teal-700 dark:text-teal-300" /> : <Copy />}
+                    </Button>
+                    <span aria-hidden className="mx-1 hidden text-border sm:inline">|</span>
+                    <Button
+                        type="button"
+                        variant="link"
+                        size="xs"
+                        onClick={() => showReferenceInGraph(reference.doi)}
+                        className="h-auto px-0 text-xs font-medium text-teal-800 dark:text-teal-300"
+                    >
                         <Network /> {t("showInGraph")}
                     </Button>
                 </div>

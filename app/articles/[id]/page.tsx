@@ -15,6 +15,17 @@ import type { ArticleComplexity, ArticleReference } from "@/types/articles";
 const isKnownComplexity = (value: string): value is ArticleComplexity =>
   value === "SIMPLE" || value === "INTERMEDIATE" || value === "COMPLEX";
 
+/** Text column inside the sheet, ~70 characters of the serif body. */
+const readingColumn = "mx-auto w-full max-w-[40rem]";
+const sectionClass = "border-t border-border px-5 py-10 sm:px-12 sm:py-14";
+const proseClass = [
+  "prose prose-neutral max-w-none font-serif text-[1.125rem] leading-[1.7] wrap-break-word dark:prose-invert sm:text-[1.1875rem]",
+  "prose-headings:font-serif prose-headings:font-medium prose-headings:tracking-[-0.01em]",
+  "prose-a:text-teal-800 prose-a:underline-offset-[3px] hover:prose-a:text-teal-950 dark:prose-a:text-teal-300",
+  "prose-code:font-mono prose-code:text-[0.85em] prose-pre:overflow-x-auto prose-pre:font-mono prose-pre:text-sm",
+  "prose-img:rounded-md [&_table]:block [&_table]:overflow-x-auto [&_table]:font-sans [&_table]:text-sm",
+].join(" ");
+
 async function fetchArticle(id: string, accessToken: string): Promise<GraphqlArticle | null> {
   try {
     const data = await authedQuery<{ article: GraphqlArticle | null }>(accessToken, ARTICLE_QUERY, {
@@ -51,55 +62,61 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
   const references = (article.references ?? []).filter((reference): reference is ArticleReference => reference != null);
   const comments = article.comments.content.map(mapGraphqlCommentToCommentItem);
 
+  let complexity: string | null = article.complexity ?? null;
+  if (complexity && isKnownComplexity(complexity)) complexity = t(`complexity.${complexity}`);
+
   return (
-    <>
-      <section className="container-reading relative py-8 sm:py-12">
-        <article className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
-          <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-border pb-6">
-            {article.complexity ? (
-              <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                {isKnownComplexity(article.complexity) ? t(`complexity.${article.complexity}`) : article.complexity}
-              </span>
-            ) : null}
-            <span className="ml-auto text-xs font-medium text-muted-foreground">
-              {format.dateTime(new Date(article.datePosted), articleDateFormat)}
-            </span>
-          </div>
-
-          <h1 className="wrap-break-word mb-4 text-3xl font-bold leading-tight text-foreground sm:text-5xl">
-            {article.title}
-          </h1>
-
-          {article.author?.name ? (
-            <p className="mb-8 border-b border-border pb-5 text-base font-medium text-muted-foreground">
-              {t("common.authorBy", { name: article.author.name })}
+    <div className="container-reading py-6 sm:py-12">
+      <div className="sheet">
+        <article className="px-5 pb-12 pt-10 sm:px-12 sm:pb-16 sm:pt-16">
+          <header className={readingColumn}>
+            <h1 className="wrap-break-word text-balance font-serif text-4xl font-medium leading-[1.08] tracking-[-0.02em] text-foreground sm:text-[3.25rem]">
+              {article.title}
+            </h1>
+            <p className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{article.author?.name ?? t("common.unknownAuthor")}</span>
+              <span aria-hidden>·</span>
+              <time dateTime={article.datePosted}>{format.dateTime(new Date(article.datePosted), articleDateFormat)}</time>
+              {complexity ? (
+                <>
+                  <span aria-hidden>·</span>
+                  <span>{t("article.level", { level: complexity })}</span>
+                </>
+              ) : null}
             </p>
-          ) : null}
+          </header>
 
-          <div className="prose max-w-none space-y-6 text-muted-foreground wrap-break-word dark:prose-invert sm:prose-lg prose-img:rounded-xl prose-pre:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto">
-            <Markdown>{article.content}</Markdown>
+          <div className={`${readingColumn} mt-10 border-t border-border pt-10`}>
+            <div className={proseClass}>
+              <Markdown>{article.content}</Markdown>
+            </div>
           </div>
         </article>
-      </section>
 
-      {references.length > 0 ? (
-        <>
-          <section className="container-reading py-2 sm:py-4">
-            <ArticleReferences references={references} />
-          </section>
-          <section id="citation-graph" className="container-reading scroll-mt-6 py-2 sm:py-4">
-            <ArticleGraphContainer references={references} />
-          </section>
-        </>
-      ) : null}
+        {references.length > 0 ? (
+          <>
+            <section className={sectionClass}>
+              <div className={readingColumn}>
+                <ArticleReferences references={references} />
+              </div>
+            </section>
+            <section id="citation-graph" className={`${sectionClass} scroll-mt-6`}>
+              {/* The graph is a figure: its heading follows the text column, the canvas uses the full sheet. */}
+              <ArticleGraphContainer references={references} headerClassName={readingColumn} />
+            </section>
+          </>
+        ) : null}
 
-      <section className="container-reading relative pb-10 pt-2 sm:pt-4">
-        <ArticleComments
-          articleId={article.id}
-          initialComments={comments}
-          totalCount={article.comments.totalElements}
-        />
-      </section>
-    </>
+        <section className={sectionClass}>
+          <div className={readingColumn}>
+            <ArticleComments
+              articleId={article.id}
+              initialComments={comments}
+              totalCount={article.comments.totalElements}
+            />
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }

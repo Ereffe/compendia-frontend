@@ -95,9 +95,11 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
     const [fontFamily, setFontFamily] = useState("sans-serif");
     const cyRef = useRef<cytoscape.Core | null>(null);
 
-    // Canvas text can't use CSS variables, so read the resolved app font once mounted.
+    // Canvas text can't use CSS variables, so read the resolved fonts once mounted. Node labels are paper
+    // titles, set in the serif like titles everywhere else on the page.
     useEffect(() => {
-        setFontFamily(getComputedStyle(document.body).fontFamily || "sans-serif");
+        const serif = getComputedStyle(document.body).getPropertyValue("--font-newsreader").trim();
+        setFontFamily(serif ? `${serif}, ui-serif, Georgia, serif` : getComputedStyle(document.body).fontFamily || "serif");
     }, []);
 
     const fetchGraph = useCallback(
@@ -221,7 +223,6 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
 
     return (
         <div className="flex flex-col">
-            {/* Toolbar */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-border/70 px-4 py-3 sm:px-6">
                 <Segmented label={t("depth")} hint={t("depthHint")}>
                     {LEVELS.map((value) => (
@@ -242,7 +243,6 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
             </div>
 
             <div className="grid lg:grid-cols-[minmax(0,1fr)_18rem]">
-                {/* Canvas */}
                 <div
                     data-testid="graph-canvas"
                     className="relative h-80 touch-pan-y bg-[radial-gradient(circle,var(--color-border)_1px,transparent_1px)] bg-size-[18px_18px] sm:h-115"
@@ -254,14 +254,12 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                             layout={layout}
                             stylesheet={stylesheet}
                             cy={bindCy}
-                            wheelSensitivity={0.25}
                             boxSelectionEnabled={false}
                         />
                     ) : null}
 
-                    {/* Legend */}
                     {hasGraph ? (
-                        <div className="pointer-events-none absolute left-3 top-3 hidden flex-col gap-1.5 rounded-xl border border-border/70 bg-background/85 px-3 py-2 text-[11px] text-muted-foreground shadow-sm backdrop-blur sm:flex">
+                        <div className="pointer-events-none absolute left-3 top-3 hidden flex-col gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[11px] text-muted-foreground sm:flex">
                             <LegendItem kind="root" label={t("legend.root")} palette={palette} />
                             <LegendItem kind="cited" label={t("legend.cited")} palette={palette} />
                             {stats.missing > 0 ? <LegendItem kind="missing" label={t("legend.missing")} palette={palette} /> : null}
@@ -271,9 +269,8 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                         </div>
                     ) : null}
 
-                    {/* Actions */}
                     {data ? (
-                        <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-xl border border-border/70 bg-background/90 shadow-sm backdrop-blur">
+                        <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-md border border-border bg-card">
                             <IconButton label={t("refresh")} onClick={() => void fetchGraph("network-only")} disabled={loading} className="rounded-none">
                                 <RotateCw className={cn(loading && "animate-spin")} />
                             </IconButton>
@@ -283,9 +280,8 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                         </div>
                     ) : null}
 
-                    {/* Zoom controls */}
                     {hasGraph ? (
-                        <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-xl border border-border/70 bg-background/90 shadow-sm backdrop-blur">
+                        <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-md border border-border bg-card">
                             <IconButton label={t("zoomIn")} onClick={() => zoomBy(1.25)} className="rounded-none">
                                 <Plus />
                             </IconButton>
@@ -298,28 +294,26 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                         </div>
                     ) : null}
 
-                    {/* Hover card */}
                     {hover && hover.node.id !== selectedNode?.id ? (
                         <div
-                            className="pointer-events-none absolute z-10 max-w-64 -translate-x-1/2 -translate-y-full rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg"
+                            className="pointer-events-none absolute z-10 max-w-64 -translate-x-1/2 -translate-y-full rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-sm"
                             style={{ left: hover.x, top: hover.y - 16 }}
                         >
-                            <p className="line-clamp-2 font-semibold">{hover.node.title ?? hover.node.doi}</p>
+                            <p className="line-clamp-2 font-serif text-sm font-medium leading-snug">{hover.node.title ?? hover.node.doi}</p>
                             <p className="mt-0.5 text-muted-foreground">
                                 {hover.node.kind === "root" ? t("legend.root") : t("depthBadge", { depth: hover.node.depth })}
                             </p>
                         </div>
                     ) : null}
 
-                    {/* States */}
                     {initialLoading ? (
                         <LoadingRegion label={t("loading")} className="absolute inset-0">
                             <GraphCanvasSkeleton />
                         </LoadingRegion>
                     ) : null}
                     {loading && data ? (
-                        <div className="absolute inset-0 flex items-start justify-center bg-background/40 pt-4 backdrop-blur-[1px]">
-                            <span className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground shadow-sm">
+                        <div className="absolute inset-0 flex items-start justify-center bg-card/40 pt-4">
+                            <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground shadow-sm">
                                 <Spinner className="size-3.5" /> {t("loading")}
                             </span>
                         </div>
@@ -352,10 +346,9 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                     </div>
                 ) : null}
 
-                {/* Details */}
                 <aside className="border-t border-border/70 p-4 sm:p-5 lg:border-l lg:border-t-0">
                     {expandError ? (
-                        <p role="alert" className="mb-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                        <p role="alert" className="mb-3 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
                             {t("expandFailed")}
                         </p>
                     ) : null}
@@ -368,7 +361,7 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                         />
                     ) : (
                         <div className="flex h-full flex-col justify-center gap-3 text-sm text-muted-foreground">
-                            <MousePointerClick className="size-5 text-teal-600 dark:text-teal-400" />
+                            <MousePointerClick className="size-5 text-muted-foreground" />
                             <p className="font-medium text-foreground">{t("selectHint")}</p>
                             <p className="hidden lg:block">{t("hoverHint")}</p>
                         </div>
@@ -405,9 +398,9 @@ function NodeDetails({
             <div className="flex items-start justify-between gap-2">
                 <span
                     className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider",
-                        node.kind === "root" && "bg-teal-700 text-white dark:bg-teal-400 dark:text-teal-950",
-                        node.kind === "cited" && "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-200",
+                        "rounded-full px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider",
+                        node.kind === "root" && "bg-teal-800 text-white dark:bg-teal-300 dark:text-teal-950",
+                        node.kind === "cited" && "bg-teal-50 text-teal-800 dark:bg-teal-950 dark:text-teal-300",
                         node.kind === "missing" && "border border-dashed border-muted-foreground/50 text-muted-foreground",
                     )}
                 >
@@ -419,7 +412,7 @@ function NodeDetails({
             </div>
 
             <div>
-                <p className="line-clamp-4 font-semibold leading-snug text-foreground">{node.title ?? node.doi}</p>
+                <p className="line-clamp-4 font-serif text-[1.0625rem] font-medium leading-snug text-foreground">{node.title ?? node.doi}</p>
                 {node.kind !== "root" ? <p className="mt-1 text-xs text-muted-foreground">{t("depthBadge", { depth: node.depth })}</p> : null}
             </div>
 
@@ -432,10 +425,10 @@ function NodeDetails({
                 </p>
             ) : null}
 
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 py-1 pl-2.5 pr-1">
-                <code className="min-w-0 flex-1 truncate text-xs text-foreground">{node.doi}</code>
+            <div className="flex items-center gap-1 rounded-md border border-border bg-muted/40 py-1 pl-2.5 pr-1">
+                <code className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">doi:{node.doi}</code>
                 <IconButton label={copied ? t("copied") : t("copyDoi")} onClick={() => void copyDoi()} className="size-7">
-                    {copied ? <Check className="text-teal-600" /> : <Copy />}
+                    {copied ? <Check className="text-teal-700 dark:text-teal-300" /> : <Copy />}
                 </IconButton>
             </div>
 
@@ -459,8 +452,8 @@ function NodeDetails({
 function Segmented({ label, hint, children }: Readonly<{ label: string; hint?: string; children: ReactNode }>) {
     return (
         <div className="flex items-center gap-2" title={hint}>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-            <div role="group" aria-label={label} className="inline-flex rounded-lg border border-border bg-muted/50 p-0.5">
+            <span className="text-sm text-muted-foreground">{label}</span>
+            <div role="group" aria-label={label} className="inline-flex rounded-md border border-border bg-muted/50 p-0.5">
                 {children}
             </div>
         </div>
@@ -480,7 +473,7 @@ function SegmentButton({
             disabled={disabled}
             onClick={onClick}
             className={cn(
-                "min-w-8 rounded-md px-2.5 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                "min-w-8 rounded-sm px-2.5 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                 active ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
             )}
         >

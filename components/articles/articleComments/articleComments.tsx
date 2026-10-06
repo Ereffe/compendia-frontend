@@ -3,14 +3,16 @@
 import { type ReactNode, type SyntheticEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useFormatter, useTranslations } from "next-intl";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { useVoteStore } from "@/hooks/stores/useVoteStore";
 import type { CommentItem } from "@/types/comments";
 import type { ErrorKey } from "@/types/errors";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionHeading } from "@/components/articles/articleReferences";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import {
     buildCommentTree,
     countComments,
@@ -18,6 +20,7 @@ import {
     createSubmitCommentHandler,
 } from "./articleCommentsController";
 
+const voteClass = "gap-1 px-1.5 tabular-nums text-muted-foreground";
 const commentDateFormat = { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" } as const;
 
 type ArticleCommentsProps = Readonly<{
@@ -147,11 +150,11 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         if (!isHydrated) {
             return (
                 <>
-                    <Button variant="outline" size="xs" disabled>
-                        +{comment.rating.positive}
+                    <Button variant="ghost" size="xs" className={voteClass} disabled>
+                        <ThumbsUp /> {comment.rating.positive}
                     </Button>
-                    <Button variant="outline" size="xs" disabled>
-                        -{comment.rating.negative}
+                    <Button variant="ghost" size="xs" className={voteClass} disabled>
+                        <ThumbsDown /> {comment.rating.negative}
                     </Button>
                 </>
             );
@@ -160,26 +163,26 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         return (
             <>
                 <Button
-                    variant={isPositiveVote ? "default" : "outline"}
+                    variant="ghost"
                     size="xs"
-                    className={isPositiveVote ? "bg-emerald-600 text-white hover:bg-emerald-700" : "text-emerald-700 dark:text-emerald-400"}
+                    className={cn(voteClass, isPositiveVote && "text-emerald-700 disabled:opacity-100 dark:text-emerald-400")}
                     onClick={() => handleRateComment(comment.id, true)}
                     disabled={hasVoted || !canComment}
                     aria-label={t("upvote", { count: comment.rating.positive })}
                     title={hasVoted ? t("alreadyVoted") : undefined}
                 >
-                    +{comment.rating.positive}
+                    <ThumbsUp /> {comment.rating.positive}
                 </Button>
                 <Button
-                    variant={isNegativeVote ? "default" : "outline"}
+                    variant="ghost"
                     size="xs"
-                    className={isNegativeVote ? "bg-red-600 text-white hover:bg-red-700" : "text-red-700 dark:text-red-400"}
+                    className={cn(voteClass, isNegativeVote && "text-red-700 disabled:opacity-100 dark:text-red-400")}
                     onClick={() => handleRateComment(comment.id, false)}
                     disabled={hasVoted || !canComment}
                     aria-label={t("downvote", { count: comment.rating.negative })}
                     title={hasVoted ? t("alreadyVoted") : undefined}
                 >
-                    -{comment.rating.negative}
+                    <ThumbsDown /> {comment.rating.negative}
                 </Button>
             </>
         );
@@ -191,7 +194,7 @@ export default function ArticleComments({ articleId, initialComments, totalCount
                 value={replyDrafts[commentId] ?? ""}
                 onChange={(event) => handleReplyChange(commentId, event.target.value)}
                 placeholder={t("replyPlaceholder")}
-                className="min-h-20 rounded-xl border-border bg-background text-foreground"
+                className="min-h-20 bg-background text-foreground"
                 disabled={!canComment || isSubmitting}
             />
             <div className="flex justify-end gap-2">
@@ -226,86 +229,41 @@ export default function ArticleComments({ articleId, initialComments, totalCount
 
         return (
             <div key={comment.id} className="w-full">
-                <article
-                    className={[
-                        "w-full rounded-2xl transition-all duration-200",
-                        depth === 0
-                            ? "border border-border bg-background p-4 shadow-sm"
-                            : "bg-muted/30 p-3",
-                    ].join(" ")}
-                >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                                <p className="text-sm font-semibold text-foreground">
-                                    {comment.user.name}
-                                </p>
+                <article className={cn("w-full", depth === 0 ? "py-5" : "py-3")}>
+                    <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
+                        <span className="font-medium text-foreground">{comment.user.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                            {format.dateTime(new Date(comment.datePosted), commentDateFormat)}
+                            {comment.editedAt ? ` · ${t("edited")}` : ""}
+                        </span>
+                    </p>
 
-                                {depth > 0 ? (
-                                    <span className="text-xs text-muted-foreground">
-                                        {t("replyBadge")}
-                                    </span>
-                                ) : null}
-                            </div>
-
-                            <p className="text-xs text-muted-foreground">
-                                {format.dateTime(new Date(comment.datePosted), commentDateFormat)}
-                                {comment.editedAt ? ` · ${t("edited")}` : ""}
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            {renderVoteButtons(
-                                comment,
-                                hasVoted,
-                                isPositiveVote,
-                                isNegativeVote
-                            )}
-                        </div>
-                    </div>
-
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground/90 wrap-anywhere">
+                    <p className="mt-1.5 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-foreground/90 wrap-anywhere">
                         {comment.content}
                     </p>
 
-                    <div className="mt-4 flex items-center justify-between">
+                    <div className="-ml-1.5 mt-2 flex flex-wrap items-center gap-x-1 gap-y-1">
+                        {renderVoteButtons(comment, hasVoted, isPositiveVote, isNegativeVote)}
                         <Button
                             variant="ghost"
                             size="xs"
-                            className="h-auto px-0 text-muted-foreground hover:text-foreground"
-                            onClick={() =>
-                                toggleReplyForm(comment.id)
-                            }
+                            className="ml-2 px-1.5 text-muted-foreground hover:text-foreground"
+                            onClick={() => toggleReplyForm(comment.id)}
                             disabled={!canComment}
                         >
                             {isReplyFormVisible ? t("cancel") : t("reply")}
                         </Button>
-
                         {hasReplies ? (
                             <Button
                                 variant="ghost"
                                 size="xs"
-                                className="h-auto px-0 text-muted-foreground hover:text-foreground"
-                                onClick={() =>
-                                    toggleReplies(comment.id)
-                                }
+                                className="px-1.5 text-muted-foreground hover:text-foreground"
+                                onClick={() => toggleReplies(comment.id)}
+                                aria-expanded={isRepliesExpanded}
                             >
-                                {getRepliesToggleLabel(
-                                    repliesCount,
-                                    isRepliesExpanded
-                                )}
+                                {getRepliesToggleLabel(repliesCount, isRepliesExpanded)}
                             </Button>
-                        ) : <Button
-                            variant="ghost"
-                            size="xs"
-                            className="h-auto px-0 text-muted-foreground hover:text-foreground"
-                            disabled
-                        >
-                            {getRepliesToggleLabel(
-                                repliesCount,
-                                isRepliesExpanded
-                            )}
-                        </Button>}
+                        ) : null}
                     </div>
 
                     {isReplyFormVisible
@@ -314,7 +272,7 @@ export default function ArticleComments({ articleId, initialComments, totalCount
                 </article>
 
                 {hasReplies && isRepliesExpanded ? (
-                    <div className="relative mt-3 space-y-3 border-l border-border/50 pl-2 sm:pl-4">
+                    <div className="mb-4 ml-1 border-l border-border pl-4 sm:pl-5">
                         {comment.replies?.map((reply) =>
                             renderComment(reply, depth + 1)
                         )}
@@ -327,44 +285,39 @@ export default function ArticleComments({ articleId, initialComments, totalCount
 
 
     return (
-        <Card className="border-border/70 bg-card/80 backdrop-blur">
-            <CardHeader className="border-b border-border">
-                <CardTitle className="text-xl text-foreground">{t("title")}</CardTitle>
-                <CardDescription>{t("count", { count: displayedTotal })}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 pt-6">
-                <form className="space-y-3" onSubmit={handleSubmit}>
-                    <Textarea
-                        value={content}
-                        onChange={(event) => setContent(event.target.value)}
-                        placeholder={canComment ? t("placeholder") : t("placeholderSignedOut")}
-                        className="min-h-28 rounded-xl border-border bg-background text-foreground"
-                        disabled={!canComment || isSubmitting}
-                    />
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <p className="text-sm text-muted-foreground">{sessionLabel}</p>
-                        <Button type="submit" disabled={!canComment || isSubmitting || content.trim().length === 0}>
-                            {isSubmitting ? t("submitting") : t("submit")}
-                        </Button>
-                    </div>
-                    {error ? <p className="text-sm text-destructive" role="alert">{tErrors(error)}</p> : null}
-                </form>
+        <div>
+            <SectionHeading title={t("title")} meta={t("count", { count: displayedTotal })} />
 
-                <div className="space-y-4">
-                    {comments.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-6 text-sm text-muted-foreground">
-                            {t("empty")}
-                        </div>
-                    ) : (
-                        comments.map((comment) => renderComment(comment))
-                    )}
-                    {isTruncated ? (
-                        <p className="text-center text-sm text-muted-foreground">
-                            {t("truncated", { shown: initialComments.length, total: totalCount })}
-                        </p>
-                    ) : null}
+            <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
+                <Textarea
+                    value={content}
+                    onChange={(event) => setContent(event.target.value)}
+                    placeholder={canComment ? t("placeholder") : t("placeholderSignedOut")}
+                    aria-label={t("title")}
+                    className="min-h-24 bg-background text-foreground"
+                    disabled={!canComment || isSubmitting}
+                />
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-sm text-muted-foreground">{sessionLabel}</p>
+                    <Button type="submit" disabled={!canComment || isSubmitting || content.trim().length === 0}>
+                        {isSubmitting ? t("submitting") : t("submit")}
+                    </Button>
                 </div>
-            </CardContent>
-        </Card>
+                {error ? <p className="text-sm text-destructive" role="alert">{tErrors(error)}</p> : null}
+            </form>
+
+            <div className="mt-8 divide-y divide-border border-t border-border">
+                {comments.length === 0 ? (
+                    <p className="py-6 text-sm text-muted-foreground">{t("empty")}</p>
+                ) : (
+                    comments.map((comment) => renderComment(comment))
+                )}
+            </div>
+            {isTruncated ? (
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                    {t("truncated", { shown: initialComments.length, total: totalCount })}
+                </p>
+            ) : null}
+        </div>
     );
 }

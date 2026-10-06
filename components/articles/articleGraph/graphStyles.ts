@@ -18,32 +18,34 @@ type Palette = {
 };
 
 // One teal family (the app's accent): the further a paper is from the reference, the lighter it gets.
+// Everything else uses the page's neutral greys (globals.css tokens as hex, since the canvas can't read CSS
+// variables): labels sit on the sheet's card color and selection is marked in the text color.
 const palettes: Record<"light" | "dark", Palette> = {
     light: {
-        root: "#0f766e",
+        root: "#115e59",
         rootRing: "#99f6e4",
         near: "#14b8a6",
         far: "#5eead4",
         missingFill: "#ffffff",
-        missingBorder: "#94a3b8",
-        edge: "#94a3b8",
-        edgeHighlight: "#0d9488",
-        label: "#0f172a",
+        missingBorder: "#a3a3a3",
+        edge: "#a3a3a3",
+        edgeHighlight: "#0f766e",
+        label: "#0a0a0a",
         labelBackground: "#ffffff",
-        selected: "#f59e0b",
+        selected: "#0a0a0a",
     },
     dark: {
-        root: "#2dd4bf",
+        root: "#5eead4",
         rootRing: "#134e4a",
         near: "#14b8a6",
         far: "#0f766e",
-        missingFill: "#18181b",
-        missingBorder: "#71717a",
-        edge: "#71717a",
-        edgeHighlight: "#2dd4bf",
-        label: "#f4f4f5",
-        labelBackground: "#18181b",
-        selected: "#fbbf24",
+        missingFill: "#171717",
+        missingBorder: "#737373",
+        edge: "#737373",
+        edgeHighlight: "#5eead4",
+        label: "#fafafa",
+        labelBackground: "#171717",
+        selected: "#fafafa",
     },
 };
 

@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -9,18 +10,17 @@ export default async function CreateArticlePage() {
   const t = await getTranslations();
 
   return (
-    <section className="container-page my-3 flex flex-col gap-8 py-8 sm:py-12">
-      <div className="space-y-3">
+    <section className="container-page flex flex-col gap-8 py-8 sm:py-12">
+      <div>
         <Link
           href="/articles"
-          className="inline-flex rounded-full border border-border/70 bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-foreground backdrop-blur transition-colors hover:bg-accent"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
+          <ArrowLeft className="size-4" aria-hidden />
           {t("common.backToArticles")}
         </Link>
-        <div>
-          <h1 className="text-4xl font-bold leading-tight sm:text-5xl">{t("create.title")}</h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{t("create.description")}</p>
-        </div>
+        <h1 className="mt-4 font-serif text-4xl font-medium leading-tight tracking-[-0.02em] sm:text-5xl">{t("create.title")}</h1>
+        <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">{t("create.description")}</p>
       </div>
 
       <ArticleCreateForm />

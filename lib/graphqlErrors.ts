@@ -27,7 +27,6 @@ export const isAuthRejected = (error: unknown): boolean =>
     (ServerError.is(error) && (error.statusCode === 401 || error.statusCode === 403)) ||
     getGraphqlClassification(error) === "UNAUTHORIZED";
 
-/** Maps a backend error to a key of the `errors` translation namespace. */
 export const toErrorKey = (error: unknown, fallback: ErrorKey): ErrorKey => {
     if (isAuthRejected(error)) return "sessionExpired";
     switch (getGraphqlClassification(error)) {

@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   // React Compiler: automatic memoization, so components don't need hand-written useMemo/useCallback.
   // Next applies it only to files with JSX or hooks. Lint rules come from eslint-plugin-react-hooks.
   reactCompiler: true,
+  allowedDevOrigins: ['192.168.8.245'],
 };
 
 export default withNextIntl(nextConfig);

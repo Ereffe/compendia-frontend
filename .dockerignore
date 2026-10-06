@@ -17,3 +17,5 @@ vitest.*
 # Never send env files (secrets) to the build context.
 .env*
 scripts/qa
+.claude
+skills-lock.json
