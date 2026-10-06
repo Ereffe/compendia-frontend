@@ -1,8 +1,3 @@
-export type UserRole = "USER" | "PROFESSOR" | "ADMIN";
+import type { CurrentUserQuery } from "@/services/graphql/generated/graphql";
 
-export type AccountUser = {
-    id: string;
-    name: string;
-    email: string;
-    role: UserRole;
-};
+export type AccountUser = CurrentUserQuery["getCurrentUser"];

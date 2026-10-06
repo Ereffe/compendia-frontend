@@ -7,7 +7,6 @@ import ArticleOwnerActions from "@/components/articles/articleOwnerActions";
 import ArticleRating from "@/components/articles/articleRating/articleRating";
 import ArticleReferences from "@/components/articles/articleReferences";
 import ArticleGraphContainer from "@/components/articles/articleGraph/ArticleGraphContainer";
-import { isKnownComplexity } from "@/lib/articleComplexity";
 import { isValidArticleId } from "@/lib/articleId";
 import { isNotFoundError } from "@/lib/graphqlErrors";
 import { authedQuery, getCurrentUserId, requireAccessToken } from "@/lib/server/session";
@@ -27,7 +26,7 @@ const proseClass = [
 
 async function fetchArticle(id: string, accessToken: string): Promise<GraphqlArticle | null> {
   try {
-    const data = await authedQuery<{ article: GraphqlArticle | null }>(accessToken, ARTICLE_QUERY, {
+    const data = await authedQuery(accessToken, ARTICLE_QUERY, {
       id,
       commentsPage: 0,
       commentsSize: COMMENTS_PAGE_SIZE,
@@ -61,9 +60,6 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
   const references = (article.references ?? []).filter((reference): reference is ArticleReference => reference != null);
   const comments = article.comments.content.map(mapGraphqlCommentToCommentItem);
 
-  let complexity: string | null = article.complexity ?? null;
-  if (complexity && isKnownComplexity(complexity)) complexity = t(`complexity.${complexity}`);
-
   return (
     <div className="container-reading py-6 sm:py-12">
       <div className="sheet">
@@ -76,12 +72,8 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
               <span className="font-medium text-foreground">{article.author?.name ?? t("common.unknownAuthor")}</span>
               <span aria-hidden>·</span>
               <time dateTime={article.datePosted}>{format.dateTime(new Date(article.datePosted), articleDateFormat)}</time>
-              {complexity ? (
-                <>
-                  <span aria-hidden>·</span>
-                  <span>{t("article.level", { level: complexity })}</span>
-                </>
-              ) : null}
+              <span aria-hidden>·</span>
+              <span>{t("article.level", { level: t(`complexity.${article.complexity}`) })}</span>
             </p>
             {isAuthor ? <ArticleOwnerActions articleId={article.id} /> : null}
           </header>

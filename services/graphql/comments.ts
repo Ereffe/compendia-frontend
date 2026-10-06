@@ -1,8 +1,9 @@
-import { gql } from "@apollo/client";
+import { graphql } from "./generated";
 
+import type { AddCommentMutation } from "./generated/graphql";
 import type { CommentItem } from "@/types/comments";
 
-export const ADD_COMMENT_MUTATION = gql`
+export const ADD_COMMENT_MUTATION = graphql(`
     mutation AddComment($articleId: ID!, $content: String!, $parentCommentId: Int) {
         addComment(articleId: $articleId, content: $content, parentCommentId: $parentCommentId) {
             id
@@ -22,9 +23,9 @@ export const ADD_COMMENT_MUTATION = gql`
             }
         }
     }
-`;
+`);
 
-export const EDIT_COMMENT_MUTATION = gql`
+export const EDIT_COMMENT_MUTATION = graphql(`
     mutation EditComment($commentId: Int!, $newContent: String!) {
         editComment(commentId: $commentId, newContent: $newContent) {
             id
@@ -32,25 +33,21 @@ export const EDIT_COMMENT_MUTATION = gql`
             editedAt
         }
     }
-`;
+`);
 
-export const DELETE_COMMENT_MUTATION = gql`
+export const DELETE_COMMENT_MUTATION = graphql(`
     mutation DeleteComment($commentId: Int!) {
         deleteComment(commentId: $commentId)
     }
-`;
+`);
 
-export const RATE_COMMENT_MUTATION = gql`
+export const RATE_COMMENT_MUTATION = graphql(`
     mutation RateComment($commentId: Int!, $positive: Boolean!) {
         rateComment(commentId: $commentId, positive: $positive)
     }
-`;
+`);
 
-export type GraphqlCommentItem = Omit<CommentItem, "parentCommentId" | "replies"> & {
-    parentComment?: {
-        id: string;
-    } | null;
-};
+export type GraphqlCommentItem = AddCommentMutation["addComment"];
 
 export const mapGraphqlCommentToCommentItem = (comment: GraphqlCommentItem): CommentItem => ({
     id: comment.id,

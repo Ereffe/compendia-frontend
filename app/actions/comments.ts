@@ -8,7 +8,6 @@ import {
     ADD_COMMENT_MUTATION,
     DELETE_COMMENT_MUTATION,
     EDIT_COMMENT_MUTATION,
-    type GraphqlCommentItem,
     mapGraphqlCommentToCommentItem,
     RATE_COMMENT_MUTATION,
 } from "@/services/graphql/comments";
@@ -27,7 +26,7 @@ export async function addCommentAction(
     if (!trimmedContent) return { ok: false, error: "emptyComment" };
 
     try {
-        const data = await authedMutate<{ addComment: GraphqlCommentItem }>(accessToken, ADD_COMMENT_MUTATION, {
+        const data = await authedMutate(accessToken, ADD_COMMENT_MUTATION, {
             articleId,
             content: trimmedContent,
             parentCommentId: parentCommentId ? Number.parseInt(parentCommentId, 10) : null,
@@ -45,7 +44,7 @@ export async function rateCommentAction(commentId: string, positive: boolean): P
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
     try {
-        await authedMutate<{ rateComment: number }>(accessToken, RATE_COMMENT_MUTATION, {
+        await authedMutate(accessToken, RATE_COMMENT_MUTATION, {
             commentId: Number.parseInt(commentId, 10),
             positive,
         });
@@ -65,7 +64,7 @@ export async function editCommentAction(commentId: string, content: string): Pro
     if (!trimmedContent) return { ok: false, error: "emptyComment" };
 
     try {
-        const data = await authedMutate<{ editComment: EditedComment }>(accessToken, EDIT_COMMENT_MUTATION, {
+        const data = await authedMutate(accessToken, EDIT_COMMENT_MUTATION, {
             commentId: Number.parseInt(commentId, 10),
             newContent: trimmedContent,
         });
@@ -82,7 +81,7 @@ export async function deleteCommentAction(commentId: string): Promise<ActionResu
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
     try {
-        const data = await authedMutate<{ deleteComment: boolean }>(accessToken, DELETE_COMMENT_MUTATION, {
+        const data = await authedMutate(accessToken, DELETE_COMMENT_MUTATION, {
             commentId: Number.parseInt(commentId, 10),
         });
         if (!data.deleteComment) return { ok: false, error: "deleteCommentFailed" };

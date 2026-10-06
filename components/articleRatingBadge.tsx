@@ -3,9 +3,8 @@ import { useTranslations } from "next-intl";
 
 import type { ArticleRating } from "@/types/articles";
 
-export default function ArticleRatingBadge({ rating }: Readonly<{ rating: ArticleRating | null }>) {
+export default function ArticleRatingBadge({ rating }: Readonly<{ rating: ArticleRating }>) {
   const t = useTranslations("articles");
-  if (!rating) return null;
 
   return (
     <span

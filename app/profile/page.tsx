@@ -2,12 +2,12 @@ import { getTranslations } from "next-intl/server";
 
 import AccountSettings from "@/components/account/accountSettings";
 import { authedQuery, requireAccessToken } from "@/lib/server/session";
-import { CURRENT_USER_QUERY, type CurrentUserResponse } from "@/services/graphql/users";
+import { CURRENT_USER_QUERY } from "@/services/graphql/users";
 
 export default async function ProfilePage() {
   const accessToken = await requireAccessToken();
   const [{ getCurrentUser: user }, t] = await Promise.all([
-    authedQuery<CurrentUserResponse>(accessToken, CURRENT_USER_QUERY),
+    authedQuery(accessToken, CURRENT_USER_QUERY),
     getTranslations("account"),
   ]);
 

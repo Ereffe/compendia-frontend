@@ -1,7 +1,6 @@
 import "server-only";
 
-import type { OperationVariables } from "@apollo/client";
-import type { DocumentNode } from "graphql";
+import type { OperationVariables, TypedDocumentNode } from "@apollo/client";
 import { getToken } from "next-auth/jwt";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -59,13 +58,13 @@ export const authContext = (accessToken: string) => ({
     headers: { Authorization: `Bearer ${accessToken}` },
 });
 
-export async function authedQuery<TData>(
+export async function authedQuery<TData, TVariables extends OperationVariables>(
     accessToken: string,
-    query: DocumentNode,
-    variables: OperationVariables = {},
+    query: TypedDocumentNode<TData, TVariables>,
+    variables: TVariables = {} as TVariables,
 ): Promise<TData> {
     const result = await withSessionGuard(() =>
-        getServerClient().query<TData>({
+        getServerClient().query<TData, TVariables>({
             query,
             variables,
             context: authContext(accessToken),
@@ -80,13 +79,13 @@ export async function authedQuery<TData>(
     return result.data as TData;
 }
 
-export async function authedMutate<TData>(
+export async function authedMutate<TData, TVariables extends OperationVariables>(
     accessToken: string,
-    mutation: DocumentNode,
-    variables: OperationVariables = {},
+    mutation: TypedDocumentNode<TData, TVariables>,
+    variables: TVariables = {} as TVariables,
 ): Promise<TData> {
     const result = await withSessionGuard(() =>
-        getServerClient().mutate<TData>({
+        getServerClient().mutate<TData, TVariables>({
             mutation,
             variables,
             context: authContext(accessToken),

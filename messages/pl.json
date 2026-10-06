@@ -339,6 +339,7 @@
     "avatarHint": "Awatar powstaje z identyfikatora konta, więc zostaje ten sam po zmianie nazwy czy adresu.",
     "roles": {
       "USER": "Użytkownik",
+      "STUDENT": "Student",
       "PROFESSOR": "Profesor",
       "ADMIN": "Administrator"
     },

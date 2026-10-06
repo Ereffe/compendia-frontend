@@ -30,8 +30,8 @@ export const articleFiltersHref = ({ sort, level }: ArticleFilters): string => {
     return query ? `/articles?${query}` : "/articles";
 };
 
-export const ratingScore = (rating: ArticleRating | null) => (rating ? rating.positive - rating.negative : 0);
-export const ratingCount = (rating: ArticleRating | null) => (rating ? rating.positive + rating.negative : 0);
+export const ratingScore = (rating: ArticleRating) => rating.positive - rating.negative;
+export const ratingCount = (rating: ArticleRating) => rating.positive + rating.negative;
 
 const byDateDesc = (a: ArticleSearchItem, b: ArticleSearchItem) => b.datePosted.localeCompare(a.datePosted);
 

@@ -1,10 +1,5 @@
 import getBrowserClient from "@/lib/apolloBrowser";
-import {
-    ARTICLES_QUERY,
-    type GraphqlArticleSummary,
-    mapArticleToSearchItem,
-    type PagedArticles,
-} from "@/services/graphql/articles";
+import { ARTICLES_QUERY, mapArticleToSearchItem } from "@/services/graphql/articles";
 import type { ArticleSearchItem } from "@/types/articles";
 
 export type { ArticleSearchItem } from "@/types/articles";
@@ -14,7 +9,7 @@ export const SEARCH_MIN_LENGTH = 2;
 const SEARCH_RESULTS_LIMIT = 20;
 
 export const searchArticles = async (query: string): Promise<{ items: ArticleSearchItem[]; total: number }> => {
-    const result = await getBrowserClient().query<{ articles: PagedArticles<GraphqlArticleSummary> }>({
+    const result = await getBrowserClient().query({
         query: ARTICLES_QUERY,
         variables: { search: query.trim(), page: 0, size: SEARCH_RESULTS_LIMIT },
         fetchPolicy: "network-only",

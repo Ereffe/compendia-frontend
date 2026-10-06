@@ -4,7 +4,6 @@ import { notFound, redirect, unstable_rethrow } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import ArticleCreateForm from "@/components/articles/articleCreateForm/articleCreateForm";
-import { isKnownComplexity } from "@/lib/articleComplexity";
 import { isValidArticleId } from "@/lib/articleId";
 import { isNotFoundError } from "@/lib/graphqlErrors";
 import { authedQuery, getCurrentUserId, requireAccessToken } from "@/lib/server/session";
@@ -12,7 +11,7 @@ import { EDITABLE_ARTICLE_QUERY, type GraphqlEditableArticle } from "@/services/
 
 async function fetchEditableArticle(id: string, accessToken: string): Promise<GraphqlEditableArticle | null> {
   try {
-    const data = await authedQuery<{ article: GraphqlEditableArticle | null }>(accessToken, EDITABLE_ARTICLE_QUERY, { id });
+    const data = await authedQuery(accessToken, EDITABLE_ARTICLE_QUERY, { id });
     return data.article;
   } catch (error) {
     unstable_rethrow(error);
@@ -61,7 +60,7 @@ export default async function EditArticlePage({ params }: Readonly<{ params: Pro
           id: article.id,
           title: article.title,
           content: article.content,
-          complexity: isKnownComplexity(article.complexity) ? article.complexity : "SIMPLE",
+          complexity: article.complexity,
           doi,
         }}
       />

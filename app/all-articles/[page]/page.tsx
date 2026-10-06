@@ -15,17 +15,12 @@ import {
 } from "@/components/ui/pagination";
 import { parsePageParam } from "@/lib/pagination";
 import { authedQuery, requireAccessToken } from "@/lib/server/session";
-import {
-  ARTICLES_QUERY,
-  articleDateFormat,
-  type GraphqlArticleSummary,
-  type PagedArticles,
-} from "@/services/graphql/articles";
+import { ARTICLES_QUERY, articleDateFormat, type GraphqlArticleSummary } from "@/services/graphql/articles";
 
 const ARTICLES_PER_PAGE = 12;
 
 async function fetchArticles(page: number, accessToken: string) {
-  const data = await authedQuery<{ articles: PagedArticles<GraphqlArticleSummary> }>(accessToken, ARTICLES_QUERY, {
+  const data = await authedQuery(accessToken, ARTICLES_QUERY, {
     page,
     size: ARTICLES_PER_PAGE,
     sortBy: "datePosted",
@@ -43,7 +38,7 @@ function ArchiveArticleCard({ article }: Readonly<{ article: GraphqlArticleSumma
       <article className="h-full rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur transition-all hover:border-teal-700/30 hover:shadow-[0_18px_60px_-36px_rgba(15,23,42,0.8)]">
         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
           <span className="text-muted-foreground">{format.dateTime(new Date(article.datePosted), articleDateFormat)}</span>
-          <ArticleRatingBadge rating={article.rating ?? null} />
+          <ArticleRatingBadge rating={article.rating} />
         </div>
         <h2 className="mt-4 line-clamp-2 text-lg font-semibold text-foreground">{article.title}</h2>
         {article.author?.name ? <p className="mt-3 text-sm text-muted-foreground">{t("authorBy", { name: article.author.name })}</p> : null}

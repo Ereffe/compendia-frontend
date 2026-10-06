@@ -1,6 +1,5 @@
 "use client";
 
-import { gql } from "@apollo/client";
 import type cytoscape from "cytoscape";
 import {
     AlertTriangle,
@@ -28,6 +27,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import getBrowserClient from "@/lib/apolloBrowser";
 import { cn } from "@/lib/utils";
+import { SCIENCE_ARTICLE_GRAPH_QUERY } from "@/services/graphql/graph";
 import {
     buildGraphElements,
     type CytoscapeNodeData,
@@ -43,24 +43,6 @@ const CytoscapeComponent = dynamic(() => import("react-cytoscapejs"), {
     loading: () => <GraphCanvasSkeleton />,
 });
 
-const GET_SCI_GRAPH = gql`
-    query GetScientificArticlesGraph($doi: String!, $level: Int!) {
-        scienceArticleGraph(doi: $doi, level: $level) {
-            nodes {
-                doi
-                title
-                description
-                authors
-                url
-            }
-            edges {
-                first
-                second
-            }
-        }
-    }
-`;
-
 export const MIN_GRAPH_LEVEL = 1;
 export const MAX_GRAPH_LEVEL = 4;
 const LEVELS = Array.from({ length: MAX_GRAPH_LEVEL - MIN_GRAPH_LEVEL + 1 }, (_, i) => MIN_GRAPH_LEVEL + i);
@@ -68,8 +50,8 @@ const LEVELS = Array.from({ length: MAX_GRAPH_LEVEL - MIN_GRAPH_LEVEL + 1 }, (_,
 const clampLevel = (level: number) => Math.min(MAX_GRAPH_LEVEL, Math.max(MIN_GRAPH_LEVEL, level));
 
 async function queryGraph(doi: string, level: number, fetchPolicy: "cache-first" | "network-only") {
-    const res = await getBrowserClient().query<GraphResponse>({
-        query: GET_SCI_GRAPH,
+    const res = await getBrowserClient().query({
+        query: SCIENCE_ARTICLE_GRAPH_QUERY,
         variables: { doi, level },
         fetchPolicy,
     });

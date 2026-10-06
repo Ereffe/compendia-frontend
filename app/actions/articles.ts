@@ -36,7 +36,7 @@ export async function createArticleAction(input: CreateArticleInput): Promise<Ac
 
     let articleId: string;
     try {
-        const data = await authedMutate<{ addArticle: { id: string } }>(accessToken, ADD_ARTICLE_MUTATION, {
+        const data = await authedMutate(accessToken, ADD_ARTICLE_MUTATION, {
             title,
             content,
             complexity: input.complexity,
@@ -79,7 +79,7 @@ export async function editArticleAction(articleId: string, input: EditArticleInp
     const references = input.references?.map((doi) => doi.trim()).filter(Boolean) ?? [];
 
     try {
-        await authedMutate<{ editArticle: { id: string } }>(accessToken, EDIT_ARTICLE_MUTATION, {
+        await authedMutate(accessToken, EDIT_ARTICLE_MUTATION, {
             articleId,
             title,
             content,
@@ -103,7 +103,7 @@ export async function deleteArticleAction(articleId: string): Promise<ActionErro
     if (!isValidArticleId(articleId)) return { ok: false, error: "notFound" };
 
     try {
-        const data = await authedMutate<{ deleteArticle: boolean }>(accessToken, DELETE_ARTICLE_MUTATION, { articleId });
+        const data = await authedMutate(accessToken, DELETE_ARTICLE_MUTATION, { articleId });
         if (!data.deleteArticle) return { ok: false, error: "deleteArticleFailed" };
     } catch (error) {
         unstable_rethrow(error);
@@ -122,7 +122,7 @@ export async function rateArticleAction(articleId: string, positive: boolean): P
     if (!isValidArticleId(articleId)) return { ok: false, error: "notFound" };
 
     try {
-        await authedMutate<{ rateArticle: string }>(accessToken, RATE_ARTICLE_MUTATION, { articleId, positive });
+        await authedMutate(accessToken, RATE_ARTICLE_MUTATION, { articleId, positive });
         return { ok: true, data: null };
     } catch (error) {
         unstable_rethrow(error);

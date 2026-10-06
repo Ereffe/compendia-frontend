@@ -4,12 +4,7 @@ import ArticleFilters from "@/components/articleFilters";
 import ArticleSearchModal from "@/components/articleSearchModal/articleSearchModal";
 import { type ArticleFilters as Filters, parseArticleFilters, rankArticles } from "@/lib/articleFilters";
 import { authedQuery, requireAccessToken } from "@/lib/server/session";
-import {
-  ARTICLES_QUERY,
-  type GraphqlArticleSummary,
-  mapArticleToSearchItem,
-  type PagedArticles,
-} from "@/services/graphql/articles";
+import { ARTICLES_QUERY, mapArticleToSearchItem } from "@/services/graphql/articles";
 import type { ArticleSearchItem } from "@/types/articles";
 import ArticleCard from "./ArticleCard";
 
@@ -19,7 +14,7 @@ const RANKING_POOL_SIZE = 1000;
 
 async function getArticles(accessToken: string, { sort, level }: Filters): Promise<ArticleSearchItem[]> {
   const ranked = sort !== "newest";
-  const data = await authedQuery<{ articles: PagedArticles<GraphqlArticleSummary> }>(accessToken, ARTICLES_QUERY, {
+  const data = await authedQuery(accessToken, ARTICLES_QUERY, {
     complexity: level,
     page: 0,
     size: ranked ? RANKING_POOL_SIZE : SECTION_SIZE,

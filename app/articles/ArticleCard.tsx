@@ -5,7 +5,6 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import ArticleRatingBadge from "@/components/articleRatingBadge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { isKnownComplexity } from "@/lib/articleComplexity";
 import { articleDateFormat } from "@/services/graphql/articles";
 import type { ArticleSearchItem } from "@/types/articles";
 
@@ -28,9 +27,7 @@ export default function ArticleCard({ article }: Readonly<{ article: ArticleSear
                         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
                             <span className="text-muted-foreground">
                                 {format.dateTime(new Date(article.datePosted), articleDateFormat)}
-                                {article.complexity && isKnownComplexity(article.complexity)
-                                    ? ` · ${tComplexity(article.complexity)}`
-                                    : null}
+                                {` · ${tComplexity(article.complexity)}`}
                             </span>
                             <ArticleRatingBadge rating={article.rating} />
                         </div>

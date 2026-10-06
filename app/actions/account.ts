@@ -26,7 +26,7 @@ export async function changeNameAction(name: string): Promise<ActionResult<{ nam
     if (validationError) return { ok: false, error: validationError };
 
     try {
-        const data = await authedMutate<{ changeUsersName: { name: string } | null }>(accessToken, CHANGE_NAME_MUTATION, {
+        const data = await authedMutate(accessToken, CHANGE_NAME_MUTATION, {
             name: name.trim(),
         });
         if (!data.changeUsersName) return { ok: false, error: "changeNameFailed" };
@@ -77,7 +77,7 @@ export async function confirmEmailChangeAction(actionId: string, email: string):
     if (validationError) return { ok: false, error: validationError };
 
     try {
-        const result = await getServerClient().mutate<{ changeUsersEmail: { id: string } | null }>({
+        const result = await getServerClient().mutate({
             mutation: CHANGE_EMAIL_MUTATION,
             variables: { actionId, email: email.trim() },
             fetchPolicy: "no-cache",
@@ -101,7 +101,7 @@ export async function confirmPasswordChangeAction(
     if (validationError) return { ok: false, error: validationError };
 
     try {
-        const result = await getServerClient().mutate<{ changeUsersPassword: { id: string } | null }>({
+        const result = await getServerClient().mutate({
             mutation: CHANGE_PASSWORD_MUTATION,
             variables: { actionId, password },
             fetchPolicy: "no-cache",

@@ -1,11 +1,9 @@
+import type { ArticleComplexity, ArticleQuery, ArticlesQuery } from "@/services/graphql/generated/graphql";
 import type { ErrorKey } from "@/types/errors";
 
-export type ArticleComplexity = "SIMPLE" | "INTERMEDIATE" | "COMPLEX";
+export type { ArticleComplexity } from "@/services/graphql/generated/graphql";
 
-export type ArticleRating = {
-    positive: number;
-    negative: number;
-};
+export type ArticleRating = ArticlesQuery["articles"]["content"][number]["rating"];
 
 export type ArticleSearchItem = {
     id: string;
@@ -13,17 +11,11 @@ export type ArticleSearchItem = {
     datePosted: string;
     author: string | null;
     content: string;
-    complexity: string | null;
-    rating: ArticleRating | null;
+    complexity: ArticleComplexity;
+    rating: ArticleRating;
 };
 
-export type ArticleReference = {
-    doi: string;
-    title: string;
-    authors: string[];
-    description?: string | null;
-    url: string;
-};
+export type ArticleReference = NonNullable<NonNullable<ArticleQuery["article"]["references"]>[number]>;
 
 export type ActionError = { ok: false; error: ErrorKey };
 

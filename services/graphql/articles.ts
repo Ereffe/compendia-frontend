@@ -1,43 +1,19 @@
-import { gql } from "@apollo/client";
+import { graphql } from "./generated";
 
-import type { ArticleRating, ArticleReference, ArticleSearchItem } from "@/types/articles";
-import type { GraphqlCommentItem } from "@/services/graphql/comments";
+import type { ArticleQuery, ArticlesQuery, EditableArticleQuery } from "./generated/graphql";
+import type { ArticleSearchItem } from "@/types/articles";
 
-export type GraphqlArticleSummary = {
-    id: string;
-    title: string;
-    content: string;
-    datePosted: string;
-    complexity?: string | null;
-    rating?: ArticleRating | null;
-    author?: { name: string } | null;
-};
+export type GraphqlArticleSummary = ArticlesQuery["articles"]["content"][number];
 
-export type PagedArticles<T> = {
-    content: T[];
-    totalPages: number;
-    totalElements: number;
-    page: number;
-    size: number;
-};
+export type GraphqlArticle = ArticleQuery["article"];
 
-export type GraphqlArticle = {
-    id: string;
-    title: string;
-    content: string;
-    datePosted: string;
-    complexity: string;
-    rating: ArticleRating;
-    author?: { id: string; name: string } | null;
-    comments: { content: GraphqlCommentItem[]; totalElements: number };
-    references?: Array<ArticleReference | null> | null;
-};
+export type GraphqlEditableArticle = EditableArticleQuery["article"];
 
 // The backend caches an article's comments by article id only (ignoring page/size), so every
 // caller must request the same page. Keep this the single source of that size.
 export const COMMENTS_PAGE_SIZE = 100;
 
-export const ARTICLES_QUERY = gql`
+export const ARTICLES_QUERY = graphql(`
     query Articles(
         $search: String
         $complexity: String
@@ -74,9 +50,9 @@ export const ARTICLES_QUERY = gql`
             size
         }
     }
-`;
+`);
 
-export const ARTICLE_QUERY = gql`
+export const ARTICLE_QUERY = graphql(`
     query Article($id: String!, $commentsPage: Int!, $commentsSize: Int!) {
         article(id: $id) {
             id
@@ -121,18 +97,9 @@ export const ARTICLE_QUERY = gql`
             }
         }
     }
-`;
+`);
 
-export type GraphqlEditableArticle = {
-    id: string;
-    title: string;
-    content: string;
-    complexity: string;
-    author?: { id: string } | null;
-    references?: Array<{ doi: string } | null> | null;
-};
-
-export const EDITABLE_ARTICLE_QUERY = gql`
+export const EDITABLE_ARTICLE_QUERY = graphql(`
     query EditableArticle($id: String!) {
         article(id: $id) {
             id
@@ -147,37 +114,37 @@ export const EDITABLE_ARTICLE_QUERY = gql`
             }
         }
     }
-`;
+`);
 
-export const ADD_ARTICLE_MUTATION = gql`
+export const ADD_ARTICLE_MUTATION = graphql(`
     mutation AddArticle($title: String!, $content: String!, $complexity: String!, $references: [String!]) {
         addArticle(title: $title, content: $content, complexity: $complexity, references: $references) {
             id
             title
         }
     }
-`;
+`);
 
 // Null arguments leave the field unchanged. The backend can't clear references: an empty list is ignored.
-export const EDIT_ARTICLE_MUTATION = gql`
+export const EDIT_ARTICLE_MUTATION = graphql(`
     mutation EditArticle($articleId: ID!, $title: String, $content: String, $complexity: String, $references: [String!]) {
         editArticle(articleId: $articleId, title: $title, content: $content, complexity: $complexity, references: $references) {
             id
         }
     }
-`;
+`);
 
-export const RATE_ARTICLE_MUTATION = gql`
+export const RATE_ARTICLE_MUTATION = graphql(`
     mutation RateArticle($articleId: ID!, $positive: Boolean!) {
         rateArticle(articleId: $articleId, positive: $positive)
     }
-`;
+`);
 
-export const DELETE_ARTICLE_MUTATION = gql`
+export const DELETE_ARTICLE_MUTATION = graphql(`
     mutation DeleteArticle($articleId: ID!) {
         deleteArticle(articleId: $articleId)
     }
-`;
+`);
 
 export const articleDateFormat = { month: "short", day: "numeric", year: "numeric" } as const;
 
@@ -187,6 +154,6 @@ export const mapArticleToSearchItem = (article: GraphqlArticleSummary): ArticleS
     datePosted: article.datePosted,
     author: article.author?.name ?? null,
     content: article.content,
-    complexity: article.complexity ?? null,
-    rating: article.rating ?? null,
+    complexity: article.complexity,
+    rating: article.rating,
 });

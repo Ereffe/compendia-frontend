@@ -339,6 +339,7 @@
     "avatarHint": "Your avatar is generated from your account id, so it stays the same when you change your name or address.",
     "roles": {
       "USER": "Member",
+      "STUDENT": "Student",
       "PROFESSOR": "Professor",
       "ADMIN": "Administrator"
     },
