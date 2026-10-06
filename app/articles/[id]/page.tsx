@@ -3,17 +3,16 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import Markdown from "react-markdown";
 
 import ArticleComments from "@/components/articles/articleComments/articleComments";
+import ArticleOwnerActions from "@/components/articles/articleOwnerActions";
 import ArticleReferences from "@/components/articles/articleReferences";
 import ArticleGraphContainer from "@/components/articles/articleGraph/ArticleGraphContainer";
+import { isKnownComplexity } from "@/lib/articleComplexity";
 import { isValidArticleId } from "@/lib/articleId";
 import { isNotFoundError } from "@/lib/graphqlErrors";
-import { authedQuery, requireAccessToken } from "@/lib/server/session";
+import { authedQuery, getCurrentUserId, requireAccessToken } from "@/lib/server/session";
 import { ARTICLE_QUERY, articleDateFormat, COMMENTS_PAGE_SIZE, type GraphqlArticle } from "@/services/graphql/articles";
 import { mapGraphqlCommentToCommentItem } from "@/services/graphql/comments";
-import type { ArticleComplexity, ArticleReference } from "@/types/articles";
-
-const isKnownComplexity = (value: string): value is ArticleComplexity =>
-  value === "SIMPLE" || value === "INTERMEDIATE" || value === "COMPLEX";
+import type { ArticleReference } from "@/types/articles";
 
 /** Text column inside the sheet, ~70 characters of the serif body. */
 const readingColumn = "mx-auto w-full max-w-[40rem]";
@@ -52,10 +51,11 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
     notFound();
   }
 
-  const article = await fetchArticle(id, accessToken);
+  const [article, currentUserId] = await Promise.all([fetchArticle(id, accessToken), getCurrentUserId()]);
   if (!article) {
     notFound();
   }
+  const isAuthor = currentUserId !== null && article.author?.id === currentUserId;
 
   const t = await getTranslations();
   const format = await getFormatter();
@@ -84,6 +84,7 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
                 </>
               ) : null}
             </p>
+            {isAuthor ? <ArticleOwnerActions articleId={article.id} /> : null}
           </header>
 
           <div className={`${readingColumn} mt-10 border-t border-border pt-10`}>

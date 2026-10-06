@@ -103,7 +103,14 @@
   "article": {
     "notFoundTitle": "Article not found",
     "notFoundDescription": "The article you are looking for does not exist or has been removed. Check the URL or go to the article list.",
-    "level": "Level: {level}"
+    "level": "Level: {level}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete this article?",
+    "deleteDescription": "The article and its comments will be deleted permanently. This can't be undone.",
+    "deleteConfirm": "Delete article",
+    "deleting": "Deleting…",
+    "cancel": "Cancel"
   },
   "complexity": {
     "SIMPLE": "Simple",
@@ -131,7 +138,16 @@
     "showReplies": "{count, plural, one {Show # reply} other {Show # replies}}",
     "upvote": "Upvote ({count})",
     "downvote": "Downvote ({count})",
-    "alreadyVoted": "Already voted"
+    "alreadyVoted": "Already voted",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editLabel": "Edit comment",
+    "save": "Save",
+    "saving": "Saving…",
+    "deleteTitle": "Delete this comment?",
+    "deleteDescription": "{replies, plural, =0 {The comment will be deleted permanently.} one {The comment and # reply will be deleted permanently.} other {The comment and # replies will be deleted permanently.}}",
+    "deleteConfirm": "Delete comment",
+    "deleting": "Deleting…"
   },
   "search": {
     "openLabel": "Open article search",
@@ -180,6 +196,17 @@
       "code": "`code` inline, ``` for a code block.",
       "links": "[text](https://address) adds a link."
     }
+  },
+  "edit": {
+    "title": "Edit article",
+    "description": "Fix the content, title or difficulty. Every reader will see the changes.",
+    "submit": "Save changes",
+    "submitting": "Saving...",
+    "redirectHint": "After saving you'll return to the article.",
+    "cancel": "Cancel",
+    "backToArticle": "Back to the article",
+    "referenceLocked": "The source can't be removed while editing. You can enter a different DOI.",
+    "doiUnchangedHint": "Leave it unchanged to keep the current source."
   },
   "graph": {
     "title": "Citation graph",
@@ -254,7 +281,11 @@
     "sessionExpired": "Your session has expired. Please sign in again.",
     "forbidden": "You are not allowed to do this.",
     "notFound": "Resource not found.",
-    "generic": "An unexpected error occurred."
+    "generic": "An unexpected error occurred.",
+    "editArticleFailed": "Couldn't save the article.",
+    "deleteArticleFailed": "Couldn't delete the article.",
+    "editCommentFailed": "Couldn't save the comment.",
+    "deleteCommentFailed": "Couldn't delete the comment."
   },
   "references": {
     "title": "References",

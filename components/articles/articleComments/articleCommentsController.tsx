@@ -1,8 +1,13 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import { addCommentAction, rateCommentAction } from "@/app/actions/comments";
+import {
+    addCommentAction,
+    deleteCommentAction,
+    editCommentAction,
+    rateCommentAction,
+} from "@/app/actions/comments";
 import type { VoteType } from "@/hooks/stores/useVoteStore";
-import type { CommentItem } from "@/types/comments";
+import type { CommentItem, EditedComment } from "@/types/comments";
 import type { ErrorKey } from "@/types/errors";
 
 type SetVote = (userKey: string, commentId: string, voteType: VoteType) => void;
@@ -87,6 +92,31 @@ export const insertReply = (comments: CommentItem[], parentCommentId: string, re
             replies: comment.replies ? insertReply(comment.replies, parentCommentId, reply) : [],
         };
     });
+
+export const findComment = (comments: CommentItem[], commentId: string): CommentItem | undefined => {
+    for (const comment of comments) {
+        if (comment.id === commentId) return comment;
+        const found = findComment(comment.replies ?? [], commentId);
+        if (found) return found;
+    }
+    return undefined;
+};
+
+export const applyCommentEdit = (comments: CommentItem[], edited: EditedComment): CommentItem[] =>
+    comments.map((comment) => ({
+        ...comment,
+        ...(comment.id === edited.id ? { content: edited.content, editedAt: edited.editedAt } : {}),
+        replies: comment.replies ? applyCommentEdit(comment.replies, edited) : comment.replies,
+    }));
+
+/** Removes the comment and its replies, like the backend's cascade. */
+export const removeComment = (comments: CommentItem[], commentId: string): CommentItem[] =>
+    comments
+        .filter((comment) => comment.id !== commentId)
+        .map((comment) => ({
+            ...comment,
+            replies: comment.replies ? removeComment(comment.replies, commentId) : comment.replies,
+        }));
 
 type CreateRateCommentHandlerParams = {
     /** Identifies the signed-in user in the local vote store; null when signed out. */
@@ -179,5 +209,73 @@ export const createSubmitCommentHandler = ({
             return false;
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+type CreateEditCommentHandlerParams = {
+    setComments: Dispatch<SetStateAction<CommentItem[]>>;
+    setIsSaving: Dispatch<SetStateAction<boolean>>;
+    setError: Dispatch<SetStateAction<ErrorKey | null>>;
+};
+
+/** Saves an edited comment. Resolves to true when the edit form can close. */
+export const createEditCommentHandler = ({ setComments, setIsSaving, setError }: CreateEditCommentHandlerParams) =>
+    async (commentId: string, content: string): Promise<boolean> => {
+        const trimmedContent = content.trim();
+        if (!trimmedContent) {
+            setError("emptyComment");
+            return false;
+        }
+
+        setIsSaving(true);
+        setError(null);
+        try {
+            const result = await editCommentAction(commentId, trimmedContent);
+            if (!result.ok) {
+                setError(result.error);
+                return false;
+            }
+            setComments((currentComments) => applyCommentEdit(currentComments, result.data));
+            return true;
+        } catch {
+            setError("editCommentFailed");
+            return false;
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+type CreateDeleteCommentHandlerParams = {
+    setComments: Dispatch<SetStateAction<CommentItem[]>>;
+    /** Called with how many comments disappeared (the comment plus its replies). */
+    onDeleted: (removedCount: number) => void;
+    setIsDeleting: Dispatch<SetStateAction<boolean>>;
+    setError: Dispatch<SetStateAction<ErrorKey | null>>;
+};
+
+/** Deletes a comment. Resolves to true when the confirmation dialog can close. */
+export const createDeleteCommentHandler = ({
+    setComments,
+    onDeleted,
+    setIsDeleting,
+    setError,
+}: CreateDeleteCommentHandlerParams) =>
+    async (comment: CommentItem): Promise<boolean> => {
+        setIsDeleting(true);
+        setError(null);
+        try {
+            const result = await deleteCommentAction(comment.id);
+            if (!result.ok) {
+                setError(result.error);
+                return false;
+            }
+            setComments((currentComments) => removeComment(currentComments, comment.id));
+            onDeleted(1 + countComments(comment.replies ?? []));
+            return true;
+        } catch {
+            setError("deleteCommentFailed");
+            return false;
+        } finally {
+            setIsDeleting(false);
         }
     };

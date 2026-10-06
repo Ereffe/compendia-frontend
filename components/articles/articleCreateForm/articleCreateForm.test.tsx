@@ -5,9 +5,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderWithIntl } from "@/test/renderWithIntl";
 
 import ArticleCreateForm from "./articleCreateForm";
-import { normalizeDoi, validateArticleFormInputs } from "./articleCreateFormController";
+import { getEditedReferences, normalizeDoi, validateArticleFormInputs } from "./articleCreateFormController";
 
 const createArticleAction = vi.fn();
+const editArticleAction = vi.fn();
 
 vi.mock("next-themes", () => ({
     useTheme: () => ({ resolvedTheme: "dark" }),
@@ -15,6 +16,7 @@ vi.mock("next-themes", () => ({
 
 vi.mock("@/app/actions/articles", () => ({
     createArticleAction: (...args: unknown[]) => createArticleAction(...args),
+    editArticleAction: (...args: unknown[]) => editArticleAction(...args),
 }));
 
 // Render the editor synchronously instead of through next/dynamic.
@@ -118,7 +120,71 @@ describe("ArticleCreateForm", () => {
     });
 });
 
+describe("ArticleCreateForm in edit mode", () => {
+    const regularArticle = {
+        id: "abc123",
+        title: "Stary tytuł",
+        content: "Stara treść",
+        complexity: "COMPLEX" as const,
+        doi: "",
+    };
+
+    it("is pre-filled and saves the changes to the existing article", async () => {
+        const user = userEvent.setup();
+        editArticleAction.mockReturnValue(new Promise(() => {}));
+
+        renderWithIntl(<ArticleCreateForm article={regularArticle} />);
+
+        expect(screen.getByLabelText("Tytuł")).toHaveValue("Stary tytuł");
+        expect(screen.getByLabelText("markdown-editor")).toHaveValue("Stara treść");
+        expect(screen.getByRole("radio", { name: /Zaawansowane/ })).toBeChecked();
+        expect(screen.getByRole("radio", { name: /Zwykły artykuł/ })).toBeChecked();
+
+        await user.type(screen.getByLabelText("Tytuł"), " 2");
+        await user.click(screen.getByRole("button", { name: "Zapisz zmiany" }));
+
+        expect(editArticleAction).toHaveBeenCalledWith("abc123", {
+            title: "Stary tytuł 2",
+            content: "Stara treść",
+            complexity: "COMPLEX",
+            references: null,
+        });
+        expect(createArticleAction).not.toHaveBeenCalled();
+        expect(screen.getByRole("button", { name: /Zapisywanie/ })).toBeDisabled();
+    });
+
+    it("keeps a scientific article scientific and only sends a changed DOI", async () => {
+        const user = userEvent.setup();
+        editArticleAction.mockResolvedValue({ ok: false, error: "forbidden" });
+
+        renderWithIntl(<ArticleCreateForm article={{ ...regularArticle, doi: "10.5194/acp-18-1-2018" }} />);
+
+        expect(screen.getByRole("radio", { name: /Artykuł naukowy/ })).toBeChecked();
+        expect(screen.getByRole("radio", { name: /Zwykły artykuł/ })).toBeDisabled();
+        expect(screen.getByLabelText("Numer DOI")).toHaveValue("10.5194/acp-18-1-2018");
+
+        await user.click(screen.getByRole("button", { name: "Zapisz zmiany" }));
+        expect(editArticleAction).toHaveBeenLastCalledWith("abc123", expect.objectContaining({ references: null }));
+        expect(await screen.findByRole("alert")).toHaveTextContent("Nie masz uprawnień do tej operacji.");
+
+        await user.clear(screen.getByLabelText("Numer DOI"));
+        await user.type(screen.getByLabelText("Numer DOI"), "https://doi.org/10.5194/gmd-10-1403-2017");
+        await user.click(screen.getByRole("button", { name: "Zapisz zmiany" }));
+        expect(editArticleAction).toHaveBeenLastCalledWith(
+            "abc123",
+            expect.objectContaining({ references: ["10.5194/gmd-10-1403-2017"] }),
+        );
+    });
+});
+
 describe("articleCreateFormController", () => {
+    it("sends references on edit only when the DOI changed", () => {
+        expect(getEditedReferences(false, "", "")).toBeNull();
+        expect(getEditedReferences(true, "doi:10.1000/xyz", "10.1000/xyz")).toBeNull();
+        expect(getEditedReferences(true, "10.1000/abc", "10.1000/xyz")).toEqual(["10.1000/abc"]);
+        expect(getEditedReferences(true, "10.1000/abc", "")).toEqual(["10.1000/abc"]);
+    });
+
     it("normalizes DOI links and prefixes", () => {
         expect(normalizeDoi(" https://doi.org/10.1000/xyz ")).toBe("10.1000/xyz");
         expect(normalizeDoi("doi: 10.1000/xyz")).toBe("10.1000/xyz");

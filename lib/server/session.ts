@@ -11,12 +11,16 @@ import { getServerClient } from "@/lib/server/apollo";
 
 type SessionState = { accessToken: string | null; expired: boolean };
 
-async function readSession(): Promise<SessionState> {
-    const token = await getToken({
+async function readToken() {
+    return getToken({
         // getToken only needs `cookies.getAll()` and `headers`, which Next's helpers provide.
         req: { cookies: await cookies(), headers: await headers() } as unknown as Parameters<typeof getToken>[0]["req"],
         secret: process.env.NEXTAUTH_SECRET,
     });
+}
+
+async function readSession(): Promise<SessionState> {
+    const token = await readToken();
 
     if (!token) return { accessToken: null, expired: false };
     if (!token.accessToken || token.error === "RefreshAccessTokenError") return { accessToken: null, expired: true };
@@ -29,6 +33,15 @@ async function readSession(): Promise<SessionState> {
  */
 export async function getAccessToken(): Promise<string | null> {
     return (await readSession()).accessToken;
+}
+
+/**
+ * The signed-in user's backend id (the JWT `sub`, set from `getCurrentUser` at login), or null.
+ * Used only to decide whether to show owner controls; the backend enforces ownership itself.
+ */
+export async function getCurrentUserId(): Promise<string | null> {
+    const token = await readToken();
+    return token?.sub ?? null;
 }
 
 /**

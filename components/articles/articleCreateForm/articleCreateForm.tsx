@@ -17,7 +17,12 @@ import { useMounted } from "@/hooks/use-mounted";
 import { cn } from "@/lib/utils";
 import type { ArticleComplexity } from "@/types/articles";
 import type { ErrorKey } from "@/types/errors";
-import { COMPLEXITY_OPTIONS, createHandleArticleSubmit, TITLE_MAX_LENGTH } from "./articleCreateFormController";
+import {
+  COMPLEXITY_OPTIONS,
+  createHandleArticleSubmit,
+  type EditableArticle,
+  TITLE_MAX_LENGTH,
+} from "./articleCreateFormController";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
   ssr: false,
@@ -27,7 +32,13 @@ const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
 const fieldLabel = "text-sm font-medium text-foreground";
 const panelSection = "px-5 py-5";
 
-export default function ArticleCreateForm({ initialScientific = false }: Readonly<{ initialScientific?: boolean }>) {
+type ArticleCreateFormProps = Readonly<{
+  initialScientific?: boolean;
+  /** Pre-fills the form and saves changes to this article instead of creating a new one. */
+  article?: EditableArticle;
+}>;
+
+export default function ArticleCreateForm({ initialScientific = false, article }: ArticleCreateFormProps) {
   const t = useTranslations();
   const { resolvedTheme } = useTheme();
   // resolvedTheme is undefined on the server: only set the editor's color mode after mount, so the
@@ -36,15 +47,20 @@ export default function ArticleCreateForm({ initialScientific = false }: Readonl
   const editorColorMode = mounted ? (resolvedTheme === "dark" ? "dark" : "light") : undefined;
   // Below 768px a side-by-side preview leaves each pane ~140px wide; the toolbar still offers preview.
   const isMobile = useIsMobile();
-  const [scientific, setScientific] = useState(initialScientific);
-  const [title, setTitle] = useState("");
-  const [doi, setDoi] = useState("");
-  const [content, setContent] = useState("");
-  const [complexity, setComplexity] = useState<ArticleComplexity>("SIMPLE");
+  const isEditing = article !== undefined;
+  // The backend can't remove references, so an article that has one stays scientific.
+  const hasReference = Boolean(article?.doi);
+  const [scientific, setScientific] = useState(article ? hasReference : initialScientific);
+  const [title, setTitle] = useState(article?.title ?? "");
+  const [doi, setDoi] = useState(article?.doi ?? "");
+  const [content, setContent] = useState(article?.content ?? "");
+  const [complexity, setComplexity] = useState<ArticleComplexity>(article?.complexity ?? "SIMPLE");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ErrorKey | null>(null);
 
-  const isDirty = Boolean(title.trim() || content.trim() || doi.trim());
+  const isDirty = article
+    ? title !== article.title || content !== article.content || doi !== article.doi || complexity !== article.complexity
+    : Boolean(title.trim() || content.trim() || doi.trim());
   useEffect(() => {
     if (!isDirty || isSubmitting) return;
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -55,6 +71,7 @@ export default function ArticleCreateForm({ initialScientific = false }: Readonl
   }, [isDirty, isSubmitting]);
 
   const handleSubmit = createHandleArticleSubmit({
+    editedArticle: article,
     scientific,
     title,
     content,
@@ -138,6 +155,7 @@ export default function ArticleCreateForm({ initialScientific = false }: Readonl
                 name="article-type"
                 checked={!scientific}
                 onChange={() => setScientific(false)}
+                disabled={hasReference}
                 title={t("create.typeRegular")}
                 description={t("create.typeRegularHint")}
               />
@@ -164,7 +182,7 @@ export default function ArticleCreateForm({ initialScientific = false }: Readonl
                   aria-describedby="doi-hint"
                 />
                 <p id="doi-hint" className="text-xs leading-5 text-muted-foreground">
-                  {t("create.doiHint")}
+                  {hasReference ? `${t("edit.doiUnchangedHint")} ${t("edit.referenceLocked")}` : t("create.doiHint")}
                 </p>
               </div>
             ) : null}
@@ -198,9 +216,9 @@ export default function ArticleCreateForm({ initialScientific = false }: Readonl
           ) : null}
           <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
             {isSubmitting ? <Spinner className="size-4" /> : null}
-            {isSubmitting ? t("create.submitting") : t("create.submit")}
+            {isSubmitting ? t(isEditing ? "edit.submitting" : "create.submitting") : t(isEditing ? "edit.submit" : "create.submit")}
           </Button>
-          <p className="text-xs leading-5 text-muted-foreground">{t("create.redirectHint")}</p>
+          <p className="text-xs leading-5 text-muted-foreground">{t(isEditing ? "edit.redirectHint" : "create.redirectHint")}</p>
         </div>
       </aside>
     </form>
@@ -212,6 +230,7 @@ function ChoiceRow({
   value,
   checked,
   onChange,
+  disabled = false,
   title,
   description,
 }: Readonly<{
@@ -219,6 +238,7 @@ function ChoiceRow({
   value?: string;
   checked: boolean;
   onChange: () => void;
+  disabled?: boolean;
   title: string;
   description: string;
 }>) {
@@ -228,9 +248,18 @@ function ChoiceRow({
         "flex cursor-pointer items-start gap-3 border-t border-border px-3 py-2.5 transition-colors first:border-t-0",
         "has-focus-visible:outline-2 has-focus-visible:-outline-offset-2 has-focus-visible:outline-ring",
         checked ? "bg-muted/70" : "hover:bg-muted/40",
+        disabled && "cursor-not-allowed opacity-55 hover:bg-transparent",
       )}
     >
-      <input type="radio" name={name} value={value} checked={checked} onChange={onChange} className="sr-only" />
+      <input
+        type="radio"
+        name={name}
+        value={value}
+        checked={checked}
+        onChange={onChange}
+        disabled={disabled}
+        className="sr-only"
+      />
       <span
         aria-hidden
         className={cn(

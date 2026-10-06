@@ -1,11 +1,22 @@
 import type { Dispatch, SetStateAction } from "react";
 import type React from "react";
 
-import { createArticleAction } from "@/app/actions/articles";
+import { createArticleAction, editArticleAction } from "@/app/actions/articles";
 import type { ArticleComplexity } from "@/types/articles";
 import type { ErrorKey } from "@/types/errors";
 
+/** The article being edited. Without it the form creates a new article. */
+export type EditableArticle = {
+    id: string;
+    title: string;
+    content: string;
+    complexity: ArticleComplexity;
+    /** DOI of the current reference, or "" for a regular article. */
+    doi: string;
+};
+
 type CreateHandleArticleSubmitParams = {
+    editedArticle?: EditableArticle;
     scientific: boolean;
     title: string;
     content: string;
@@ -51,8 +62,19 @@ export const TITLE_MAX_LENGTH = 200;
 
 export const COMPLEXITY_OPTIONS: ArticleComplexity[] = ["SIMPLE", "INTERMEDIATE", "COMPLEX"];
 
+/**
+ * References to send when editing: a new DOI, or null to keep the current ones. Re-sending an unchanged
+ * DOI would make the backend look it up again, and a failed lookup there drops the reference.
+ */
+export const getEditedReferences = (scientific: boolean, doi: string, initialDoi: string): string[] | null => {
+    if (!scientific) return null;
+    const normalizedDoi = normalizeDoi(doi);
+    return normalizedDoi === normalizeDoi(initialDoi) ? null : [normalizedDoi];
+};
+
 export const createHandleArticleSubmit =
     ({
+        editedArticle,
         scientific,
         title,
         content,
@@ -81,19 +103,26 @@ export const createHandleArticleSubmit =
             try {
                 // On success the action redirects on the server and this call never yields a result.
                 // Calling router.push + router.refresh here instead raced and cancelled the navigation.
-                const result = await createArticleAction({
-                    title,
-                    content,
-                    complexity,
-                    references: scientific ? [normalizeDoi(doi)] : [],
-                });
+                const result = editedArticle
+                    ? await editArticleAction(editedArticle.id, {
+                        title,
+                        content,
+                        complexity,
+                        references: getEditedReferences(scientific, doi, editedArticle.doi),
+                    })
+                    : await createArticleAction({
+                        title,
+                        content,
+                        complexity,
+                        references: scientific ? [normalizeDoi(doi)] : [],
+                    });
 
                 if (result && !result.ok) {
                     setError(result.error);
                     setIsSubmitting(false);
                 }
             } catch {
-                setError("createArticleFailed");
+                setError(editedArticle ? "editArticleFailed" : "createArticleFailed");
                 setIsSubmitting(false);
             }
         };

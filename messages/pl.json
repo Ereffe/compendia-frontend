@@ -103,7 +103,14 @@
   "article": {
     "notFoundTitle": "Artykuł nie znaleziony",
     "notFoundDescription": "Szukany artykuł nie istnieje lub został usunięty. Sprawdź adres URL lub przejdź do listy artykułów.",
-    "level": "Poziom: {level}"
+    "level": "Poziom: {level}",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "deleteTitle": "Usunąć ten artykuł?",
+    "deleteDescription": "Artykuł zostanie trwale usunięty razem z komentarzami. Tej operacji nie można cofnąć.",
+    "deleteConfirm": "Usuń artykuł",
+    "deleting": "Usuwanie…",
+    "cancel": "Anuluj"
   },
   "complexity": {
     "SIMPLE": "Proste",
@@ -131,7 +138,16 @@
     "showReplies": "{count, plural, one {Pokaż # odpowiedź} other {Pokaż # odpowiedzi}}",
     "upvote": "Głos pozytywny ({count})",
     "downvote": "Głos negatywny ({count})",
-    "alreadyVoted": "Już zagłosowano"
+    "alreadyVoted": "Już zagłosowano",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "editLabel": "Edytuj komentarz",
+    "save": "Zapisz",
+    "saving": "Zapisywanie…",
+    "deleteTitle": "Usunąć ten komentarz?",
+    "deleteDescription": "{replies, plural, =0 {Komentarz zostanie trwale usunięty.} one {Komentarz zostanie trwale usunięty razem z # odpowiedzią.} other {Komentarz zostanie trwale usunięty razem z # odpowiedziami.}}",
+    "deleteConfirm": "Usuń komentarz",
+    "deleting": "Usuwanie…"
   },
   "search": {
     "openLabel": "Otwórz wyszukiwarkę artykułów",
@@ -180,6 +196,17 @@
       "code": "`kod` w tekście, ``` dla bloku kodu.",
       "links": "[tekst](https://adres) dodaje link."
     }
+  },
+  "edit": {
+    "title": "Edytuj artykuł",
+    "description": "Popraw treść, tytuł lub poziom trudności. Zmiany zobaczą wszyscy czytelnicy.",
+    "submit": "Zapisz zmiany",
+    "submitting": "Zapisywanie...",
+    "redirectHint": "Po zapisaniu wrócisz do artykułu.",
+    "cancel": "Anuluj",
+    "backToArticle": "Wróć do artykułu",
+    "referenceLocked": "Źródła nie można usunąć podczas edycji. Możesz podać inne DOI.",
+    "doiUnchangedHint": "Zostaw bez zmian, aby zachować obecne źródło."
   },
   "graph": {
     "title": "Graf cytowań",
@@ -254,7 +281,11 @@
     "sessionExpired": "Sesja wygasła. Zaloguj się ponownie.",
     "forbidden": "Nie masz uprawnień do tej operacji.",
     "notFound": "Nie znaleziono zasobu.",
-    "generic": "Wystąpił nieoczekiwany błąd."
+    "generic": "Wystąpił nieoczekiwany błąd.",
+    "editArticleFailed": "Nie udało się zapisać zmian w artykule.",
+    "deleteArticleFailed": "Nie udało się usunąć artykułu.",
+    "editCommentFailed": "Nie udało się zapisać komentarza.",
+    "deleteCommentFailed": "Nie udało się usunąć komentarza."
   },
   "references": {
     "title": "Źródła",

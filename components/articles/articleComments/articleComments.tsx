@@ -3,12 +3,13 @@
 import { type ReactNode, type SyntheticEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useFormatter, useTranslations } from "next-intl";
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { Pencil, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 
 import { useVoteStore } from "@/hooks/stores/useVoteStore";
 import type { CommentItem } from "@/types/comments";
 import type { ErrorKey } from "@/types/errors";
 
+import ConfirmDeleteDialog from "@/components/confirmDeleteDialog";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/articles/articleReferences";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,11 +17,15 @@ import { cn } from "@/lib/utils";
 import {
     buildCommentTree,
     countComments,
+    createDeleteCommentHandler,
+    createEditCommentHandler,
     createRateCommentHandler,
     createSubmitCommentHandler,
+    findComment,
 } from "./articleCommentsController";
 
 const voteClass = "gap-1 px-1.5 tabular-nums text-muted-foreground";
+const ownerActionClass = "px-1.5 text-muted-foreground hover:text-foreground";
 const commentDateFormat = { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" } as const;
 
 type ArticleCommentsProps = Readonly<{
@@ -38,6 +43,8 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const isLoading = status === "loading";
     const canComment = status === "authenticated" && !session?.error;
     const userKey = canComment ? (session?.user?.id ?? session?.user?.email ?? null) : null;
+    // Only for showing edit/delete on your own comments; the backend checks ownership itself.
+    const currentUserId = canComment ? (session?.user?.id ?? null) : null;
     const [comments, setComments] = useState<CommentItem[]>(() => buildCommentTree(initialComments));
     const [content, setContent] = useState("");
     const [activeReplyCommentId, setActiveReplyCommentId] = useState<string | null>(null);
@@ -46,6 +53,15 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<ErrorKey | null>(null);
     const [isHydrated, setIsHydrated] = useState(false);
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+    const [editDraft, setEditDraft] = useState("");
+    const [isSavingEdit, setIsSavingEdit] = useState(false);
+    const [editError, setEditError] = useState<ErrorKey | null>(null);
+    const [commentToDelete, setCommentToDelete] = useState<CommentItem | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<ErrorKey | null>(null);
+    // Deleted comments still count in the server's totalCount until the page reloads.
+    const [deletedCount, setDeletedCount] = useState(0);
 
     const { setVote, clearVote, getVote } = useVoteStore();
 
@@ -58,7 +74,8 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     }, [initialComments]);
 
     const totalComments = useMemo(() => countComments(comments), [comments]);
-    const displayedTotal = Math.max(totalComments, totalCount ?? 0);
+    const remainingTotal = totalCount === undefined ? undefined : totalCount - deletedCount;
+    const displayedTotal = Math.max(totalComments, remainingTotal ?? 0);
     const isTruncated = totalCount !== undefined && totalCount > initialComments.length;
 
     let sessionLabel = "";
@@ -139,6 +156,51 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         }
     };
 
+    const saveEdit = createEditCommentHandler({ setComments, setIsSaving: setIsSavingEdit, setError: setEditError });
+
+    const deleteComment = createDeleteCommentHandler({
+        setComments,
+        onDeleted: (removedCount) => setDeletedCount((count) => count + removedCount),
+        setIsDeleting,
+        setError: setDeleteError,
+    });
+
+    const startEditing = (comment: CommentItem) => {
+        setEditingCommentId(comment.id);
+        setEditDraft(comment.content);
+        setEditError(null);
+        setActiveReplyCommentId(null);
+    };
+
+    const cancelEditing = () => {
+        setEditingCommentId(null);
+        setEditError(null);
+    };
+
+    const handleEditSubmit = async (event: SyntheticEvent<HTMLFormElement>, commentId: string) => {
+        event.preventDefault();
+        if (isSavingEdit) return;
+        if (await saveEdit(commentId, editDraft)) {
+            setEditingCommentId(null);
+        }
+    };
+
+    const handleDeleteDialogChange = (open: boolean) => {
+        if (!open) {
+            setCommentToDelete(null);
+            setDeleteError(null);
+        }
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!commentToDelete) return;
+        if (await deleteComment(commentToDelete)) {
+            // Close the edit form if it belonged to the deleted comment or one of its replies.
+            if (editingCommentId && findComment([commentToDelete], editingCommentId)) setEditingCommentId(null);
+            setCommentToDelete(null);
+        }
+    };
+
     const toggleReplies = useCallback((commentId: string) => {
         setExpandedReplies((currentState) => ({
             ...currentState,
@@ -205,6 +267,32 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         </form>
     );
 
+    const renderEditForm = (comment: CommentItem) => (
+        <form className="mt-2 space-y-3" onSubmit={(event) => handleEditSubmit(event, comment.id)}>
+            <Textarea
+                value={editDraft}
+                onChange={(event) => setEditDraft(event.target.value)}
+                aria-label={t("editLabel")}
+                className="min-h-20 bg-background text-foreground"
+                disabled={isSavingEdit}
+                autoFocus
+            />
+            {editError ? <p className="text-sm text-destructive" role="alert">{tErrors(editError)}</p> : null}
+            <div className="flex justify-end gap-2">
+                <Button type="button" variant="ghost" size="xs" onClick={cancelEditing} disabled={isSavingEdit}>
+                    {t("cancel")}
+                </Button>
+                <Button
+                    type="submit"
+                    size="xs"
+                    disabled={isSavingEdit || editDraft.trim().length === 0 || editDraft.trim() === comment.content}
+                >
+                    {isSavingEdit ? t("saving") : t("save")}
+                </Button>
+            </div>
+        </form>
+    );
+
     const renderComment = (
         comment: CommentItem,
         depth = 0
@@ -227,6 +315,9 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         const isRepliesExpanded =
             expandedReplies[comment.id] ?? false;
 
+        const isOwnComment = currentUserId !== null && comment.user.id === currentUserId;
+        const isEditing = editingCommentId === comment.id;
+
         return (
             <div key={comment.id} className="w-full">
                 <article className={cn("w-full", depth === 0 ? "py-5" : "py-3")}>
@@ -238,11 +329,13 @@ export default function ArticleComments({ articleId, initialComments, totalCount
                         </span>
                     </p>
 
-                    <p className="mt-1.5 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-foreground/90 wrap-anywhere">
-                        {comment.content}
-                    </p>
+                    {isEditing ? renderEditForm(comment) : (
+                        <p className="mt-1.5 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-foreground/90 wrap-anywhere">
+                            {comment.content}
+                        </p>
+                    )}
 
-                    <div className="-ml-1.5 mt-2 flex flex-wrap items-center gap-x-1 gap-y-1">
+                    <div className={cn("-ml-1.5 mt-2 flex flex-wrap items-center gap-x-1 gap-y-1", isEditing && "hidden")}>
                         {renderVoteButtons(comment, hasVoted, isPositiveVote, isNegativeVote)}
                         <Button
                             variant="ghost"
@@ -263,6 +356,23 @@ export default function ArticleComments({ articleId, initialComments, totalCount
                             >
                                 {getRepliesToggleLabel(repliesCount, isRepliesExpanded)}
                             </Button>
+                        ) : null}
+                        {isOwnComment ? (
+                            <>
+                                <Button variant="ghost" size="xs" className={ownerActionClass} onClick={() => startEditing(comment)}>
+                                    <Pencil aria-hidden />
+                                    {t("edit")}
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="xs"
+                                    className="px-1.5 text-muted-foreground hover:text-destructive"
+                                    onClick={() => setCommentToDelete(comment)}
+                                >
+                                    <Trash2 aria-hidden />
+                                    {t("delete")}
+                                </Button>
+                            </>
                         ) : null}
                     </div>
 
@@ -315,9 +425,22 @@ export default function ArticleComments({ articleId, initialComments, totalCount
             </div>
             {isTruncated ? (
                 <p className="mt-4 text-center text-sm text-muted-foreground">
-                    {t("truncated", { shown: initialComments.length, total: totalCount })}
+                    {t("truncated", { shown: initialComments.length, total: remainingTotal ?? 0 })}
                 </p>
             ) : null}
+
+            <ConfirmDeleteDialog
+                open={commentToDelete !== null}
+                onOpenChange={handleDeleteDialogChange}
+                title={t("deleteTitle")}
+                description={t("deleteDescription", { replies: countComments(commentToDelete?.replies ?? []) })}
+                confirmLabel={t("deleteConfirm")}
+                pendingLabel={t("deleting")}
+                cancelLabel={t("cancel")}
+                isPending={isDeleting}
+                error={deleteError ? tErrors(deleteError) : null}
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     );
 }

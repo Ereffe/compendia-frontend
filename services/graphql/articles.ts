@@ -25,7 +25,7 @@ export type GraphqlArticle = {
     content: string;
     datePosted: string;
     complexity: string;
-    author?: { name: string } | null;
+    author?: { id: string; name: string } | null;
     comments: { content: GraphqlCommentItem[]; totalElements: number };
     references?: Array<ArticleReference | null> | null;
 };
@@ -90,7 +90,35 @@ export const ARTICLE_QUERY = gql`
                 url
             }
             author {
+                id
                 name
+            }
+        }
+    }
+`;
+
+/** What the edit form needs: no comments, and references only by DOI. */
+export type GraphqlEditableArticle = {
+    id: string;
+    title: string;
+    content: string;
+    complexity: string;
+    author?: { id: string } | null;
+    references?: Array<{ doi: string } | null> | null;
+};
+
+export const EDITABLE_ARTICLE_QUERY = gql`
+    query EditableArticle($id: String!) {
+        article(id: $id) {
+            id
+            title
+            content
+            complexity
+            author {
+                id
+            }
+            references {
+                doi
             }
         }
     }
@@ -102,6 +130,21 @@ export const ADD_ARTICLE_MUTATION = gql`
             id
             title
         }
+    }
+`;
+
+// Null arguments leave the field unchanged. The backend can't clear references: an empty list is ignored.
+export const EDIT_ARTICLE_MUTATION = gql`
+    mutation EditArticle($articleId: ID!, $title: String, $content: String, $complexity: String, $references: [String!]) {
+        editArticle(articleId: $articleId, title: $title, content: $content, complexity: $complexity, references: $references) {
+            id
+        }
+    }
+`;
+
+export const DELETE_ARTICLE_MUTATION = gql`
+    mutation DeleteArticle($articleId: ID!) {
+        deleteArticle(articleId: $articleId)
     }
 `;
 

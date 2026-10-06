@@ -6,9 +6,12 @@ import { renderWithIntl } from "@/test/renderWithIntl";
 
 import type { CommentItem } from "@/types/comments";
 import ArticleComments from "./articleComments";
+import { applyCommentEdit, buildCommentTree, findComment, removeComment } from "./articleCommentsController";
 
 const addComment = vi.fn();
 const rateComment = vi.fn();
+const editComment = vi.fn();
+const deleteComment = vi.fn();
 const setVote = vi.fn();
 const clearVote = vi.fn();
 const getVote = vi.fn();
@@ -20,6 +23,8 @@ let sessionState: SessionState = signedIn;
 vi.mock("@/app/actions/comments", () => ({
     addCommentAction: (...args: unknown[]) => addComment(...args),
     rateCommentAction: (...args: unknown[]) => rateComment(...args),
+    editCommentAction: (...args: unknown[]) => editComment(...args),
+    deleteCommentAction: (...args: unknown[]) => deleteComment(...args),
 }));
 
 vi.mock("next-auth/react", () => ({
@@ -124,5 +129,134 @@ describe("ArticleComments", () => {
             expect(clearVote).toHaveBeenCalledWith("u-me", "c1");
         });
         expect(screen.getByText("Nie udało się ocenić komentarza.")).toBeInTheDocument();
+    });
+
+    describe("own comments", () => {
+        const withOwnComment: CommentItem[] = [
+            ...initialComments,
+            {
+                id: "c9",
+                content: "Mój komentarz",
+                datePosted: "2026-05-08T12:00:00.000Z",
+                user: { id: "u-me", name: "Ja" },
+                rating: { positive: 0, negative: 0 },
+            },
+        ];
+
+        it("shows edit and delete only on the signed-in user's comments", () => {
+            renderWithIntl(<ArticleComments articleId="a1" initialComments={withOwnComment} />);
+
+            expect(screen.getAllByRole("button", { name: "Edytuj" })).toHaveLength(1);
+            expect(screen.getAllByRole("button", { name: "Usuń" })).toHaveLength(1);
+        });
+
+        it("hides them when signed out", () => {
+            sessionState = { status: "unauthenticated", data: null };
+            renderWithIntl(<ArticleComments articleId="a1" initialComments={withOwnComment} />);
+
+            expect(screen.queryByRole("button", { name: "Edytuj" })).not.toBeInTheDocument();
+        });
+
+        it("edits a comment in place", async () => {
+            const user = userEvent.setup();
+            editComment.mockResolvedValue({
+                ok: true,
+                data: { id: "c9", content: "Poprawiony komentarz", editedAt: "2026-05-09T12:00:00.000Z" },
+            });
+
+            renderWithIntl(<ArticleComments articleId="a1" initialComments={withOwnComment} />);
+
+            await user.click(screen.getByRole("button", { name: "Edytuj" }));
+            const editor = screen.getByRole("textbox", { name: "Edytuj komentarz" });
+            expect(editor).toHaveValue("Mój komentarz");
+            expect(screen.getByRole("button", { name: "Zapisz" })).toBeDisabled();
+
+            await user.clear(editor);
+            await user.type(editor, "Poprawiony komentarz");
+            await user.click(screen.getByRole("button", { name: "Zapisz" }));
+
+            expect(editComment).toHaveBeenCalledWith("c9", "Poprawiony komentarz");
+            expect(await screen.findByText("Poprawiony komentarz")).toBeInTheDocument();
+            expect(screen.queryByRole("textbox", { name: "Edytuj komentarz" })).not.toBeInTheDocument();
+            expect(screen.getByText(/edytowano/)).toBeInTheDocument();
+        });
+
+        it("keeps the editor open and shows the error when saving fails", async () => {
+            const user = userEvent.setup();
+            editComment.mockResolvedValue({ ok: false, error: "forbidden" });
+
+            renderWithIntl(<ArticleComments articleId="a1" initialComments={withOwnComment} />);
+
+            await user.click(screen.getByRole("button", { name: "Edytuj" }));
+            await user.type(screen.getByRole("textbox", { name: "Edytuj komentarz" }), "!");
+            await user.click(screen.getByRole("button", { name: "Zapisz" }));
+
+            expect(await screen.findByRole("alert")).toHaveTextContent("Nie masz uprawnień do tej operacji.");
+            expect(screen.getByRole("textbox", { name: "Edytuj komentarz" })).toHaveValue("Mój komentarz!");
+        });
+
+        it("deletes a comment after confirmation and updates the count", async () => {
+            const user = userEvent.setup();
+            deleteComment.mockResolvedValue({ ok: true, data: null });
+
+            renderWithIntl(<ArticleComments articleId="a1" initialComments={withOwnComment} totalCount={3} />);
+            expect(screen.getByText("3 komentarze")).toBeInTheDocument();
+
+            await user.click(screen.getByRole("button", { name: "Usuń" }));
+            const dialog = screen.getByRole("alertdialog", { name: "Usunąć ten komentarz?" });
+            expect(dialog).toHaveTextContent("Komentarz zostanie trwale usunięty.");
+            expect(deleteComment).not.toHaveBeenCalled();
+
+            await user.click(screen.getByRole("button", { name: "Usuń komentarz" }));
+
+            expect(deleteComment).toHaveBeenCalledWith("c9");
+            await waitFor(() => {
+                expect(screen.queryByText("Mój komentarz")).not.toBeInTheDocument();
+            });
+            expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+            expect(screen.getByText("2 komentarze")).toBeInTheDocument();
+        });
+
+        it("keeps the comment and shows the error when deleting fails", async () => {
+            const user = userEvent.setup();
+            deleteComment.mockResolvedValue({ ok: false, error: "deleteCommentFailed" });
+
+            renderWithIntl(<ArticleComments articleId="a1" initialComments={withOwnComment} />);
+
+            await user.click(screen.getByRole("button", { name: "Usuń" }));
+            await user.click(screen.getByRole("button", { name: "Usuń komentarz" }));
+
+            expect(await screen.findByRole("alert")).toHaveTextContent("Nie udało się usunąć komentarza.");
+            expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+            expect(screen.getByText("Mój komentarz")).toBeInTheDocument();
+        });
+    });
+});
+
+describe("articleCommentsController edit/delete helpers", () => {
+    const tree = buildCommentTree([
+        { id: "1", content: "a", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 } },
+        { id: "2", content: "b", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 }, parentCommentId: "1" },
+        { id: "3", content: "c", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 }, parentCommentId: "2" },
+        { id: "4", content: "d", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 } },
+    ]);
+
+    it("finds nested comments", () => {
+        expect(findComment(tree, "3")?.content).toBe("c");
+        expect(findComment(tree, "x")).toBeUndefined();
+    });
+
+    it("applies an edit to a nested comment", () => {
+        const edited = applyCommentEdit(tree, { id: "3", content: "zmienione", editedAt: "2026-01-01T00:00:00" });
+        expect(findComment(edited, "3")).toMatchObject({ content: "zmienione", editedAt: "2026-01-01T00:00:00" });
+        expect(findComment(tree, "3")?.content).toBe("c");
+    });
+
+    it("removes a comment together with its replies", () => {
+        const remaining = removeComment(tree, "2");
+        expect(findComment(remaining, "2")).toBeUndefined();
+        expect(findComment(remaining, "3")).toBeUndefined();
+        expect(findComment(remaining, "1")?.replies).toEqual([]);
+        expect(findComment(remaining, "4")).toBeDefined();
     });
 });
