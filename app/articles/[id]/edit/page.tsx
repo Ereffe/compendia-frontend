@@ -35,7 +35,6 @@ export default async function EditArticlePage({ params }: Readonly<{ params: Pro
   if (!article) {
     notFound();
   }
-  // Only the author may edit. The backend enforces this too; here it just avoids showing a useless form.
   if (!currentUserId || article.author?.id !== currentUserId) {
     redirect(`/articles/${id}`);
   }

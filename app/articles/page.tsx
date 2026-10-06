@@ -26,7 +26,6 @@ async function getNewestArticles(accessToken: string): Promise<ArticleSearchItem
 
 export default async function ArticlesPage() {
   const accessToken = await requireAccessToken();
-  // Errors propagate to app/error.tsx instead of rendering an empty list.
   const newestArticles = await getNewestArticles(accessToken);
   const t = await getTranslations("articles");
 

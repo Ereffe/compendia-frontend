@@ -16,12 +16,10 @@ export default async function Home({
   }
 
   const t = await getTranslations("landing");
-  // Set by app/session-expired/route.ts after the backend rejected the user's token.
   const sessionExpired = (await searchParams).sessionExpired === "1";
 
   return (
     <section className="container-page relative flex flex-1 flex-col py-6 sm:py-10">
-      {/* The header is hidden on the landing page, so expose language and theme here. */}
       <div className="flex items-center justify-end gap-2">
         <LanguageSwitcher />
         <ThemeToggle />

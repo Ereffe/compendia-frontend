@@ -18,10 +18,6 @@ export type CreateArticleInput = {
     references: string[];
 };
 
-/**
- * Creates the article and redirects to it. It only returns when something went wrong.
- * The redirect happens on the server, so client code must not call router.push/refresh afterwards.
- */
 export async function createArticleAction(input: CreateArticleInput): Promise<ActionError> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
@@ -43,7 +39,7 @@ export async function createArticleAction(input: CreateArticleInput): Promise<Ac
         });
         articleId = data.addArticle.id;
     } catch (error) {
-        unstable_rethrow(error); // session-expired redirect from authedMutate
+        unstable_rethrow(error);
         console.error("createArticleAction failed:", error);
         return { ok: false, error: toErrorKey(error, "createArticleFailed") };
     }
@@ -62,14 +58,9 @@ export type EditArticleInput = {
     title: string;
     content: string;
     complexity: ArticleComplexity;
-    /** New references, or null to keep the current ones (the backend can't clear them). */
     references: string[] | null;
 };
 
-/**
- * Saves the author's changes and redirects to the article. It only returns when something went wrong.
- * The backend checks that the caller is the author and answers FORBIDDEN otherwise.
- */
 export async function editArticleAction(articleId: string, input: EditArticleInput): Promise<ActionError> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
@@ -101,7 +92,6 @@ export async function editArticleAction(articleId: string, input: EditArticleInp
     redirect(`/articles/${articleId}`);
 }
 
-/** Deletes the author's article (with its comments) and redirects to the article list. */
 export async function deleteArticleAction(articleId: string): Promise<ActionError> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };

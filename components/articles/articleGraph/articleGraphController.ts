@@ -18,7 +18,6 @@ export interface GraphResponse {
     };
 }
 
-/** root = the article's own reference, cited = resolved paper, missing = referenced but no metadata. */
 export type NodeKind = "root" | "cited" | "missing";
 
 export interface CytoscapeNodeData {
@@ -29,7 +28,6 @@ export interface CytoscapeNodeData {
     url: string | null;
     authors: string[];
     kind: NodeKind;
-    /** Citation hops from the root (0 = root). Drives the radial layout and node shading. */
     depth: number;
 }
 
@@ -47,7 +45,6 @@ const LABEL_MAX_LENGTH = 48;
 const shorten = (value: string) =>
     value.length > LABEL_MAX_LENGTH ? `${value.slice(0, LABEL_MAX_LENGTH - 1)}…` : value;
 
-/** DOIs contain characters such as "/" and ":"; encode them so they are safe Cytoscape ids. */
 export const toNodeId = (doi: string) => encodeURIComponent(doi.toLowerCase());
 
 export const mergeGraphs = (previous: GraphResponse | null, incoming: GraphResponse | null): GraphResponse => {
@@ -64,7 +61,6 @@ export const mergeGraphs = (previous: GraphResponse | null, incoming: GraphRespo
     return { scienceArticleGraph: { nodes: [...nodes.values()], edges: [...edges.values()] } };
 };
 
-/** Breadth-first distance from the root following citation direction (citing → cited). */
 const computeDepths = (rootId: string, adjacency: Map<string, string[]>): Map<string, number> => {
     const depths = new Map<string, number>([[rootId, 0]]);
     const queue = [rootId];
@@ -122,7 +118,6 @@ export const buildGraphElements = (data: GraphResponse | null, rootDoi: string):
     const depths = computeDepths(rootId, adjacency);
     const maxReachable = Math.max(0, ...depths.values());
 
-    // Nodes the root can't reach (e.g. after expanding a distant node) go on the outermost ring.
     const nodeElements = [...nodeData.values()].map((node) => ({
         data: { ...node, depth: depths.get(node.id) ?? maxReachable + 1 },
     }));

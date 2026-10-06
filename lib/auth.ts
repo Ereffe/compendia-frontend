@@ -38,7 +38,6 @@ const getAccessTokenExpiry = (accessToken: string) =>
   parseTokenExpiryMs(accessToken) ?? Date.now() + fallbackAccessTokenLifetimeMs;
 
 const refreshAccessToken = async (refreshToken: string) => {
-  // The backend only exposes refresh as GET with the token in the query string.
   const response = await fetch(`${serverBackendUrl}/auth/refresh?t=${encodeURIComponent(refreshToken)}`, {
     cache: "no-store",
   });
@@ -60,7 +59,6 @@ const refreshAccessToken = async (refreshToken: string) => {
   };
 };
 
-// Login/register only return tokens, so fetch the profile to get the real id and display name.
 const fetchCurrentUser = async (accessToken: string): Promise<CurrentUser | null> => {
   try {
     const response = await fetch(`${serverBackendUrl}/graphql`, {
@@ -179,8 +177,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    // Tokens stay inside the encrypted JWT cookie. Server code reads them with
-    // `getAccessToken()` (lib/server/session.ts), so the browser never receives them.
     async session({ session, token }) {
       session.error = token.error;
       if (session.user && token.sub) {

@@ -15,7 +15,6 @@ export type CommentItem = {
     replies?: CommentItem[];
 };
 
-/** What `editComment` returns: only the fields an edit changes. */
 export type EditedComment = {
     id: string;
     content: string;

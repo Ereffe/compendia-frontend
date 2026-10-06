@@ -10,7 +10,6 @@ import { useMounted } from "@/hooks/use-mounted";
 export default function ThemeToggle() {
   const t = useTranslations("theme");
   const { resolvedTheme, setTheme } = useTheme();
-  // resolvedTheme is unknown on the server; render the "light" state until mounted.
   const mounted = useMounted();
   const isDark = mounted && resolvedTheme === "dark";
 

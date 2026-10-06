@@ -97,7 +97,6 @@ export const ARTICLE_QUERY = gql`
     }
 `;
 
-/** What the edit form needs: no comments, and references only by DOI. */
 export type GraphqlEditableArticle = {
     id: string;
     title: string;
@@ -148,7 +147,6 @@ export const DELETE_ARTICLE_MUTATION = gql`
     }
 `;
 
-/** Date style for article dates; pass to next-intl's `format.dateTime(date, articleDateFormat)`. */
 export const articleDateFormat = { month: "short", day: "numeric", year: "numeric" } as const;
 
 export const mapArticleToSearchItem = (article: GraphqlArticleSummary): ArticleSearchItem => ({

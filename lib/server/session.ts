@@ -13,7 +13,6 @@ type SessionState = { accessToken: string | null; expired: boolean };
 
 async function readToken() {
     return getToken({
-        // getToken only needs `cookies.getAll()` and `headers`, which Next's helpers provide.
         req: { cookies: await cookies(), headers: await headers() } as unknown as Parameters<typeof getToken>[0]["req"],
         secret: process.env.NEXTAUTH_SECRET,
     });
@@ -27,28 +26,15 @@ async function readSession(): Promise<SessionState> {
     return { accessToken: token.accessToken, expired: false };
 }
 
-/**
- * Reads the backend access token from the encrypted next-auth JWT cookie.
- * The token is deliberately NOT exposed through `useSession()`, so browser JavaScript never sees it.
- */
 export async function getAccessToken(): Promise<string | null> {
     return (await readSession()).accessToken;
 }
 
-/**
- * The signed-in user's backend id (the JWT `sub`, set from `getCurrentUser` at login), or null.
- * Used only to decide whether to show owner controls; the backend enforces ownership itself.
- */
 export async function getCurrentUserId(): Promise<string | null> {
     const token = await readToken();
     return token?.sub ?? null;
 }
 
-/**
- * For server components: returns the access token, or redirects. Signed-out visitors go to the
- * landing page; a session whose refresh failed goes to SESSION_EXPIRED_PATH, which clears the cookie
- * and shows a "session expired" message.
- */
 export async function requireAccessToken(): Promise<string> {
     const { accessToken, expired } = await readSession();
     if (!accessToken) {
@@ -57,11 +43,7 @@ export async function requireAccessToken(): Promise<string> {
     return accessToken;
 }
 
-/**
- * Runs a backend call and, if the backend rejects the token, redirects to SESSION_EXPIRED_PATH.
- * Callers that wrap this in try/catch must call `unstable_rethrow(error)` first in their catch block,
- * or the redirect gets swallowed.
- */
+// Callers that catch errors from this must call unstable_rethrow(error) first, or the redirect is swallowed.
 async function withSessionGuard<T>(call: () => Promise<T>): Promise<T> {
     try {
         return await call();
@@ -77,7 +59,6 @@ export const authContext = (accessToken: string) => ({
     headers: { Authorization: `Bearer ${accessToken}` },
 });
 
-/** Runs an authenticated query. GraphQL and network errors are thrown (Apollo's default errorPolicy). */
 export async function authedQuery<TData>(
     accessToken: string,
     query: DocumentNode,

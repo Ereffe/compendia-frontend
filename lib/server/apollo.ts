@@ -5,8 +5,6 @@ import { ApolloClient, InMemoryCache, registerApolloClient } from "@apollo/clien
 
 import { serverBackendUrl } from "@/lib/config";
 
-// registerApolloClient creates one client (and cache) per request, so results never leak
-// between users or go stale across requests.
 export const { getClient: getServerClient } = registerApolloClient(
     () =>
         new ApolloClient({

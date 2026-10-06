@@ -7,7 +7,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { ArticleReference } from "@/types/articles";
 
-/** Event the citation graph listens for (see ArticleGraphContainer). */
 export const SHOW_IN_GRAPH_EVENT = "compendia:show-in-graph";
 
 export const showReferenceInGraph = (doi: string) =>
@@ -53,7 +52,6 @@ function ReferenceItem({ reference, index }: Readonly<{ reference: ArticleRefere
             setCopied(true);
             setTimeout(() => setCopied(false), 1500);
         } catch {
-            // Clipboard can be unavailable (insecure context); the DOI text stays selectable.
         }
     };
 

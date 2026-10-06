@@ -34,14 +34,12 @@ export const EDIT_COMMENT_MUTATION = gql`
     }
 `;
 
-// Deletes the comment together with its replies (the backend cascades).
 export const DELETE_COMMENT_MUTATION = gql`
     mutation DeleteComment($commentId: Int!) {
         deleteComment(commentId: $commentId)
     }
 `;
 
-// Returns the rated comment's id (Int!), not a boolean.
 export const RATE_COMMENT_MUTATION = gql`
     mutation RateComment($commentId: Int!, $positive: Boolean!) {
         rateComment(commentId: $commentId, positive: $positive)

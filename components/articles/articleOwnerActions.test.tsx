@@ -26,7 +26,6 @@ describe("ArticleOwnerActions", () => {
 
     it("asks for confirmation before deleting and stays in the pending state until the redirect", async () => {
         const user = userEvent.setup();
-        // On success the real action redirects on the server and the call never resolves.
         deleteArticleAction.mockReturnValue(new Promise(() => {}));
 
         renderWithIntl(<ArticleOwnerActions articleId="abc123" />);

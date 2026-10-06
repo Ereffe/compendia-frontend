@@ -21,15 +21,11 @@ type ConfirmDeleteDialogProps = Readonly<{
   pendingLabel: string;
   cancelLabel: string;
   isPending: boolean;
-  /** Already translated error text, shown inside the dialog so it stays open on failure. */
   error?: string | null;
   onConfirm: () => void;
 }>;
 
-/**
- * Confirmation for a destructive action. The confirm button is a plain Button, not AlertDialogAction,
- * because Radix closes the dialog on Action clicks and the delete has to finish (or fail) first.
- */
+// Not AlertDialogAction: Radix closes the dialog on Action clicks, before the delete has finished.
 export default function ConfirmDeleteDialog({
   open,
   onOpenChange,
@@ -57,7 +53,6 @@ export default function ConfirmDeleteDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>{cancelLabel}</AlertDialogCancel>
           <Button variant="destructive" onClick={onConfirm} disabled={isPending}>
-            {/* The label already says what's happening; Spinner's own aria-label is hard-coded English. */}
             {isPending ? <Spinner className="size-4" aria-hidden /> : null}
             {isPending ? pendingLabel : confirmLabel}
           </Button>

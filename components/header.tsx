@@ -35,7 +35,6 @@ export default function Header() {
 
   const handleLogout = async () => {
     setMenuOpen(false);
-    // The backend has no logout endpoint, so this only clears the next-auth cookie.
     await signOut({ redirect: false });
     router.replace("/");
     router.refresh();

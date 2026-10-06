@@ -15,8 +15,6 @@ import {
 import type { ActionResult } from "@/types/articles";
 import type { CommentItem, EditedComment } from "@/types/comments";
 
-// Server Actions return errors as values: thrown errors are masked in production builds.
-
 export async function addCommentAction(
     articleId: string,
     content: string,
@@ -36,7 +34,7 @@ export async function addCommentAction(
         });
         return { ok: true, data: mapGraphqlCommentToCommentItem(data.addComment) };
     } catch (error) {
-        unstable_rethrow(error); // session-expired redirect from authedMutate
+        unstable_rethrow(error);
         console.error("addCommentAction failed:", error);
         return { ok: false, error: toErrorKey(error, "addCommentFailed") };
     }
@@ -59,7 +57,6 @@ export async function rateCommentAction(commentId: string, positive: boolean): P
     }
 }
 
-/** The backend checks that the caller wrote the comment and answers FORBIDDEN otherwise. */
 export async function editCommentAction(commentId: string, content: string): Promise<ActionResult<EditedComment>> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
@@ -80,7 +77,6 @@ export async function editCommentAction(commentId: string, content: string): Pro
     }
 }
 
-/** Deletes the comment and, on the backend, all of its replies. */
 export async function deleteCommentAction(commentId: string): Promise<ActionResult<null>> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };

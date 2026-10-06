@@ -24,7 +24,6 @@ import {
 } from "./articleSearchModalController";
 
 type ArticleSearchModalProps = {
-  /** Shown before the user types a query. */
   articles: ArticleSearchItem[];
 };
 
@@ -48,7 +47,6 @@ export default function ArticleSearchModal({ articles }: Readonly<ArticleSearchM
   const format = useFormatter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  // The last finished request. Idle/loading are derived from it and the current query.
   const [result, setResult] = useState<SearchResult | null>(null);
   const search = getSearchState(query, result);
 
@@ -57,7 +55,6 @@ export default function ArticleSearchModal({ articles }: Readonly<ArticleSearchM
 
     let cancelled = false;
 
-    // Debounce: the backend rate limit is shared by all users.
     const timeoutId = setTimeout(() => {
       searchArticles(query)
         .then(({ items, total }) => {

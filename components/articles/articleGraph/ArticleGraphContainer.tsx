@@ -21,7 +21,6 @@ export default function ArticleGraphContainer({
     const [expanded, setExpanded] = useState(true);
     const sectionRef = useRef<HTMLDivElement>(null);
 
-    // "Show in graph" buttons in the references list switch the graph to that reference.
     useEffect(() => {
         const onShow = (event: Event) => {
             const doi = (event as CustomEvent<string>).detail;

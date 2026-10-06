@@ -19,7 +19,6 @@ type CreateHandleCredentialsSignInParams = {
     router: Router;
 };
 
-/** A `login.errors` key plus optional ICU values, e.g. `{ key: "passwordTooShort", values: { min: 8 } }`. */
 export type LoginError = { key: LoginErrorKey; values?: Record<string, number> };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -41,7 +40,6 @@ export const validateCredentials = (email: string, password: string, name: strin
     return null;
 };
 
-/** Maps next-auth error codes (thrown from `authorize` in lib/auth.ts) to `login.errors` keys. */
 export const getLoginErrorKey = (mode: AuthMode, code: string): LoginErrorKey => {
     switch (code) {
         case "CredentialsSignin":

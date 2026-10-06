@@ -13,7 +13,6 @@ export const SEARCH_DEBOUNCE_MS = 300;
 export const SEARCH_MIN_LENGTH = 2;
 const SEARCH_RESULTS_LIMIT = 20;
 
-/** Full-text search on the backend (title and content). `articles` is a public query. */
 export const searchArticles = async (query: string): Promise<{ items: ArticleSearchItem[]; total: number }> => {
     const result = await getBrowserClient().query<{ articles: PagedArticles<GraphqlArticleSummary> }>({
         query: ARTICLES_QUERY,

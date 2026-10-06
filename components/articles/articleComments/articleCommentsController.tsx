@@ -109,7 +109,6 @@ export const applyCommentEdit = (comments: CommentItem[], edited: EditedComment)
         replies: comment.replies ? applyCommentEdit(comment.replies, edited) : comment.replies,
     }));
 
-/** Removes the comment and its replies, like the backend's cascade. */
 export const removeComment = (comments: CommentItem[], commentId: string): CommentItem[] =>
     comments
         .filter((comment) => comment.id !== commentId)
@@ -119,7 +118,6 @@ export const removeComment = (comments: CommentItem[], commentId: string): Comme
         }));
 
 type CreateRateCommentHandlerParams = {
-    /** Identifies the signed-in user in the local vote store; null when signed out. */
     userKey: string | null;
     setVote: SetVote;
     clearVote: ClearVote;
@@ -218,7 +216,6 @@ type CreateEditCommentHandlerParams = {
     setError: Dispatch<SetStateAction<ErrorKey | null>>;
 };
 
-/** Saves an edited comment. Resolves to true when the edit form can close. */
 export const createEditCommentHandler = ({ setComments, setIsSaving, setError }: CreateEditCommentHandlerParams) =>
     async (commentId: string, content: string): Promise<boolean> => {
         const trimmedContent = content.trim();
@@ -247,13 +244,11 @@ export const createEditCommentHandler = ({ setComments, setIsSaving, setError }:
 
 type CreateDeleteCommentHandlerParams = {
     setComments: Dispatch<SetStateAction<CommentItem[]>>;
-    /** Called with how many comments disappeared (the comment plus its replies). */
     onDeleted: (removedCount: number) => void;
     setIsDeleting: Dispatch<SetStateAction<boolean>>;
     setError: Dispatch<SetStateAction<ErrorKey | null>>;
 };
 
-/** Deletes a comment. Resolves to true when the confirmation dialog can close. */
 export const createDeleteCommentHandler = ({
     setComments,
     onDeleted,

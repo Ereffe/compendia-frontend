@@ -34,21 +34,16 @@ const panelSection = "px-5 py-5";
 
 type ArticleCreateFormProps = Readonly<{
   initialScientific?: boolean;
-  /** Pre-fills the form and saves changes to this article instead of creating a new one. */
   article?: EditableArticle;
 }>;
 
 export default function ArticleCreateForm({ initialScientific = false, article }: ArticleCreateFormProps) {
   const t = useTranslations();
   const { resolvedTheme } = useTheme();
-  // resolvedTheme is undefined on the server: only set the editor's color mode after mount, so the
-  // server HTML and the first client render match (no hydration mismatch).
   const mounted = useMounted();
   const editorColorMode = mounted ? (resolvedTheme === "dark" ? "dark" : "light") : undefined;
-  // Below 768px a side-by-side preview leaves each pane ~140px wide; the toolbar still offers preview.
   const isMobile = useIsMobile();
   const isEditing = article !== undefined;
-  // The backend can't remove references, so an article that has one stays scientific.
   const hasReference = Boolean(article?.doi);
   const [scientific, setScientific] = useState(article ? hasReference : initialScientific);
   const [title, setTitle] = useState(article?.title ?? "");

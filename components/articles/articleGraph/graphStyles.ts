@@ -17,9 +17,6 @@ type Palette = {
     selected: string;
 };
 
-// One teal family (the app's accent): the further a paper is from the reference, the lighter it gets.
-// Everything else uses the page's neutral greys (globals.css tokens as hex, since the canvas can't read CSS
-// variables): labels sit on the sheet's card color and selection is marked in the text color.
 const palettes: Record<"light" | "dark", Palette> = {
     light: {
         root: "#115e59",
@@ -49,7 +46,6 @@ const palettes: Record<"light" | "dark", Palette> = {
     },
 };
 
-/** Legend swatches use the same colors as the canvas. */
 export const getPalette = (theme: string | undefined): Palette => palettes[theme === "dark" ? "dark" : "light"];
 
 export const buildStylesheet = (theme: string | undefined, fontFamily: string): cytoscape.StylesheetJson => {
@@ -113,7 +109,6 @@ export const buildStylesheet = (theme: string | undefined, fontFamily: string): 
                 "text-max-width": "220px",
             },
         },
-        // Labels appear on hover/selection only, so the graph stays readable.
         { selector: "node.labeled", style: label },
         {
             selector: "edge",
@@ -151,7 +146,6 @@ export const buildLayout = (name: GraphLayoutName, maxDepth: number): cytoscape.
     const common = { animate: true, animationDuration: 450, animationEasing: "ease-out-cubic", fit: true, padding: 36 } as const;
     switch (name) {
         case "concentric":
-            // Rings by citation distance: the reference in the middle, each further hop one ring out.
             return {
                 ...common,
                 name: "concentric",

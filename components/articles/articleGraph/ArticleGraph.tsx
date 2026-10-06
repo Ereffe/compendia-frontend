@@ -61,8 +61,6 @@ const GET_SCI_GRAPH = gql`
     }
 `;
 
-// The backend requires level >= 1 and resolves every hop against external DOI services, while its
-// rate limit is shared by all users. Keep the depth small.
 export const MIN_GRAPH_LEVEL = 1;
 export const MAX_GRAPH_LEVEL = 4;
 const LEVELS = Array.from({ length: MAX_GRAPH_LEVEL - MIN_GRAPH_LEVEL + 1 }, (_, i) => MIN_GRAPH_LEVEL + i);
@@ -95,8 +93,6 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
     const [fontFamily, setFontFamily] = useState("sans-serif");
     const cyRef = useRef<cytoscape.Core | null>(null);
 
-    // Canvas text can't use CSS variables, so read the resolved fonts once mounted. Node labels are paper
-    // titles, set in the serif like titles everywhere else on the page.
     useEffect(() => {
         const serif = getComputedStyle(document.body).getPropertyValue("--font-newsreader").trim();
         setFontFamily(serif ? `${serif}, ui-serif, Georgia, serif` : getComputedStyle(document.body).fontFamily || "serif");
@@ -165,7 +161,6 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
             cy.minZoom(0.25);
             cy.maxZoom(3);
 
-            // Hover: show the node's label and fade everything outside its direct citations.
             cy.on("mouseover", "node", (evt) => {
                 const node = evt.target as cytoscape.NodeSingular;
                 cy.batch(() => {
@@ -334,7 +329,6 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                     ) : null}
                 </div>
 
-                {/* Phones: legend as a strip under the canvas so it doesn't cover the graph. */}
                 {hasGraph ? (
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border/70 px-4 py-2.5 text-[11px] text-muted-foreground sm:hidden">
                         <LegendItem kind="root" label={t("legend.root")} palette={palette} />
@@ -389,7 +383,6 @@ function NodeDetails({
             setCopied(true);
             setTimeout(() => setCopied(false), 1500);
         } catch {
-            // Clipboard can be unavailable (e.g. insecure context); the DOI stays selectable.
         }
     };
 

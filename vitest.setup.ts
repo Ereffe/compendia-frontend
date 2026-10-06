@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom/vitest";
 
-// jsdom has no matchMedia; components such as useIsMobile need it. Defaults to "desktop" (no match).
 if (!globalThis.matchMedia) {
     globalThis.matchMedia = (query: string) =>
         ({

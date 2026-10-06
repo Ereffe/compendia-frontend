@@ -31,7 +31,6 @@ const commentDateFormat = { month: "short", day: "numeric", year: "numeric", hou
 type ArticleCommentsProps = Readonly<{
     articleId: string;
     initialComments: CommentItem[];
-    /** Total comments on the backend; can exceed initialComments.length when the list is truncated. */
     totalCount?: number;
 }>;
 
@@ -43,7 +42,6 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const isLoading = status === "loading";
     const canComment = status === "authenticated" && !session?.error;
     const userKey = canComment ? (session?.user?.id ?? session?.user?.email ?? null) : null;
-    // Only for showing edit/delete on your own comments; the backend checks ownership itself.
     const currentUserId = canComment ? (session?.user?.id ?? null) : null;
     const [comments, setComments] = useState<CommentItem[]>(() => buildCommentTree(initialComments));
     const [content, setContent] = useState("");
@@ -60,7 +58,6 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const [commentToDelete, setCommentToDelete] = useState<CommentItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState<ErrorKey | null>(null);
-    // Deleted comments still count in the server's totalCount until the page reloads.
     const [deletedCount, setDeletedCount] = useState(0);
 
     const { setVote, clearVote, getVote } = useVoteStore();
@@ -195,7 +192,6 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const handleConfirmDelete = async () => {
         if (!commentToDelete) return;
         if (await deleteComment(commentToDelete)) {
-            // Close the edit form if it belonged to the deleted comment or one of its replies.
             if (editingCommentId && findComment([commentToDelete], editingCommentId)) setEditingCommentId(null);
             setCommentToDelete(null);
         }
@@ -391,8 +387,6 @@ export default function ArticleComments({ articleId, initialComments, totalCount
             </div>
         );
     };
-
-
 
     return (
         <div>

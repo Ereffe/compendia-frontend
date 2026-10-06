@@ -14,7 +14,6 @@ import { ARTICLE_QUERY, articleDateFormat, COMMENTS_PAGE_SIZE, type GraphqlArtic
 import { mapGraphqlCommentToCommentItem } from "@/services/graphql/comments";
 import type { ArticleReference } from "@/types/articles";
 
-/** Text column inside the sheet, ~70 characters of the serif body. */
 const readingColumn = "mx-auto w-full max-w-[40rem]";
 const sectionClass = "border-t border-border px-5 py-10 sm:px-12 sm:py-14";
 const proseClass = [
@@ -38,7 +37,6 @@ async function fetchArticle(id: string, accessToken: string): Promise<GraphqlArt
     if (isNotFoundError(error)) {
       return null;
     }
-    // Network/server failures go to app/error.tsx instead of masquerading as a 404.
     throw error;
   }
 }
@@ -102,7 +100,6 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
               </div>
             </section>
             <section id="citation-graph" className={`${sectionClass} scroll-mt-6`}>
-              {/* The graph is a figure: its heading follows the text column, the canvas uses the full sheet. */}
               <ArticleGraphContainer references={references} headerClassName={readingColumn} />
             </section>
           </>

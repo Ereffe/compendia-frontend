@@ -10,7 +10,6 @@ import "./globals.css";
 
 const geistSans = Space_Grotesk({
   variable: "--font-geist-sans",
-  // latin-ext carries Polish letters (ą, ę, ł, ś, ż, ...).
   subsets: ["latin", "latin-ext"],
 });
 

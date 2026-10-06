@@ -5,13 +5,11 @@ import { createArticleAction, editArticleAction } from "@/app/actions/articles";
 import type { ArticleComplexity } from "@/types/articles";
 import type { ErrorKey } from "@/types/errors";
 
-/** The article being edited. Without it the form creates a new article. */
 export type EditableArticle = {
     id: string;
     title: string;
     content: string;
     complexity: ArticleComplexity;
-    /** DOI of the current reference, or "" for a regular article. */
     doi: string;
 };
 
@@ -27,10 +25,8 @@ type CreateHandleArticleSubmitParams = {
     setError: Dispatch<SetStateAction<ErrorKey | null>>;
 };
 
-// Crossref-style DOI: "10." + registrant code + "/" + suffix.
 const DOI_PATTERN = /^10\.\d{4,9}\/\S+$/;
 
-/** Accepts bare DOIs as well as https://doi.org/... links and returns the bare DOI. */
 export const normalizeDoi = (value: string): string =>
     value.trim().replace(/^(?:https?:\/\/)?(?:dx\.)?doi\.org\//i, "").replace(/^doi:\s*/i, "");
 
@@ -62,10 +58,7 @@ export const TITLE_MAX_LENGTH = 200;
 
 export const COMPLEXITY_OPTIONS: ArticleComplexity[] = ["SIMPLE", "INTERMEDIATE", "COMPLEX"];
 
-/**
- * References to send when editing: a new DOI, or null to keep the current ones. Re-sending an unchanged
- * DOI would make the backend look it up again, and a failed lookup there drops the reference.
- */
+// Re-sending an unchanged DOI makes the backend look it up again, and a failed lookup drops the reference.
 export const getEditedReferences = (scientific: boolean, doi: string, initialDoi: string): string[] | null => {
     if (!scientific) return null;
     const normalizedDoi = normalizeDoi(doi);
@@ -101,8 +94,6 @@ export const createHandleArticleSubmit =
             setError(null);
 
             try {
-                // On success the action redirects on the server and this call never yields a result.
-                // Calling router.push + router.refresh here instead raced and cancelled the navigation.
                 const result = editedArticle
                     ? await editArticleAction(editedArticle.id, {
                         title,

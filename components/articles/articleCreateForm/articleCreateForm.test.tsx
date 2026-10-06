@@ -19,7 +19,6 @@ vi.mock("@/app/actions/articles", () => ({
     editArticleAction: (...args: unknown[]) => editArticleAction(...args),
 }));
 
-// Render the editor synchronously instead of through next/dynamic.
 vi.mock("next/dynamic", () => ({
     default: () =>
         function MarkdownEditorMock({
@@ -50,7 +49,6 @@ afterEach(() => {
 describe("ArticleCreateForm", () => {
     it("renders the form and submits a new article", async () => {
         const user = userEvent.setup();
-        // On success the real action redirects on the server and the call never resolves.
         createArticleAction.mockReturnValue(new Promise(() => {}));
 
         renderWithIntl(<ArticleCreateForm />);
@@ -75,7 +73,6 @@ describe("ArticleCreateForm", () => {
             complexity: "INTERMEDIATE",
             references: [],
         });
-        // Stays in the submitting state until the server redirect navigates away.
         expect(screen.getByRole("button", { name: /Tworzenie/ })).toBeDisabled();
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });

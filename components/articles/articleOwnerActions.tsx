@@ -12,7 +12,6 @@ import type { ErrorKey } from "@/types/errors";
 
 const actionClass = "px-1.5 text-muted-foreground hover:text-foreground";
 
-/** Edit and delete controls under the byline. The page renders them only for the article's author. */
 export default function ArticleOwnerActions({ articleId }: Readonly<{ articleId: string }>) {
   const t = useTranslations("article");
   const tErrors = useTranslations("errors");
@@ -29,7 +28,6 @@ export default function ArticleOwnerActions({ articleId }: Readonly<{ articleId:
     setIsDeleting(true);
     setError(null);
     try {
-      // On success the action redirects to /articles on the server and this call doesn't return.
       const result = await deleteArticleAction(articleId);
       if (result && !result.ok) {
         setError(result.error);

@@ -3,8 +3,6 @@ import { persist } from "zustand/middleware";
 
 export type VoteType = "positive" | "negative";
 
-// userKey -> commentId -> vote. The backend exposes no "my vote" field, so this local record
-// is the only way to show which comments the current user already rated on this device.
 type VoteState = Record<string, Record<string, VoteType>>;
 
 interface VoteStore {
