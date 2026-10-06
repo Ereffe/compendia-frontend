@@ -33,6 +33,8 @@ const article = (id: string, title: string, author: string): ArticleSearchItem =
     title,
     author,
     datePosted: "2026-05-07T10:00:00.000Z",
+    complexity: null,
+    rating: null,
     content: "...",
 });
 

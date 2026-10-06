@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
+import ArticleRatingBadge from "@/components/articleRatingBadge";
 import {
   Pagination,
   PaginationContent,
@@ -42,6 +43,7 @@ function ArchiveArticleCard({ article }: Readonly<{ article: GraphqlArticleSumma
       <article className="h-full rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur transition-all hover:border-teal-700/30 hover:shadow-[0_18px_60px_-36px_rgba(15,23,42,0.8)]">
         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
           <span className="text-muted-foreground">{format.dateTime(new Date(article.datePosted), articleDateFormat)}</span>
+          <ArticleRatingBadge rating={article.rating ?? null} />
         </div>
         <h2 className="mt-4 line-clamp-2 text-lg font-semibold text-foreground">{article.title}</h2>
         {article.author?.name ? <p className="mt-3 text-sm text-muted-foreground">{t("authorBy", { name: article.author.name })}</p> : null}

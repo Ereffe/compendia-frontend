@@ -4,6 +4,7 @@ import Markdown from "react-markdown";
 
 import ArticleComments from "@/components/articles/articleComments/articleComments";
 import ArticleOwnerActions from "@/components/articles/articleOwnerActions";
+import ArticleRating from "@/components/articles/articleRating/articleRating";
 import ArticleReferences from "@/components/articles/articleReferences";
 import ArticleGraphContainer from "@/components/articles/articleGraph/ArticleGraphContainer";
 import { isKnownComplexity } from "@/lib/articleComplexity";
@@ -88,6 +89,9 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
           <div className={`${readingColumn} mt-10 border-t border-border pt-10`}>
             <div className={proseClass}>
               <Markdown>{article.content}</Markdown>
+            </div>
+            <div className="mt-12 border-t border-border pt-6">
+              <ArticleRating articleId={article.id} initialRating={article.rating} />
             </div>
           </div>
         </article>

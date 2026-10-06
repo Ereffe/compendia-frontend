@@ -16,11 +16,11 @@
   "header": {
     "allArticles": "All articles",
     "createArticle": "Create article",
-    "logout": "Log out",
-    "logoutAs": "Log out ({name})",
     "menu": "Menu",
     "openMenu": "Open menu",
-    "navigation": "Navigation"
+    "navigation": "Navigation",
+    "account": "Your account",
+    "accountOf": "Account: {name}"
   },
   "language": {
     "label": "Language",
@@ -86,9 +86,28 @@
     }
   },
   "articles": {
-    "title": "Latest articles",
-    "description": "Browse the newest posts, open full articles and get back to reading without losing context.",
-    "empty": "No articles to display."
+    "empty": "No articles to display.",
+    "titles": {
+      "newest": "Newest articles",
+      "top": "Top rated",
+      "mostRated": "Most rated"
+    },
+    "descriptions": {
+      "newest": "Browse the latest posts, open full articles and come back to reading without losing context.",
+      "top": "The articles readers rated best: most positive votes after subtracting negative ones.",
+      "mostRated": "The articles readers have the most to say about: the most votes cast."
+    },
+    "sortLabel": "Sort",
+    "sorts": {
+      "newest": "Newest",
+      "top": "Top",
+      "mostRated": "Most votes"
+    },
+    "levelLabel": "Level",
+    "allLevels": "All",
+    "emptyFiltered": "No articles at this level.",
+    "emptyRated": "No article matching these filters has been rated yet.",
+    "ratingSummary": "Ratings: {positive} positive, {negative} negative"
   },
   "archive": {
     "title": "All articles",
@@ -110,7 +129,12 @@
     "deleteDescription": "The article and its comments will be deleted permanently. This can't be undone.",
     "deleteConfirm": "Delete article",
     "deleting": "Deleting…",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "ratePrompt": "Was this article helpful?",
+    "thanksForRating": "Thanks for rating.",
+    "upvote": "Rate positively ({count})",
+    "downvote": "Rate negatively ({count})",
+    "alreadyRated": "Already rated"
   },
   "complexity": {
     "SIMPLE": "Simple",
@@ -285,7 +309,21 @@
     "editArticleFailed": "Couldn't save the article.",
     "deleteArticleFailed": "Couldn't delete the article.",
     "editCommentFailed": "Couldn't save the comment.",
-    "deleteCommentFailed": "Couldn't delete the comment."
+    "deleteCommentFailed": "Couldn't delete the comment.",
+    "rateArticleFailed": "Couldn't rate the article.",
+    "emptyName": "The name can't be empty.",
+    "nameTooLong": "The name can be at most 200 characters long.",
+    "sameName": "That's already your name.",
+    "invalidEmail": "Enter a valid e-mail address.",
+    "sameEmail": "That's already your e-mail address.",
+    "passwordTooShort": "The password must be at least 8 characters long.",
+    "passwordsDoNotMatch": "The passwords don't match.",
+    "changeNameFailed": "Couldn't change the name.",
+    "emailRequestFailed": "Couldn't send the link. Please try again shortly.",
+    "passwordRequestFailed": "Couldn't send the password link. Please try again shortly.",
+    "changeEmailFailed": "Couldn't change the e-mail address. The link may have expired or already been used.",
+    "changePasswordFailed": "Couldn't change the password. The link may have expired or already been used.",
+    "invalidActionLink": "This link isn't valid. Send a new one from your account page."
   },
   "references": {
     "title": "References",
@@ -294,5 +332,68 @@
     "copyDoi": "Copy DOI",
     "copied": "Copied",
     "showInGraph": "Show in graph"
+  },
+  "account": {
+    "title": "Your account",
+    "description": "The name, e-mail address and password you use on Compendia.",
+    "avatarHint": "Your avatar is generated from your account id, so it stays the same when you change your name or address.",
+    "roles": {
+      "USER": "Member",
+      "PROFESSOR": "Professor",
+      "ADMIN": "Administrator"
+    },
+    "name": {
+      "title": "Display name",
+      "description": "Shown next to your articles and comments.",
+      "label": "Name",
+      "submit": "Save name",
+      "submitting": "Saving…",
+      "saved": "Saved. Your new name is already visible."
+    },
+    "email": {
+      "title": "E-mail address",
+      "description": "You sign in with it. We'll send a link to the new address, and the change happens only after you open it.",
+      "current": "Current address",
+      "label": "New e-mail address",
+      "submit": "Send link",
+      "submitting": "Sending…",
+      "sent": "We sent a link to {email}. Open it within 15 minutes to confirm the change.",
+      "useAnother": "Use a different address"
+    },
+    "password": {
+      "title": "Password",
+      "description": "We'll e-mail you a link where you can set a new password.",
+      "submit": "Send password link",
+      "submitting": "Sending…",
+      "sent": "Check the inbox of {email}. The link is valid for 15 minutes."
+    },
+    "signOut": {
+      "title": "Signing out",
+      "description": "Ends your session on this device.",
+      "submit": "Sign out",
+      "submitting": "Signing out…"
+    }
+  },
+  "accountAction": {
+    "linkHint": "The link works once and is valid for 15 minutes after it was sent.",
+    "goToAccount": "Go to your account",
+    "goToSignIn": "Go to sign in",
+    "email": {
+      "title": "Confirm your new e-mail address",
+      "description": "Enter the address this link was sent to.",
+      "label": "New e-mail address",
+      "submit": "Change e-mail address",
+      "submitting": "Changing…",
+      "done": "Your e-mail address has been changed. Use it to sign in from now on."
+    },
+    "password": {
+      "title": "Set a new password",
+      "description": "The password must be at least 8 characters long.",
+      "label": "New password",
+      "confirmLabel": "Repeat the new password",
+      "submit": "Change password",
+      "submitting": "Changing…",
+      "done": "Your password has been changed. Sign in with the new password."
+    }
   }
 }

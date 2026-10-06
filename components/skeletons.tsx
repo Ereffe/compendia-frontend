@@ -55,6 +55,19 @@ export function ArticleCardSkeleton() {
     );
 }
 
+export function ArticleFiltersSkeleton() {
+    return (
+        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-4">
+            {["w-72", "w-80"].map((width) => (
+                <div key={width} className="space-y-2">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className={cn("h-10 max-w-full rounded-full", width)} />
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export function ArchiveCardSkeleton() {
     return (
         <div className={cn(card, "p-5")}>
@@ -200,13 +213,16 @@ export function CommentsSkeleton() {
             </div>
             <div className="mt-8 divide-y divide-border border-t border-border">
                 {Array.from({ length: 2 }, (_, i) => (
-                    <div key={i} className="py-5">
-                        <div className="flex items-baseline gap-2">
-                            <Skeleton className="h-3.5 w-28" />
-                            <Skeleton className="h-3 w-32" />
+                    <div key={i} className="flex gap-3 py-5">
+                        <Skeleton className="mt-0.5 size-8 shrink-0 rounded-full" />
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-baseline gap-2">
+                                <Skeleton className="h-3.5 w-28" />
+                                <Skeleton className="h-3 w-32" />
+                            </div>
+                            <TextLinesSkeleton lines={2} className="mt-3" />
+                            <Skeleton className="mt-3 h-5 w-40 rounded-md" />
                         </div>
-                        <TextLinesSkeleton lines={2} className="mt-3" />
-                        <Skeleton className="mt-3 h-5 w-40 rounded-md" />
                     </div>
                 ))}
             </div>
@@ -270,6 +286,43 @@ export function CreateFormSkeleton() {
                     <Skeleton className="h-10 w-full rounded-md" />
                     <Skeleton className="h-3 w-3/4" />
                 </div>
+            </div>
+        </div>
+    );
+}
+
+export function AccountSettingsSkeleton() {
+    return (
+        <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start lg:gap-8">
+            <div className="sheet">
+                <div className="flex items-center gap-4 px-5 py-6 lg:flex-col lg:items-start lg:gap-5">
+                    <Skeleton className="size-20 shrink-0 rounded-3xl lg:size-28" />
+                    <div className="w-full space-y-2.5">
+                        <Skeleton className="h-6 w-40" />
+                        <Skeleton className="h-3.5 w-48" />
+                        <Skeleton className="h-3.5 w-20" />
+                    </div>
+                </div>
+                <div className="border-t border-border px-5 py-4">
+                    <TextLinesSkeleton lines={2} />
+                </div>
+                <div className="border-t border-border px-5 py-5">
+                    <Skeleton className="h-9 w-full rounded-md" />
+                </div>
+            </div>
+            <div className="sheet divide-y divide-border">
+                {Array.from({ length: 3 }, (_, i) => (
+                    <div key={i} className="grid gap-4 px-5 py-6 sm:px-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-8">
+                        <div className="space-y-2.5">
+                            <Skeleton className="h-5 w-32" />
+                            <TextLinesSkeleton lines={2} />
+                        </div>
+                        <div className="flex flex-col gap-3 sm:flex-row md:pt-7">
+                            <Skeleton className="h-9 w-full rounded-md" />
+                            <Skeleton className="h-9 w-full rounded-md sm:w-28" />
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

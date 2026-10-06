@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-import type { ArticleReference, ArticleSearchItem } from "@/types/articles";
+import type { ArticleRating, ArticleReference, ArticleSearchItem } from "@/types/articles";
 import type { GraphqlCommentItem } from "@/services/graphql/comments";
 
 export type GraphqlArticleSummary = {
@@ -8,6 +8,8 @@ export type GraphqlArticleSummary = {
     title: string;
     content: string;
     datePosted: string;
+    complexity?: string | null;
+    rating?: ArticleRating | null;
     author?: { name: string } | null;
 };
 
@@ -25,6 +27,7 @@ export type GraphqlArticle = {
     content: string;
     datePosted: string;
     complexity: string;
+    rating: ArticleRating;
     author?: { id: string; name: string } | null;
     comments: { content: GraphqlCommentItem[]; totalElements: number };
     references?: Array<ArticleReference | null> | null;
@@ -35,13 +38,32 @@ export type GraphqlArticle = {
 export const COMMENTS_PAGE_SIZE = 100;
 
 export const ARTICLES_QUERY = gql`
-    query Articles($search: String, $page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
-        articles(search: $search, page: $page, size: $size, sortBy: $sortBy, ascending: $ascending) {
+    query Articles(
+        $search: String
+        $complexity: String
+        $page: Int!
+        $size: Int!
+        $sortBy: String
+        $ascending: Boolean
+    ) {
+        articles(
+            search: $search
+            complexity: $complexity
+            page: $page
+            size: $size
+            sortBy: $sortBy
+            ascending: $ascending
+        ) {
             content {
                 id
                 title
                 content
                 datePosted
+                complexity
+                rating {
+                    positive
+                    negative
+                }
                 author {
                     name
                 }
@@ -62,6 +84,10 @@ export const ARTICLE_QUERY = gql`
             content
             datePosted
             complexity
+            rating {
+                positive
+                negative
+            }
             comments(page: $commentsPage, size: $commentsSize, sortBy: "datePosted", ascending: false) {
                 content {
                     id
@@ -141,6 +167,12 @@ export const EDIT_ARTICLE_MUTATION = gql`
     }
 `;
 
+export const RATE_ARTICLE_MUTATION = gql`
+    mutation RateArticle($articleId: ID!, $positive: Boolean!) {
+        rateArticle(articleId: $articleId, positive: $positive)
+    }
+`;
+
 export const DELETE_ARTICLE_MUTATION = gql`
     mutation DeleteArticle($articleId: ID!) {
         deleteArticle(articleId: $articleId)
@@ -155,4 +187,6 @@ export const mapArticleToSearchItem = (article: GraphqlArticleSummary): ArticleS
     datePosted: article.datePosted,
     author: article.author?.name ?? null,
     content: article.content,
+    complexity: article.complexity ?? null,
+    rating: article.rating ?? null,
 });

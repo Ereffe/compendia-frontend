@@ -6,8 +6,13 @@ import { redirect, unstable_rethrow } from "next/navigation";
 import { isValidArticleId } from "@/lib/articleId";
 import { toErrorKey } from "@/lib/graphqlErrors";
 import { authedMutate, getAccessToken } from "@/lib/server/session";
-import { ADD_ARTICLE_MUTATION, DELETE_ARTICLE_MUTATION, EDIT_ARTICLE_MUTATION } from "@/services/graphql/articles";
-import type { ActionError, ArticleComplexity } from "@/types/articles";
+import {
+    ADD_ARTICLE_MUTATION,
+    DELETE_ARTICLE_MUTATION,
+    EDIT_ARTICLE_MUTATION,
+    RATE_ARTICLE_MUTATION,
+} from "@/services/graphql/articles";
+import type { ActionError, ActionResult, ArticleComplexity } from "@/types/articles";
 
 const COMPLEXITIES = new Set<string>(["SIMPLE", "INTERMEDIATE", "COMPLEX"]);
 
@@ -109,4 +114,19 @@ export async function deleteArticleAction(articleId: string): Promise<ActionErro
     revalidatePath(`/articles/${articleId}`);
     revalidateArticleLists();
     redirect("/articles");
+}
+
+export async function rateArticleAction(articleId: string, positive: boolean): Promise<ActionResult<null>> {
+    const accessToken = await getAccessToken();
+    if (!accessToken) return { ok: false, error: "notSignedIn" };
+    if (!isValidArticleId(articleId)) return { ok: false, error: "notFound" };
+
+    try {
+        await authedMutate<{ rateArticle: string }>(accessToken, RATE_ARTICLE_MUTATION, { articleId, positive });
+        return { ok: true, data: null };
+    } catch (error) {
+        unstable_rethrow(error);
+        console.error("rateArticleAction failed:", error);
+        return { ok: false, error: toErrorKey(error, "rateArticleFailed") };
+    }
 }

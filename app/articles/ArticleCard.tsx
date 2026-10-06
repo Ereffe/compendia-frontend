@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 
+import ArticleRatingBadge from "@/components/articleRatingBadge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { isKnownComplexity } from "@/lib/articleComplexity";
 import { articleDateFormat } from "@/services/graphql/articles";
 import type { ArticleSearchItem } from "@/types/articles";
 
@@ -11,6 +13,7 @@ const EXCERPT_LENGTH = 160;
 
 export default function ArticleCard({ article }: Readonly<{ article: ArticleSearchItem }>) {
     const t = useTranslations("common");
+    const tComplexity = useTranslations("complexity");
     const format = useFormatter();
     const excerpt =
         article.content.length > EXCERPT_LENGTH
@@ -25,7 +28,11 @@ export default function ArticleCard({ article }: Readonly<{ article: ArticleSear
                         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
                             <span className="text-muted-foreground">
                                 {format.dateTime(new Date(article.datePosted), articleDateFormat)}
+                                {article.complexity && isKnownComplexity(article.complexity)
+                                    ? ` · ${tComplexity(article.complexity)}`
+                                    : null}
                             </span>
+                            <ArticleRatingBadge rating={article.rating} />
                         </div>
                         <h2 className="mt-4 text-center text-xl font-semibold text-foreground">{article.title}</h2>
                         <p className="mt-4 text-sm font-medium text-foreground/90">

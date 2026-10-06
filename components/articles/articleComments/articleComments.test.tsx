@@ -12,9 +12,12 @@ const addComment = vi.fn();
 const rateComment = vi.fn();
 const editComment = vi.fn();
 const deleteComment = vi.fn();
-const setVote = vi.fn();
+let storedVotes: Record<string, Record<string, string>> = {};
+const setVote = vi.fn((userKey: string, id: string, vote: string) => {
+    storedVotes = { ...storedVotes, [userKey]: { ...storedVotes[userKey], [id]: vote } };
+});
 const clearVote = vi.fn();
-const getVote = vi.fn();
+const getVote = (userKey: string, id: string) => storedVotes[userKey]?.[id];
 
 type SessionState = { status: "authenticated" | "unauthenticated" | "loading"; data: { user: { id: string } } | null };
 const signedIn: SessionState = { status: "authenticated", data: { user: { id: "u-me" } } };
@@ -32,7 +35,8 @@ vi.mock("next-auth/react", () => ({
 }));
 
 vi.mock("@/hooks/stores/useVoteStore", () => ({
-    useVoteStore: () => ({
+    useVoteStore: (selector: (state: unknown) => unknown) => selector({
+        votes: storedVotes,
         setVote,
         clearVote,
         getVote,
@@ -43,6 +47,7 @@ afterEach(() => {
     cleanup();
     vi.clearAllMocks();
     sessionState = signedIn;
+    storedVotes = {};
 });
 
 describe("ArticleComments", () => {
@@ -100,6 +105,25 @@ describe("ArticleComments", () => {
         expect(screen.getByText("Nowa odpowiedź")).toBeInTheDocument();
     });
 
+    it("shows each author's generated avatar, the same for the same user id", () => {
+        const { container } = renderWithIntl(
+            <ArticleComments
+                articleId="a1"
+                initialComments={[
+                    initialComments[0],
+                    { ...initialComments[0], id: "c9", content: "Drugi komentarz Ali" },
+                    { ...initialComments[1], parentCommentId: null },
+                ]}
+            />,
+        );
+
+        const avatars = [...container.querySelectorAll("article > img")].map((img) => img.getAttribute("src"));
+        expect(avatars).toHaveLength(3);
+        expect(avatars[0]).toMatch(/^data:image\/svg\+xml/);
+        expect(avatars[0]).toBe(avatars[1]);
+        expect(avatars[0]).not.toBe(avatars[2]);
+    });
+
     it("disables commenting when there is no active session", async () => {
         sessionState = { status: "unauthenticated", data: null };
 
@@ -129,6 +153,20 @@ describe("ArticleComments", () => {
             expect(clearVote).toHaveBeenCalledWith("u-me", "c1");
         });
         expect(screen.getByText("Nie udało się ocenić komentarza.")).toBeInTheDocument();
+    });
+
+    it("sends only one vote when the user clicks again before the page updates", async () => {
+        const user = userEvent.setup();
+        rateComment.mockResolvedValue({ ok: true, data: null });
+
+        renderWithIntl(<ArticleComments articleId="a1" initialComments={initialComments} />);
+
+        const upvote = screen.getByRole("button", { name: "Głos pozytywny (2)" });
+        await user.click(upvote);
+        await user.click(screen.getByRole("button", { name: /Głos negatywny/ }));
+
+        expect(rateComment).toHaveBeenCalledTimes(1);
+        expect(rateComment).toHaveBeenCalledWith("c1", true);
     });
 
     describe("own comments", () => {

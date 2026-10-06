@@ -1,9 +1,9 @@
 "use client";
 
-import { LogOut, Menu, User } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import LanguageSwitcher from "./languageSwitcher";
 import LoginModal from "./login-modal";
 import ThemeToggle from "./themeToggle";
+import UserAvatar from "./userAvatar";
 
 const pillLink =
   "rounded-full border border-border/60 bg-background/80 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-foreground transition-colors duration-200 hover:bg-accent";
@@ -25,20 +26,14 @@ const navLinks = [
 export default function Header() {
   const t = useTranslations("header");
   const tCommon = useTranslations("common");
-  const router = useRouter();
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const hasAccess = status === "authenticated" && !session?.error;
   const showLogin = !hasAccess && status !== "loading";
   const userName = session?.user?.name;
-
-  const handleLogout = async () => {
-    setMenuOpen(false);
-    await signOut({ redirect: false });
-    router.replace("/");
-    router.refresh();
-  };
+  const avatarSeed = session?.user?.id ?? session?.user?.email ?? "";
+  const accountLabel = userName ? t("accountOf", { name: userName }) : t("account");
 
   if (pathname === "/") {
     return null;
@@ -71,15 +66,15 @@ export default function Header() {
         <div className="hidden items-center gap-3 md:flex">
           <LanguageSwitcher />
           {hasAccess ? (
-            <button
-              type="button"
-              onClick={() => void handleLogout()}
-              className="rounded-full border border-border/60 bg-background/80 p-2 text-foreground transition-colors duration-200 hover:bg-accent"
-              aria-label={t("logout")}
-              title={userName ? t("logoutAs", { name: userName }) : t("logout")}
+            <Link
+              href="/profile"
+              aria-label={accountLabel}
+              title={accountLabel}
+              aria-current={pathname === "/profile" ? "page" : undefined}
+              className="rounded-full p-0.5 ring-1 ring-border/60 transition-shadow duration-200 hover:ring-foreground/40 aria-[current=page]:ring-2 aria-[current=page]:ring-foreground/60"
             >
-              <User className="size-5" />
-            </button>
+              <UserAvatar userId={avatarSeed} size={32} />
+            </Link>
           ) : null}
           {showLogin ? <LoginModal /> : null}
           {status === "loading" ? <Skeleton className="size-9 rounded-full" aria-hidden /> : null}
@@ -122,14 +117,18 @@ export default function Header() {
 
             <div className="mt-auto border-t border-border p-4">
               {hasAccess ? (
-                <button
-                  type="button"
-                  onClick={() => void handleLogout()}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+                <Link
+                  href="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  aria-current={pathname === "/profile" ? "page" : undefined}
+                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-foreground transition-colors hover:bg-accent aria-[current=page]:bg-accent"
                 >
-                  <LogOut className="size-4" />
-                  {t("logout")}
-                </button>
+                  <UserAvatar userId={avatarSeed} size={36} />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold">{userName ?? t("account")}</span>
+                    {userName ? <span className="block text-xs text-muted-foreground">{t("account")}</span> : null}
+                  </span>
+                </Link>
               ) : null}
               {showLogin ? <LoginModal /> : null}
               {status === "loading" ? <Skeleton className="h-11 w-full rounded-xl" aria-hidden /> : null}

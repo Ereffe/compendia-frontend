@@ -13,6 +13,7 @@ import ConfirmDeleteDialog from "@/components/confirmDeleteDialog";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/articles/articleReferences";
 import { Textarea } from "@/components/ui/textarea";
+import UserAvatar from "@/components/userAvatar";
 import { cn } from "@/lib/utils";
 import {
     buildCommentTree,
@@ -60,7 +61,10 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const [deleteError, setDeleteError] = useState<ErrorKey | null>(null);
     const [deletedCount, setDeletedCount] = useState(0);
 
-    const { setVote, clearVote, getVote } = useVoteStore();
+    const getVote = useVoteStore((state) => state.getVote);
+    const setVote = useVoteStore((state) => state.setVote);
+    const clearVote = useVoteStore((state) => state.clearVote);
+    const userVotes = useVoteStore((state) => (userKey ? state.votes[userKey] : undefined));
 
     useEffect(() => {
         setIsHydrated(true);
@@ -89,12 +93,13 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         () =>
             createRateCommentHandler({
                 userKey,
+                getVote,
                 setVote,
                 clearVote,
                 setComments,
                 setError,
             }),
-        [userKey, setVote, clearVote]
+        [userKey, getVote, setVote, clearVote]
     );
 
     const submitComment = useMemo(
@@ -294,7 +299,7 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         depth = 0
     ): ReactNode => {
         const userVote = isHydrated && userKey
-            ? getVote(userKey, comment.id)
+            ? userVotes?.[comment.id]
             : undefined;
 
         const isPositiveVote = userVote === "positive";
@@ -316,65 +321,68 @@ export default function ArticleComments({ articleId, initialComments, totalCount
 
         return (
             <div key={comment.id} className="w-full">
-                <article className={cn("w-full", depth === 0 ? "py-5" : "py-3")}>
-                    <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
-                        <span className="font-medium text-foreground">{comment.user.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                            {format.dateTime(new Date(comment.datePosted), commentDateFormat)}
-                            {comment.editedAt ? ` · ${t("edited")}` : ""}
-                        </span>
-                    </p>
-
-                    {isEditing ? renderEditForm(comment) : (
-                        <p className="mt-1.5 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-foreground/90 wrap-anywhere">
-                            {comment.content}
+                <article className={cn("flex w-full gap-3", depth === 0 ? "py-5" : "py-3")}>
+                    <UserAvatar userId={comment.user.id} size={depth === 0 ? 32 : 24} className="mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                        <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
+                            <span className="font-medium text-foreground">{comment.user.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                                {format.dateTime(new Date(comment.datePosted), commentDateFormat)}
+                                {comment.editedAt ? ` · ${t("edited")}` : ""}
+                            </span>
                         </p>
-                    )}
 
-                    <div className={cn("-ml-1.5 mt-2 flex flex-wrap items-center gap-x-1 gap-y-1", isEditing && "hidden")}>
-                        {renderVoteButtons(comment, hasVoted, isPositiveVote, isNegativeVote)}
-                        <Button
-                            variant="ghost"
-                            size="xs"
-                            className="ml-2 px-1.5 text-muted-foreground hover:text-foreground"
-                            onClick={() => toggleReplyForm(comment.id)}
-                            disabled={!canComment}
-                        >
-                            {isReplyFormVisible ? t("cancel") : t("reply")}
-                        </Button>
-                        {hasReplies ? (
+                        {isEditing ? renderEditForm(comment) : (
+                            <p className="mt-1.5 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-foreground/90 wrap-anywhere">
+                                {comment.content}
+                            </p>
+                        )}
+
+                        <div className={cn("-ml-1.5 mt-2 flex flex-wrap items-center gap-x-1 gap-y-1", isEditing && "hidden")}>
+                            {renderVoteButtons(comment, hasVoted, isPositiveVote, isNegativeVote)}
                             <Button
                                 variant="ghost"
                                 size="xs"
-                                className="px-1.5 text-muted-foreground hover:text-foreground"
-                                onClick={() => toggleReplies(comment.id)}
-                                aria-expanded={isRepliesExpanded}
+                                className="ml-2 px-1.5 text-muted-foreground hover:text-foreground"
+                                onClick={() => toggleReplyForm(comment.id)}
+                                disabled={!canComment}
                             >
-                                {getRepliesToggleLabel(repliesCount, isRepliesExpanded)}
+                                {isReplyFormVisible ? t("cancel") : t("reply")}
                             </Button>
-                        ) : null}
-                        {isOwnComment ? (
-                            <>
-                                <Button variant="ghost" size="xs" className={ownerActionClass} onClick={() => startEditing(comment)}>
-                                    <Pencil aria-hidden />
-                                    {t("edit")}
-                                </Button>
+                            {hasReplies ? (
                                 <Button
                                     variant="ghost"
                                     size="xs"
-                                    className="px-1.5 text-muted-foreground hover:text-destructive"
-                                    onClick={() => setCommentToDelete(comment)}
+                                    className="px-1.5 text-muted-foreground hover:text-foreground"
+                                    onClick={() => toggleReplies(comment.id)}
+                                    aria-expanded={isRepliesExpanded}
                                 >
-                                    <Trash2 aria-hidden />
-                                    {t("delete")}
+                                    {getRepliesToggleLabel(repliesCount, isRepliesExpanded)}
                                 </Button>
-                            </>
-                        ) : null}
-                    </div>
+                            ) : null}
+                            {isOwnComment ? (
+                                <>
+                                    <Button variant="ghost" size="xs" className={ownerActionClass} onClick={() => startEditing(comment)}>
+                                        <Pencil aria-hidden />
+                                        {t("edit")}
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="xs"
+                                        className="px-1.5 text-muted-foreground hover:text-destructive"
+                                        onClick={() => setCommentToDelete(comment)}
+                                    >
+                                        <Trash2 aria-hidden />
+                                        {t("delete")}
+                                    </Button>
+                                </>
+                            ) : null}
+                        </div>
 
-                    {isReplyFormVisible
-                        ? renderReplyForm(comment.id)
-                        : null}
+                        {isReplyFormVisible
+                            ? renderReplyForm(comment.id)
+                            : null}
+                    </div>
                 </article>
 
                 {hasReplies && isRepliesExpanded ? (

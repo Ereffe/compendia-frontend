@@ -10,6 +10,7 @@ import type { VoteType } from "@/hooks/stores/useVoteStore";
 import type { CommentItem, EditedComment } from "@/types/comments";
 import type { ErrorKey } from "@/types/errors";
 
+type GetVote = (userKey: string, commentId: string) => VoteType | undefined;
 type SetVote = (userKey: string, commentId: string, voteType: VoteType) => void;
 type ClearVote = (userKey: string, commentId: string) => void;
 
@@ -119,6 +120,7 @@ export const removeComment = (comments: CommentItem[], commentId: string): Comme
 
 type CreateRateCommentHandlerParams = {
     userKey: string | null;
+    getVote: GetVote;
     setVote: SetVote;
     clearVote: ClearVote;
     setComments: Dispatch<SetStateAction<CommentItem[]>>;
@@ -127,6 +129,7 @@ type CreateRateCommentHandlerParams = {
 
 export const createRateCommentHandler = ({
     userKey,
+    getVote,
     setVote,
     clearVote,
     setComments,
@@ -136,6 +139,7 @@ export const createRateCommentHandler = ({
         setError("voteRequiresLogin");
         return;
     }
+    if (getVote(userKey, commentId)) return;
 
     const voteType: VoteType = positive ? "positive" : "negative";
     setVote(userKey, commentId, voteType);

@@ -3,6 +3,8 @@ import { persist } from "zustand/middleware";
 
 export type VoteType = "positive" | "negative";
 
+export const articleVoteId = (articleId: string) => `article:${articleId}`;
+
 type VoteState = Record<string, Record<string, VoteType>>;
 
 interface VoteStore {
@@ -50,3 +52,9 @@ export const useVoteStore = create<VoteStore>()(
         }
     )
 );
+
+if (typeof window !== "undefined") {
+    window.addEventListener("storage", (event) => {
+        if (event.key === useVoteStore.persist.getOptions().name) void useVoteStore.persist.rehydrate();
+    });
+}

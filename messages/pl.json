@@ -16,11 +16,11 @@
   "header": {
     "allArticles": "Wszystkie artykuły",
     "createArticle": "Stwórz artykuł",
-    "logout": "Wyloguj",
-    "logoutAs": "Wyloguj ({name})",
     "menu": "Menu",
     "openMenu": "Otwórz menu",
-    "navigation": "Nawigacja"
+    "navigation": "Nawigacja",
+    "account": "Twoje konto",
+    "accountOf": "Konto: {name}"
   },
   "language": {
     "label": "Język",
@@ -86,9 +86,28 @@
     }
   },
   "articles": {
-    "title": "Najnowsze artykuły",
-    "description": "Przeglądaj najnowsze wpisy, otwieraj pełne artykuły i wracaj do czytania bez utraty kontekstu.",
-    "empty": "Brak artykułów do wyświetlenia."
+    "empty": "Brak artykułów do wyświetlenia.",
+    "titles": {
+      "newest": "Najnowsze artykuły",
+      "top": "Najlepiej oceniane",
+      "mostRated": "Najczęściej oceniane"
+    },
+    "descriptions": {
+      "newest": "Przeglądaj najnowsze wpisy, otwieraj pełne artykuły i wracaj do czytania bez utraty kontekstu.",
+      "top": "Artykuły, które czytelnicy ocenili najlepiej: najwięcej głosów pozytywnych po odjęciu negatywnych.",
+      "mostRated": "Artykuły, o których czytelnicy mają najwięcej do powiedzenia: najwięcej oddanych głosów."
+    },
+    "sortLabel": "Sortuj",
+    "sorts": {
+      "newest": "Najnowsze",
+      "top": "Najlepsze",
+      "mostRated": "Najwięcej ocen"
+    },
+    "levelLabel": "Poziom",
+    "allLevels": "Wszystkie",
+    "emptyFiltered": "Brak artykułów na tym poziomie.",
+    "emptyRated": "Żaden artykuł spełniający te kryteria nie ma jeszcze ocen.",
+    "ratingSummary": "Oceny: {positive} pozytywnych, {negative} negatywnych"
   },
   "archive": {
     "title": "Wszystkie artykuły",
@@ -110,7 +129,12 @@
     "deleteDescription": "Artykuł zostanie trwale usunięty razem z komentarzami. Tej operacji nie można cofnąć.",
     "deleteConfirm": "Usuń artykuł",
     "deleting": "Usuwanie…",
-    "cancel": "Anuluj"
+    "cancel": "Anuluj",
+    "ratePrompt": "Czy ten artykuł był pomocny?",
+    "thanksForRating": "Dziękujemy za ocenę.",
+    "upvote": "Oceń pozytywnie ({count})",
+    "downvote": "Oceń negatywnie ({count})",
+    "alreadyRated": "Już oceniono"
   },
   "complexity": {
     "SIMPLE": "Proste",
@@ -285,7 +309,21 @@
     "editArticleFailed": "Nie udało się zapisać zmian w artykule.",
     "deleteArticleFailed": "Nie udało się usunąć artykułu.",
     "editCommentFailed": "Nie udało się zapisać komentarza.",
-    "deleteCommentFailed": "Nie udało się usunąć komentarza."
+    "deleteCommentFailed": "Nie udało się usunąć komentarza.",
+    "rateArticleFailed": "Nie udało się ocenić artykułu.",
+    "emptyName": "Nazwa nie może być pusta.",
+    "nameTooLong": "Nazwa może mieć najwyżej 200 znaków.",
+    "sameName": "To już jest Twoja nazwa.",
+    "invalidEmail": "Podaj poprawny adres e-mail.",
+    "sameEmail": "To już jest Twój adres e-mail.",
+    "passwordTooShort": "Hasło musi mieć co najmniej 8 znaków.",
+    "passwordsDoNotMatch": "Hasła się różnią.",
+    "changeNameFailed": "Nie udało się zmienić nazwy.",
+    "emailRequestFailed": "Nie udało się wysłać linku. Spróbuj ponownie za chwilę.",
+    "passwordRequestFailed": "Nie udało się wysłać linku do zmiany hasła. Spróbuj ponownie za chwilę.",
+    "changeEmailFailed": "Nie udało się zmienić adresu e-mail. Link mógł wygasnąć albo został już użyty.",
+    "changePasswordFailed": "Nie udało się zmienić hasła. Link mógł wygasnąć albo został już użyty.",
+    "invalidActionLink": "Ten link jest nieprawidłowy. Wyślij nowy ze strony konta."
   },
   "references": {
     "title": "Źródła",
@@ -294,5 +332,68 @@
     "copyDoi": "Kopiuj DOI",
     "copied": "Skopiowano",
     "showInGraph": "Pokaż w grafie"
+  },
+  "account": {
+    "title": "Twoje konto",
+    "description": "Nazwa, adres e-mail i hasło, których używasz w Compendii.",
+    "avatarHint": "Awatar powstaje z identyfikatora konta, więc zostaje ten sam po zmianie nazwy czy adresu.",
+    "roles": {
+      "USER": "Użytkownik",
+      "PROFESSOR": "Profesor",
+      "ADMIN": "Administrator"
+    },
+    "name": {
+      "title": "Nazwa wyświetlana",
+      "description": "Widać ją przy Twoich artykułach i komentarzach.",
+      "label": "Nazwa",
+      "submit": "Zapisz nazwę",
+      "submitting": "Zapisywanie…",
+      "saved": "Zapisano. Nowa nazwa jest już widoczna."
+    },
+    "email": {
+      "title": "Adres e-mail",
+      "description": "Służy do logowania. Na nowy adres wyślemy link, a zmiana nastąpi dopiero po jego otwarciu.",
+      "current": "Obecny adres",
+      "label": "Nowy adres e-mail",
+      "submit": "Wyślij link",
+      "submitting": "Wysyłanie…",
+      "sent": "Wysłaliśmy link na {email}. Otwórz go w ciągu 15 minut, żeby potwierdzić zmianę.",
+      "useAnother": "Użyj innego adresu"
+    },
+    "password": {
+      "title": "Hasło",
+      "description": "Wyślemy Ci e-mailem link, pod którym ustawisz nowe hasło.",
+      "submit": "Wyślij link do zmiany hasła",
+      "submitting": "Wysyłanie…",
+      "sent": "Sprawdź skrzynkę {email}. Link jest ważny przez 15 minut."
+    },
+    "signOut": {
+      "title": "Wylogowanie",
+      "description": "Kończy sesję na tym urządzeniu.",
+      "submit": "Wyloguj się",
+      "submitting": "Wylogowywanie…"
+    }
+  },
+  "accountAction": {
+    "linkHint": "Link jest jednorazowy i ważny przez 15 minut od wysłania.",
+    "goToAccount": "Przejdź do konta",
+    "goToSignIn": "Przejdź do logowania",
+    "email": {
+      "title": "Potwierdź nowy adres e-mail",
+      "description": "Wpisz adres, na który przyszedł ten link.",
+      "label": "Nowy adres e-mail",
+      "submit": "Zmień adres e-mail",
+      "submitting": "Zmienianie…",
+      "done": "Adres e-mail został zmieniony. Od teraz logujesz się nim."
+    },
+    "password": {
+      "title": "Ustaw nowe hasło",
+      "description": "Hasło musi mieć co najmniej 8 znaków.",
+      "label": "Nowe hasło",
+      "confirmLabel": "Powtórz nowe hasło",
+      "submit": "Zmień hasło",
+      "submitting": "Zmienianie…",
+      "done": "Hasło zostało zmienione. Zaloguj się nowym hasłem."
+    }
   }
 }

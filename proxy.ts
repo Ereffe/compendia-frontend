@@ -10,5 +10,5 @@ export default withAuth({
 });
 
 export const config = {
-	matcher: ["/((?!$|login(?:/|$)|session-expired(?:/|$)|api/auth|_next/static|_next/image|favicon.ico).*)"],
+	matcher: ["/((?!$|login(?:/|$)|session-expired(?:/|$)|email-reset/|password-reset/|api/auth|_next/static|_next/image|favicon.ico).*)"],
 };

@@ -1,4 +1,5 @@
 import type { NextAuthOptions } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import { serverBackendUrl } from "@/lib/config";
@@ -80,6 +81,31 @@ const fetchCurrentUser = async (accessToken: string): Promise<CurrentUser | null
   }
 };
 
+const withFreshAccessToken = async (token: JWT): Promise<JWT> => {
+  const expiresAt = token.accessTokenExpires;
+
+  if (token.accessToken && expiresAt && Date.now() < expiresAt - refreshTokenGraceMs) {
+    return token;
+  }
+
+  if (!token.refreshToken) {
+    token.error = "RefreshAccessTokenError";
+    return token;
+  }
+
+  try {
+    const refreshedToken = await refreshAccessToken(token.refreshToken);
+    token.accessToken = refreshedToken.accessToken;
+    token.refreshToken = refreshedToken.refreshToken;
+    token.accessTokenExpires = refreshedToken.accessTokenExpires;
+    token.error = undefined;
+  } catch {
+    token.error = "RefreshAccessTokenError";
+  }
+
+  return token;
+};
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
@@ -145,7 +171,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
@@ -153,28 +179,17 @@ export const authOptions: NextAuthOptions = {
         token.error = undefined;
       }
 
-      const expiresAt = token.accessTokenExpires;
+      const freshToken = await withFreshAccessToken(token);
 
-      if (token.accessToken && expiresAt && Date.now() < expiresAt - refreshTokenGraceMs) {
-        return token;
+      if (trigger === "update" && freshToken.accessToken && !freshToken.error) {
+        const currentUser = await fetchCurrentUser(freshToken.accessToken);
+        if (currentUser) {
+          freshToken.name = currentUser.name;
+          freshToken.email = currentUser.email;
+        }
       }
 
-      if (!token.refreshToken) {
-        token.error = "RefreshAccessTokenError";
-        return token;
-      }
-
-      try {
-        const refreshedToken = await refreshAccessToken(token.refreshToken);
-        token.accessToken = refreshedToken.accessToken;
-        token.refreshToken = refreshedToken.refreshToken;
-        token.accessTokenExpires = refreshedToken.accessTokenExpires;
-        token.error = undefined;
-      } catch {
-        token.error = "RefreshAccessTokenError";
-      }
-
-      return token;
+      return freshToken;
     },
 
     async session({ session, token }) {
