@@ -4,6 +4,7 @@ import { type ReactNode, type SyntheticEvent, useCallback, useEffect, useMemo, u
 import { useSession } from "next-auth/react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Pencil, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useVoteStore } from "@/hooks/stores/useVoteStore";
 import type { CommentItem } from "@/types/comments";
@@ -38,6 +39,7 @@ type ArticleCommentsProps = Readonly<{
 export default function ArticleComments({ articleId, initialComments, totalCount }: ArticleCommentsProps) {
     const t = useTranslations("comments");
     const tErrors = useTranslations("errors");
+    const tToasts = useTranslations("toasts");
     const format = useFormatter();
     const { data: session, status } = useSession();
     const isLoading = status === "loading";
@@ -98,8 +100,9 @@ export default function ArticleComments({ articleId, initialComments, totalCount
                 clearVote,
                 setComments,
                 setError,
+                onRated: () => toast.success(tToasts("voteSaved")),
             }),
-        [userKey, getVote, setVote, clearVote]
+        [userKey, getVote, setVote, clearVote, tToasts]
     );
 
     const submitComment = useMemo(
@@ -123,6 +126,7 @@ export default function ArticleComments({ articleId, initialComments, totalCount
 
         if (didSubmit) {
             setContent("");
+            toast.success(tToasts("commentAdded"));
         }
     };
 
@@ -155,6 +159,7 @@ export default function ArticleComments({ articleId, initialComments, totalCount
                 [parentCommentId]: true,
             }));
             setActiveReplyCommentId(null);
+            toast.success(tToasts("replyAdded"));
         }
     };
 
@@ -184,6 +189,7 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         if (isSavingEdit) return;
         if (await saveEdit(commentId, editDraft)) {
             setEditingCommentId(null);
+            toast.success(tToasts("commentSaved"));
         }
     };
 
@@ -199,6 +205,7 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         if (await deleteComment(commentToDelete)) {
             if (editingCommentId && findComment([commentToDelete], editingCommentId)) setEditingCommentId(null);
             setCommentToDelete(null);
+            toast.success(tToasts("commentDeleted"));
         }
     };
 

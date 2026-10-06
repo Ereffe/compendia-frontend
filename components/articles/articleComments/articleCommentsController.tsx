@@ -125,6 +125,7 @@ type CreateRateCommentHandlerParams = {
     clearVote: ClearVote;
     setComments: Dispatch<SetStateAction<CommentItem[]>>;
     setError: Dispatch<SetStateAction<ErrorKey | null>>;
+    onRated?: () => void;
 };
 
 export const createRateCommentHandler = ({
@@ -134,6 +135,7 @@ export const createRateCommentHandler = ({
     clearVote,
     setComments,
     setError,
+    onRated,
 }: CreateRateCommentHandlerParams) => (commentId: string, positive: boolean) => {
     if (!userKey) {
         setError("voteRequiresLogin");
@@ -152,7 +154,9 @@ export const createRateCommentHandler = ({
             clearVote(userKey, commentId);
             setComments((currentComments) => updateCommentRating(currentComments, commentId, voteType, -1));
             setError(result.error);
+            return;
         }
+        onRated?.();
     })();
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { Menu, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -17,6 +17,9 @@ import UserAvatar from "./userAvatar";
 
 const pillLink =
   "rounded-full border border-border/60 bg-background/80 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-foreground transition-colors duration-200 hover:bg-accent";
+
+const primaryPillLink =
+  "inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold uppercase tracking-widest text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 const navLinks = [
   { href: "/all-articles/1", key: "allArticles" },
@@ -58,7 +61,12 @@ export default function Header() {
         </div>
 
         <div className="hidden md:block">
-          <Link href={navLinks[1].href} className={pillLink}>
+          <Link
+            href={navLinks[1].href}
+            aria-current={pathname === navLinks[1].href ? "page" : undefined}
+            className={primaryPillLink}
+          >
+            <Plus className="size-3.5" aria-hidden />
             {t(navLinks[1].key)}
           </Link>
         </div>

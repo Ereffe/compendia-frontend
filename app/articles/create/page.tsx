@@ -3,11 +3,12 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import ArticleCreateForm from "@/components/articles/articleCreateForm/articleCreateForm";
-import { requireAccessToken } from "@/lib/server/session";
+import { getCurrentUserId, requireAccessToken } from "@/lib/server/session";
 
 export default async function CreateArticlePage() {
   await requireAccessToken();
   const t = await getTranslations();
+  const userId = await getCurrentUserId();
 
   return (
     <section className="container-page flex flex-col gap-8 py-8 sm:py-12">
@@ -23,7 +24,7 @@ export default async function CreateArticlePage() {
         <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">{t("create.description")}</p>
       </div>
 
-      <ArticleCreateForm />
+      <ArticleCreateForm draftOwnerId={userId} />
     </section>
   );
 }

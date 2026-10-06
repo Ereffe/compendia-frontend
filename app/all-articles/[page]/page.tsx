@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
-import ArticleRatingBadge from "@/components/articleRatingBadge";
+import ArticleCard from "@/components/articleCard";
 import {
   Pagination,
   PaginationContent,
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/pagination";
 import { parsePageParam } from "@/lib/pagination";
 import { authedQuery, requireAccessToken } from "@/lib/server/session";
-import { ARTICLES_QUERY, articleDateFormat, type GraphqlArticleSummary } from "@/services/graphql/articles";
+import { ARTICLES_QUERY, commentCountVariables, mapArticleToSearchItem } from "@/services/graphql/articles";
 
 const ARTICLES_PER_PAGE = 12;
 
@@ -25,26 +24,9 @@ async function fetchArticles(page: number, accessToken: string) {
     size: ARTICLES_PER_PAGE,
     sortBy: "datePosted",
     ascending: false,
+    ...commentCountVariables(true),
   });
   return data.articles;
-}
-
-function ArchiveArticleCard({ article }: Readonly<{ article: GraphqlArticleSummary }>) {
-  const t = useTranslations("common");
-  const format = useFormatter();
-
-  return (
-    <Link href={`/articles/${article.id}`} className="block">
-      <article className="h-full rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur transition-all hover:border-teal-700/30 hover:shadow-[0_18px_60px_-36px_rgba(15,23,42,0.8)]">
-        <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
-          <span className="text-muted-foreground">{format.dateTime(new Date(article.datePosted), articleDateFormat)}</span>
-          <ArticleRatingBadge rating={article.rating} />
-        </div>
-        <h2 className="mt-4 line-clamp-2 text-lg font-semibold text-foreground">{article.title}</h2>
-        {article.author?.name ? <p className="mt-3 text-sm text-muted-foreground">{t("authorBy", { name: article.author.name })}</p> : null}
-      </article>
-    </Link>
-  );
 }
 
 function PaginationControls({
@@ -192,7 +174,7 @@ export default async function AllArticlesPage({
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {data.content.map((article) => (
-                <ArchiveArticleCard key={article.id} article={article} />
+                <ArticleCard key={article.id} article={mapArticleToSearchItem(article)} />
               ))}
             </div>
 

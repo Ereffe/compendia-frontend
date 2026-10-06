@@ -18,6 +18,7 @@ type CreateRateArticleHandlerParams = {
     clearVote: (userKey: string, itemId: string) => void;
     setRating: Dispatch<SetStateAction<ArticleRating>>;
     setError: Dispatch<SetStateAction<ErrorKey | null>>;
+    onRated?: () => void;
 };
 
 export const createRateArticleHandler = ({
@@ -28,6 +29,7 @@ export const createRateArticleHandler = ({
     clearVote,
     setRating,
     setError,
+    onRated,
 }: CreateRateArticleHandlerParams) => async (positive: boolean) => {
     if (!userKey) {
         setError("voteRequiresLogin");
@@ -47,5 +49,7 @@ export const createRateArticleHandler = ({
         clearVote(userKey, voteId);
         setRating((rating) => applyArticleVote(rating, voteType, -1));
         setError(result ? result.error : "rateArticleFailed");
+        return;
     }
+    onRated?.();
 };

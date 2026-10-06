@@ -4,6 +4,7 @@ import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { articleVoteId, useVoteStore } from "@/hooks/stores/useVoteStore";
@@ -19,6 +20,7 @@ const voteClass = "gap-1.5 tabular-nums text-muted-foreground";
 export default function ArticleRating({ articleId, initialRating }: Readonly<{ articleId: string; initialRating: Rating }>) {
   const t = useTranslations("article");
   const tErrors = useTranslations("errors");
+  const tToasts = useTranslations("toasts");
   const mounted = useMounted();
   const { data: session, status } = useSession();
   const canVote = status === "authenticated" && !session?.error;
@@ -34,7 +36,16 @@ export default function ArticleRating({ articleId, initialRating }: Readonly<{ a
   const hasVoted = userVote !== undefined;
   const disabled = !mounted || !canVote || hasVoted;
 
-  const rate = createRateArticleHandler({ articleId, userKey, getVote, setVote, clearVote, setRating, setError });
+  const rate = createRateArticleHandler({
+    articleId,
+    userKey,
+    getVote,
+    setVote,
+    clearVote,
+    setRating,
+    setError,
+    onRated: () => toast.success(tToasts("voteSaved")),
+  });
 
   return (
     <div className="flex flex-col gap-2">

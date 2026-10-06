@@ -7,6 +7,7 @@ import { articleFiltersHref, parseArticleFilters, rankArticles } from "./article
 const article = (id: string, positive: number, negative: number, datePosted = "2026-01-01T00:00:00"): ArticleSearchItem => ({
     id,
     title: id,
+    commentCount: null,
     datePosted,
     author: null,
     content: "",

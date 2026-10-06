@@ -4,9 +4,14 @@ import ArticleFilters from "@/components/articleFilters";
 import ArticleSearchModal from "@/components/articleSearchModal/articleSearchModal";
 import { type ArticleFilters as Filters, parseArticleFilters, rankArticles } from "@/lib/articleFilters";
 import { authedQuery, requireAccessToken } from "@/lib/server/session";
-import { ARTICLES_QUERY, mapArticleToSearchItem } from "@/services/graphql/articles";
+import ArticleCard from "@/components/articleCard";
+import {
+  ARTICLE_COMMENT_COUNT_QUERY,
+  ARTICLES_QUERY,
+  commentCountVariables,
+  mapArticleToSearchItem,
+} from "@/services/graphql/articles";
 import type { ArticleSearchItem } from "@/types/articles";
-import ArticleCard from "./ArticleCard";
 
 const SECTION_SIZE = 6;
 // The backend can't sort by rating, so rated views rank this many articles on the server.
@@ -20,9 +25,20 @@ async function getArticles(accessToken: string, { sort, level }: Filters): Promi
     size: ranked ? RANKING_POOL_SIZE : SECTION_SIZE,
     sortBy: "datePosted",
     ascending: false,
+    ...commentCountVariables(!ranked),
   });
   const articles = data.articles.content.map(mapArticleToSearchItem);
-  return ranked ? rankArticles(articles, sort).slice(0, SECTION_SIZE) : articles;
+  return ranked ? withCommentCounts(accessToken, rankArticles(articles, sort).slice(0, SECTION_SIZE)) : articles;
+}
+
+async function withCommentCounts(accessToken: string, articles: ArticleSearchItem[]): Promise<ArticleSearchItem[]> {
+  const { commentsSize } = commentCountVariables(true);
+  return Promise.all(
+    articles.map(async (article) => {
+      const data = await authedQuery(accessToken, ARTICLE_COMMENT_COUNT_QUERY, { id: article.id, commentsSize });
+      return { ...article, commentCount: data.article.comments.totalElements };
+    }),
+  );
 }
 
 export default async function ArticlesPage({

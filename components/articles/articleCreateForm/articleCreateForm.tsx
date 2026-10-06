@@ -1,9 +1,9 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Download, History } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useFormatter, useTranslations } from "next-intl";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
@@ -20,9 +20,22 @@ import type { ErrorKey } from "@/types/errors";
 import {
   COMPLEXITY_OPTIONS,
   createHandleArticleSubmit,
+  createHandleFetchDoiMetadata,
+  type DoiMetadataStatus,
   type EditableArticle,
   TITLE_MAX_LENGTH,
 } from "./articleCreateFormController";
+import {
+  clearDraft,
+  DRAFT_SAVE_DELAY_MS,
+  forgetInitialDraft,
+  getDraftKey,
+  getInitialDraftRaw,
+  isDraftEmpty,
+  parseDraft,
+  subscribeToNothing,
+  writeDraft,
+} from "./articleDraft";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
   ssr: false,
@@ -35,10 +48,12 @@ const panelSection = "px-5 py-5";
 type ArticleCreateFormProps = Readonly<{
   initialScientific?: boolean;
   article?: EditableArticle;
+  draftOwnerId?: string | null;
 }>;
 
-export default function ArticleCreateForm({ initialScientific = false, article }: ArticleCreateFormProps) {
+export default function ArticleCreateForm({ initialScientific = false, article, draftOwnerId = null }: ArticleCreateFormProps) {
   const t = useTranslations();
+  const format = useFormatter();
   const { resolvedTheme } = useTheme();
   const mounted = useMounted();
   const editorColorMode = mounted ? (resolvedTheme === "dark" ? "dark" : "light") : undefined;
@@ -52,6 +67,41 @@ export default function ArticleCreateForm({ initialScientific = false, article }
   const [complexity, setComplexity] = useState<ArticleComplexity>(article?.complexity ?? "SIMPLE");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ErrorKey | null>(null);
+  const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
+  const [metadataStatus, setMetadataStatus] = useState<DoiMetadataStatus | null>(null);
+  const [draftDecided, setDraftDecided] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+
+  const draftKey = isEditing ? null : getDraftKey(draftOwnerId);
+  const initialDraftRaw = useSyncExternalStore(subscribeToNothing, () => getInitialDraftRaw(draftKey), () => null);
+  const savedDraft = draftDecided ? null : parseDraft(initialDraftRaw);
+
+  useEffect(() => () => forgetInitialDraft(draftKey), [draftKey]);
+
+  useEffect(() => {
+    if (!draftKey || savedDraft || isSubmitting || isDraftEmpty({ title, content, doi })) return;
+    const timer = globalThis.setTimeout(() => {
+      const savedAt = new Date().toISOString();
+      if (writeDraft(draftKey, { scientific, title, content, doi, complexity, savedAt })) setDraftSavedAt(savedAt);
+    }, DRAFT_SAVE_DELAY_MS);
+    return () => globalThis.clearTimeout(timer);
+  }, [draftKey, savedDraft, isSubmitting, scientific, title, content, doi, complexity]);
+
+  const restoreDraft = () => {
+    if (!savedDraft) return;
+    setScientific(savedDraft.scientific);
+    setTitle(savedDraft.title);
+    setContent(savedDraft.content);
+    setDoi(savedDraft.doi);
+    setComplexity(savedDraft.complexity);
+    setDraftSavedAt(savedDraft.savedAt);
+    setDraftDecided(true);
+  };
+
+  const discardDraft = () => {
+    clearDraft(draftKey);
+    setDraftDecided(true);
+  };
 
   const isDirty = article
     ? title !== article.title || content !== article.content || doi !== article.doi || complexity !== article.complexity
@@ -75,10 +125,53 @@ export default function ArticleCreateForm({ initialScientific = false, article }
     isSubmitting,
     setIsSubmitting,
     setError,
+    onSubmitStart: () => clearDraft(draftKey),
+  });
+
+  const handleFetchMetadata = createHandleFetchDoiMetadata({
+    doi,
+    title,
+    content,
+    labels: { authors: t("create.metadata.authorsHeading"), abstract: t("create.metadata.abstractHeading") },
+    isFetching: isFetchingMetadata,
+    setIsFetching: setIsFetchingMetadata,
+    setTitle,
+    setContent,
+    setStatus: setMetadataStatus,
   });
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
+      {savedDraft ? (
+        <div
+          role="region"
+          aria-label={t("create.draft.foundTitle")}
+          className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between lg:col-span-2"
+        >
+          <div className="flex min-w-0 items-start gap-3">
+            <History className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+            <div className="min-w-0 text-sm">
+              <p className="font-medium text-foreground">
+                {t("create.draft.foundTitle")}
+                {" · "}
+                <span className="font-normal text-muted-foreground">
+                  {format.dateTime(new Date(savedDraft.savedAt), { dateStyle: "medium", timeStyle: "short" })}
+                </span>
+              </p>
+              {savedDraft.title.trim() ? <p className="mt-0.5 truncate text-muted-foreground">{savedDraft.title}</p> : null}
+              <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{t("create.draft.foundHint")}</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Button type="button" size="sm" onClick={restoreDraft}>
+              {t("create.draft.restore")}
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={discardDraft}>
+              {t("create.draft.discard")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
       <div className="sheet flex min-w-0 flex-col overflow-hidden">
         <div className="px-5 pt-5 sm:px-8 sm:pt-7">
           <div className="flex items-baseline justify-between gap-3">
@@ -171,11 +264,33 @@ export default function ArticleCreateForm({ initialScientific = false, article }
                 <Input
                   id="doi"
                   value={doi}
-                  onChange={(event) => setDoi(event.target.value)}
+                  onChange={(event) => {
+                    setDoi(event.target.value);
+                    setMetadataStatus(null);
+                  }}
                   placeholder={t("create.doiPlaceholder")}
                   className="bg-background font-mono text-sm"
                   aria-describedby="doi-hint"
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleFetchMetadata}
+                  disabled={isFetchingMetadata || isSubmitting}
+                  className="w-full"
+                >
+                  {isFetchingMetadata ? <Spinner className="size-4" /> : <Download className="size-4" aria-hidden />}
+                  {isFetchingMetadata ? t("create.metadata.fetching") : t("create.metadata.fetch")}
+                </Button>
+                {metadataStatus?.kind === "error" ? (
+                  <p className="text-xs leading-5 text-destructive" role="alert">
+                    {t(`errors.${metadataStatus.error}`)}
+                  </p>
+                ) : null}
+                <p className="text-xs leading-5 text-muted-foreground" role="status">
+                  {metadataStatus?.kind === "info" ? t(`create.metadata.${metadataStatus.message}`) : null}
+                </p>
                 <p id="doi-hint" className="text-xs leading-5 text-muted-foreground">
                   {hasReference ? `${t("edit.doiUnchangedHint")} ${t("edit.referenceLocked")}` : t("create.doiHint")}
                 </p>
@@ -214,6 +329,13 @@ export default function ArticleCreateForm({ initialScientific = false, article }
             {isSubmitting ? t(isEditing ? "edit.submitting" : "create.submitting") : t(isEditing ? "edit.submit" : "create.submit")}
           </Button>
           <p className="text-xs leading-5 text-muted-foreground">{t(isEditing ? "edit.redirectHint" : "create.redirectHint")}</p>
+          {draftKey ? (
+            <p className="text-xs leading-5 text-muted-foreground" aria-live="polite">
+              {draftSavedAt
+                ? t("create.draft.savedAt", { time: format.dateTime(new Date(draftSavedAt), { timeStyle: "short" }) })
+                : t("create.draft.autosaveHint")}
+            </p>
+          ) : null}
         </div>
       </aside>
     </form>

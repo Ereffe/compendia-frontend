@@ -47,10 +47,15 @@ export function PageHeadingSkeleton({ withMeta = false }: Readonly<{ withMeta?: 
 
 export function ArticleCardSkeleton() {
     return (
-        <div className={cn(card, "p-5")}>
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="mx-auto mt-5 h-6 w-2/3" />
-            <Skeleton className="mt-5 h-3.5 w-36" />
+        <div className="flex flex-col rounded-xl border border-border bg-card p-5">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="mt-4 h-5 w-full" />
+            <Skeleton className="mt-2 h-5 w-3/5" />
+            <TextLinesSkeleton lines={3} className="mt-4" />
+            <div className="mt-6 flex items-center justify-between gap-3">
+                <Skeleton className="h-3 w-28" />
+                <Skeleton className="h-3 w-20" />
+            </div>
         </div>
     );
 }
@@ -64,17 +69,6 @@ export function ArticleFiltersSkeleton() {
                     <Skeleton className={cn("h-10 max-w-full rounded-full", width)} />
                 </div>
             ))}
-        </div>
-    );
-}
-
-export function ArchiveCardSkeleton() {
-    return (
-        <div className={cn(card, "p-5")}>
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="mt-5 h-5 w-full" />
-            <Skeleton className="mt-2 h-5 w-3/5" />
-            <Skeleton className="mt-4 h-3.5 w-32" />
         </div>
     );
 }

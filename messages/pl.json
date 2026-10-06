@@ -107,7 +107,8 @@
     "allLevels": "Wszystkie",
     "emptyFiltered": "Brak artykułów na tym poziomie.",
     "emptyRated": "Żaden artykuł spełniający te kryteria nie ma jeszcze ocen.",
-    "ratingSummary": "Oceny: {positive} pozytywnych, {negative} negatywnych"
+    "ratingSummary": "Oceny: {positive} pozytywnych, {negative} negatywnych",
+    "commentCount": "{count, plural, =0 {Brak komentarzy} one {# komentarz} few {# komentarze} many {# komentarzy} other {# komentarza}}"
   },
   "archive": {
     "title": "Wszystkie artykuły",
@@ -219,6 +220,23 @@
       "lists": "- punkt albo 1. punkt tworzy listę.",
       "code": "`kod` w tekście, ``` dla bloku kodu.",
       "links": "[tekst](https://adres) dodaje link."
+    },
+    "metadata": {
+      "fetch": "Uzupełnij z DOI",
+      "fetching": "Pobieranie danych...",
+      "filled": "Uzupełniono tytuł i treść danymi publikacji. Sprawdź je przed wysłaniem.",
+      "kept": "Uzupełniono puste pola. Pola, które były już wypełnione, zostały bez zmian.",
+      "empty": "Nie znaleziono danych dla tego DOI. Uzupełnij pola samodzielnie.",
+      "authorsHeading": "Autorzy",
+      "abstractHeading": "Streszczenie"
+    },
+    "draft": {
+      "foundTitle": "Masz niezapisany szkic",
+      "foundHint": "Przywróć go albo odrzuć. Do tego czasu autozapis jest wstrzymany.",
+      "restore": "Przywróć szkic",
+      "discard": "Odrzuć",
+      "autosaveHint": "Szkic zapisuje się automatycznie na tym urządzeniu.",
+      "savedAt": "Szkic zapisany o {time} na tym urządzeniu."
     }
   },
   "edit": {
@@ -323,7 +341,8 @@
     "passwordRequestFailed": "Nie udało się wysłać linku do zmiany hasła. Spróbuj ponownie za chwilę.",
     "changeEmailFailed": "Nie udało się zmienić adresu e-mail. Link mógł wygasnąć albo został już użyty.",
     "changePasswordFailed": "Nie udało się zmienić hasła. Link mógł wygasnąć albo został już użyty.",
-    "invalidActionLink": "Ten link jest nieprawidłowy. Wyślij nowy ze strony konta."
+    "invalidActionLink": "Ten link jest nieprawidłowy. Wyślij nowy ze strony konta.",
+    "doiMetadataFailed": "Nie udało się pobrać danych publikacji. Spróbuj ponownie."
   },
   "references": {
     "title": "Źródła",
@@ -396,5 +415,15 @@
       "submitting": "Zmienianie…",
       "done": "Hasło zostało zmienione. Zaloguj się nowym hasłem."
     }
+  },
+  "toasts": {
+    "articleCreated": "Artykuł został opublikowany.",
+    "articleSaved": "Zapisano zmiany w artykule.",
+    "articleDeleted": "Artykuł został usunięty.",
+    "commentAdded": "Dodano komentarz.",
+    "replyAdded": "Dodano odpowiedź.",
+    "commentSaved": "Zapisano komentarz.",
+    "commentDeleted": "Usunięto komentarz.",
+    "voteSaved": "Dziękujemy, głos został zapisany."
   }
 }

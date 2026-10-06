@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 
-import { ArchiveCardSkeleton, LoadingRegion, PageHeadingSkeleton } from "@/components/skeletons";
+import { ArticleCardSkeleton, LoadingRegion, PageHeadingSkeleton } from "@/components/skeletons";
 
 export default function ArchiveLoading() {
   const t = useTranslations("common");
@@ -11,7 +11,7 @@ export default function ArchiveLoading() {
         <PageHeadingSkeleton withMeta />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }, (_, i) => (
-            <ArchiveCardSkeleton key={i} />
+            <ArticleCardSkeleton key={i} />
           ))}
         </div>
       </div>

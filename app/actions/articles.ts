@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect, unstable_rethrow } from "next/navigation";
 
 import { isValidArticleId } from "@/lib/articleId";
+import { withNotice } from "@/lib/notices";
 import { toErrorKey } from "@/lib/graphqlErrors";
 import { authedMutate, getAccessToken } from "@/lib/server/session";
 import {
@@ -51,7 +52,7 @@ export async function createArticleAction(input: CreateArticleInput): Promise<Ac
 
     revalidateArticleLists();
     // redirect() throws, so it must stay outside the try/catch above.
-    redirect(`/articles/${articleId}`);
+    redirect(withNotice(`/articles/${articleId}`, "articleCreated"));
 }
 
 const revalidateArticleLists = () => {
@@ -94,7 +95,7 @@ export async function editArticleAction(articleId: string, input: EditArticleInp
 
     revalidatePath(`/articles/${articleId}`);
     revalidateArticleLists();
-    redirect(`/articles/${articleId}`);
+    redirect(withNotice(`/articles/${articleId}`, "articleSaved"));
 }
 
 export async function deleteArticleAction(articleId: string): Promise<ActionError> {
@@ -113,7 +114,7 @@ export async function deleteArticleAction(articleId: string): Promise<ActionErro
 
     revalidatePath(`/articles/${articleId}`);
     revalidateArticleLists();
-    redirect("/articles");
+    redirect(withNotice("/articles", "articleDeleted"));
 }
 
 export async function rateArticleAction(articleId: string, positive: boolean): Promise<ActionResult<null>> {

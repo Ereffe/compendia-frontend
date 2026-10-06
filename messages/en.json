@@ -107,7 +107,8 @@
     "allLevels": "All",
     "emptyFiltered": "No articles at this level.",
     "emptyRated": "No article matching these filters has been rated yet.",
-    "ratingSummary": "Ratings: {positive} positive, {negative} negative"
+    "ratingSummary": "Ratings: {positive} positive, {negative} negative",
+    "commentCount": "{count, plural, =0 {No comments} one {# comment} other {# comments}}"
   },
   "archive": {
     "title": "All articles",
@@ -219,6 +220,23 @@
       "lists": "- item or 1. item makes a list.",
       "code": "`code` inline, ``` for a code block.",
       "links": "[text](https://address) adds a link."
+    },
+    "metadata": {
+      "fetch": "Fill in from DOI",
+      "fetching": "Fetching details...",
+      "filled": "Filled in the title and content from the publication. Check them before submitting.",
+      "kept": "Filled in the empty fields. Fields that were already filled in were left unchanged.",
+      "empty": "No details found for this DOI. Fill in the fields yourself.",
+      "authorsHeading": "Authors",
+      "abstractHeading": "Abstract"
+    },
+    "draft": {
+      "foundTitle": "You have an unsaved draft",
+      "foundHint": "Restore or discard it. Autosave is paused until you do.",
+      "restore": "Restore draft",
+      "discard": "Discard",
+      "autosaveHint": "Your draft is saved automatically on this device.",
+      "savedAt": "Draft saved at {time} on this device."
     }
   },
   "edit": {
@@ -323,7 +341,8 @@
     "passwordRequestFailed": "Couldn't send the password link. Please try again shortly.",
     "changeEmailFailed": "Couldn't change the e-mail address. The link may have expired or already been used.",
     "changePasswordFailed": "Couldn't change the password. The link may have expired or already been used.",
-    "invalidActionLink": "This link isn't valid. Send a new one from your account page."
+    "invalidActionLink": "This link isn't valid. Send a new one from your account page.",
+    "doiMetadataFailed": "Couldn't fetch the publication details. Please try again."
   },
   "references": {
     "title": "References",
@@ -396,5 +415,15 @@
       "submitting": "Changing…",
       "done": "Your password has been changed. Sign in with the new password."
     }
+  },
+  "toasts": {
+    "articleCreated": "The article has been published.",
+    "articleSaved": "Changes to the article saved.",
+    "articleDeleted": "The article has been deleted.",
+    "commentAdded": "Comment added.",
+    "replyAdded": "Reply added.",
+    "commentSaved": "Comment saved.",
+    "commentDeleted": "Comment deleted.",
+    "voteSaved": "Thanks, your vote has been saved."
   }
 }

@@ -17,3 +17,14 @@ export const SCIENCE_ARTICLE_GRAPH_QUERY = graphql(`
         }
     }
 `);
+
+export const SCIENCE_ARTICLE_METADATA_QUERY = graphql(`
+    query GetScienceArticleMetadata($doi: String!) {
+        scienceArticleMetadata(doi: $doi) {
+            doi
+            title
+            authors
+            description
+        }
+    }
+`);

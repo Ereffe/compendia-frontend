@@ -13,6 +13,7 @@ export type ArticleSearchItem = {
     content: string;
     complexity: ArticleComplexity;
     rating: ArticleRating;
+    commentCount: number | null;
 };
 
 export type ArticleReference = NonNullable<NonNullable<ArticleQuery["article"]["references"]>[number]>;

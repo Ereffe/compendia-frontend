@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Newsreader, Space_Grotesk } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
+import { Suspense } from "react";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import AuthProvider from "@/components/authProvider";
 import Header from "@/components/header";
+import NoticeToast from "@/components/noticeToast";
 import SiteFooter from "@/components/siteFooter";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const geistSans = Space_Grotesk({
@@ -51,6 +54,10 @@ export default async function RootLayout({
             <Header />
             <main className="flex flex-1 flex-col">{children}</main>
             <SiteFooter />
+            <Toaster position="bottom-right" />
+            <Suspense fallback={null}>
+              <NoticeToast />
+            </Suspense>
           </div>
         </AuthProvider>
         </NextIntlClientProvider>

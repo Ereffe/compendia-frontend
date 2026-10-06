@@ -12,6 +12,11 @@ const setVote = vi.fn((userKey: string, id: string, vote: string) => {
     storedVotes = { ...storedVotes, [userKey]: { ...storedVotes[userKey], [id]: vote } };
 });
 const clearVote = vi.fn();
+const toastSuccess = vi.fn();
+
+vi.mock("sonner", () => ({
+    toast: { success: (...args: unknown[]) => toastSuccess(...args) },
+}));
 
 type SessionState = { status: "authenticated" | "unauthenticated"; data: { user: { id: string } } | null };
 const signedIn: SessionState = { status: "authenticated", data: { user: { id: "u-me" } } };
@@ -58,6 +63,7 @@ describe("ArticleRating", () => {
         expect(setVote).toHaveBeenCalledWith("u-me", "article:abc123", "positive");
         expect(screen.getByRole("button", { name: "Oceń pozytywnie (4)" })).toBeInTheDocument();
         expect(clearVote).not.toHaveBeenCalled();
+        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith("Dziękujemy, głos został zapisany."));
     });
 
     it("sends only one vote when the user clicks again before the page updates", async () => {
@@ -85,6 +91,7 @@ describe("ArticleRating", () => {
         });
         expect(screen.getByRole("alert")).toHaveTextContent("Nie udało się ocenić artykułu.");
         expect(screen.getByRole("button", { name: "Oceń negatywnie (1)" })).toBeInTheDocument();
+        expect(toastSuccess).not.toHaveBeenCalled();
     });
 
     it("disables voting after the user already rated", () => {

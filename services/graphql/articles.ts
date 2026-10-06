@@ -13,6 +13,12 @@ export type GraphqlEditableArticle = EditableArticleQuery["article"];
 // caller must request the same page. Keep this the single source of that size.
 export const COMMENTS_PAGE_SIZE = 100;
 
+// Comment counts must use the article page's exact comments arguments, or they poison that cache entry.
+export const commentCountVariables = (withCommentCount: boolean) => ({
+    withCommentCount,
+    commentsSize: COMMENTS_PAGE_SIZE,
+});
+
 export const ARTICLES_QUERY = graphql(`
     query Articles(
         $search: String
@@ -21,6 +27,8 @@ export const ARTICLES_QUERY = graphql(`
         $size: Int!
         $sortBy: String
         $ascending: Boolean
+        $withCommentCount: Boolean!
+        $commentsSize: Int!
     ) {
         articles(
             search: $search
@@ -42,6 +50,10 @@ export const ARTICLES_QUERY = graphql(`
                 }
                 author {
                     name
+                }
+                comments(page: 0, size: $commentsSize, sortBy: "datePosted", ascending: false)
+                    @include(if: $withCommentCount) {
+                    totalElements
                 }
             }
             totalPages
@@ -94,6 +106,17 @@ export const ARTICLE_QUERY = graphql(`
             author {
                 id
                 name
+            }
+        }
+    }
+`);
+
+export const ARTICLE_COMMENT_COUNT_QUERY = graphql(`
+    query ArticleCommentCount($id: String!, $commentsSize: Int!) {
+        article(id: $id) {
+            id
+            comments(page: 0, size: $commentsSize, sortBy: "datePosted", ascending: false) {
+                totalElements
             }
         }
     }
@@ -156,4 +179,5 @@ export const mapArticleToSearchItem = (article: GraphqlArticleSummary): ArticleS
     content: article.content,
     complexity: article.complexity,
     rating: article.rating,
+    commentCount: article.comments?.totalElements ?? null,
 });
