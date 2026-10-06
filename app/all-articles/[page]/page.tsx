@@ -1,100 +1,50 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-  PaginationEllipsis,
 } from "@/components/ui/pagination";
-import { authOptions } from "@/lib/auth";
-import { query } from "../../ApolloClient";
-import { gql } from "@apollo/client";
-
-type GraphQLArticle = {
-  id: string;
-  title: string;
-  datePosted: string;
-};
-
-type PaginatedResponse = {
-  content: GraphQLArticle[];
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  page: number;
-};
+import { parsePageParam } from "@/lib/pagination";
+import { authedQuery, requireAccessToken } from "@/lib/server/session";
+import {
+  ARTICLES_QUERY,
+  articleDateFormat,
+  type GraphqlArticleSummary,
+  type PagedArticles,
+} from "@/services/graphql/articles";
 
 const ARTICLES_PER_PAGE = 12;
-const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const ALL_ARTICLES_QUERY = gql`
-  query GetAllArticles($page: Int!, $size: Int!, $sortBy: String, $ascending: Boolean) {
-    articles(page: $page, size: $size, sortBy: $sortBy, ascending: $ascending) {
-      content {
-        id
-        title
-        datePosted
-      }
-      totalPages
-      totalElements
-      page
-      size
-    }
-  }
-`;
-
-const articleDateFormatter = new Intl.DateTimeFormat("pl-PL", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-async function fetchArticles(page: number, accessToken: string): Promise<PaginatedResponse | null> {
-  try {
-    const result = await query<{ articles: PaginatedResponse }>({
-      query: ALL_ARTICLES_QUERY,
-      variables: {
-        page,
-        size: ARTICLES_PER_PAGE,
-        sortBy: "datePosted",
-        ascending: false,
-      },
-      context: {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        fetchOptions: { next: { revalidate: 0 } },
-      },
-    });
-
-    return result.data?.articles ?? null;
-  } catch (error) {
-    console.error("Error fetching articles (apollo):", error);
-    return null;
-  }
+async function fetchArticles(page: number, accessToken: string) {
+  const data = await authedQuery<{ articles: PagedArticles<GraphqlArticleSummary> }>(accessToken, ARTICLES_QUERY, {
+    page,
+    size: ARTICLES_PER_PAGE,
+    sortBy: "datePosted",
+    ascending: false,
+  });
+  return data.articles;
 }
 
-function ArticleCard({
-  article,
-  index,
-}: Readonly<{ article: GraphQLArticle; index: number }>) {
+function ArchiveArticleCard({ article }: Readonly<{ article: GraphqlArticleSummary }>) {
+  const t = useTranslations("common");
+  const format = useFormatter();
+
   return (
-    <Link href={`/articles/${article.id}`} className="contents">
-      <article
-        className="rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur transition-all hover:shadow-[0_18px_60px_-36px_rgba(15,23,42,0.8)] hover:border-teal-700/30"
-        style={{ animationDelay: `${index * 30}ms` }}
-      >
+    <Link href={`/articles/${article.id}`} className="block">
+      <article className="h-full rounded-2xl border border-border/70 bg-card/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur transition-all hover:border-teal-700/30 hover:shadow-[0_18px_60px_-36px_rgba(15,23,42,0.8)]">
         <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest">
-          <span className="text-muted-foreground">
-            {articleDateFormatter.format(new Date(article.datePosted))}
-          </span>
+          <span className="text-muted-foreground">{format.dateTime(new Date(article.datePosted), articleDateFormat)}</span>
         </div>
-        <h2 className="mt-4 line-clamp-2 text-lg font-semibold text-foreground">
-          {article.title}
-        </h2>
+        <h2 className="mt-4 line-clamp-2 text-lg font-semibold text-foreground">{article.title}</h2>
+        {article.author?.name ? <p className="mt-3 text-sm text-muted-foreground">{t("authorBy", { name: article.author.name })}</p> : null}
       </article>
     </Link>
   );
@@ -107,6 +57,8 @@ function PaginationControls({
   currentPage: number;
   totalPages: number;
 }>) {
+  const t = useTranslations("archive");
+
   const getPaginationItems = () => {
     const items = [];
     const maxVisible = 5;
@@ -128,7 +80,7 @@ function PaginationControls({
       if (startPage > 1) {
         items.push(
           <PaginationItem key="ellipsis-start">
-            <PaginationEllipsis />
+            <PaginationEllipsis label={t("morePages")} />
           </PaginationItem>,
         );
       }
@@ -151,7 +103,7 @@ function PaginationControls({
       if (endPage < totalPages - 2) {
         items.push(
           <PaginationItem key="ellipsis-end">
-            <PaginationEllipsis />
+            <PaginationEllipsis label={t("morePages")} />
           </PaginationItem>,
         );
       }
@@ -168,10 +120,11 @@ function PaginationControls({
   };
 
   return (
-    <Pagination className="mt-8">
+    <Pagination className="mt-8" aria-label={t("pagination")}>
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
+            label={t("previous")}
             href={currentPage > 0 ? `/all-articles/${currentPage}` : undefined}
             className={
               currentPage === 0
@@ -185,6 +138,7 @@ function PaginationControls({
 
         <PaginationItem>
           <PaginationNext
+            label={t("next")}
             href={
               currentPage < totalPages - 1
                 ? `/all-articles/${currentPage + 2}`
@@ -205,85 +159,50 @@ function PaginationControls({
 export default async function AllArticlesPage({
   params,
 }: Readonly<{ params: Promise<{ page: string }> }>) {
-  const { page: pageStr } = await params;
-  const session = await getServerSession(authOptions);
+  const { page: pageParam } = await params;
+  const accessToken = await requireAccessToken();
 
-  // Validate auth
-  if (!session?.accessToken || session.error === "RefreshAccessTokenError") {
-    redirect("/");
+  const page = parsePageParam(pageParam);
+  if (page === null) {
+    notFound();
   }
 
-  // Parse page number (1-indexed from URL, 0-indexed for API)
-  const page = Math.max(0, Number.parseInt(pageStr, 10) - 1);
+  const data = await fetchArticles(page, accessToken);
+  const t = await getTranslations("archive");
 
-  // Fetch articles
-  const data = await fetchArticles(page, session.accessToken);
-
-  if (!data) {
-    return (
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 my-3 sm:px-8 sm:py-12">
-        <div className="text-center text-muted-foreground">
-          Nie udało się załadować artykułów
-        </div>
-      </div>
-    );
+  if (data.totalPages > 0 && page >= data.totalPages) {
+    redirect(`/all-articles/${data.totalPages}`);
   }
-
-  const validPage = Math.min(Math.max(page, 0), data.totalPages - 1);
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 my-3 sm:px-8 sm:py-12">
-      <div className="space-y-4" style={{ animationDelay: "40ms" }}>
+    <>
+      <div className="container-page my-3 flex flex-col gap-8 py-8 sm:py-12">
         <div>
-          <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
-            Wszystkie artykuły
-          </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Przeglądaj wszystkie artykuły dostępne na platformie. Znajdź
-            inspirację, poszerz swoją wiedzę i odkryj nowe tematy
-          </p>
-          {data.totalPages > 0 && (
+          <h1 className="text-4xl font-bold leading-tight sm:text-5xl">{t("title")}</h1>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{t("description")}</p>
+          {data.totalPages > 0 ? (
             <p className="mt-2 text-sm text-muted-foreground">
-              Strona {validPage + 1} z {data.totalPages}
+              {t("pageOf", { page: page + 1, total: data.totalPages })}
             </p>
-          )}
+          ) : null}
         </div>
-      </div>
 
-      {data.content.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 py-16 text-center">
-          <p className="text-muted-foreground">
-            Brak artykułów do wyświetlenia
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {data.content.map((article, index) => (
-              <ArticleCard key={article.id} article={article} index={index} />
-            ))}
+        {data.content.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 py-16 text-center">
+            <p className="text-muted-foreground">{t("empty")}</p>
           </div>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {data.content.map((article) => (
+                <ArchiveArticleCard key={article.id} article={article} />
+              ))}
+            </div>
 
-          {data.totalPages > 1 && (
-            <PaginationControls
-              currentPage={validPage}
-              totalPages={data.totalPages}
-            />
-          )}
-        </>
-      )}
-
-      <footer className="mt-8 rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-semibold tracking-[0.18em] text-foreground">
-            COMPENDIA
-          </p>
-          <p>
-            Stworzone dla studentów i wykładowców, którzy uczą się lepiej razem.
-          </p>
-          <p>© 2026 Compendia</p>
-        </div>
-      </footer>
-    </div>
+            {data.totalPages > 1 ? <PaginationControls currentPage={page} totalPages={data.totalPages} /> : null}
+          </>
+        )}
+      </div>
+    </>
   );
 }

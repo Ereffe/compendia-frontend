@@ -1,11 +1,25 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { serverBackendUrl } from "@/lib/config";
 
 const refreshTokenGraceMs = 5_000;
+const fallbackAccessTokenLifetimeMs = 14 * 60 * 1000;
 
-const parseTokenExpiryMs = (token: string): number | null => {
+type TokenResponse = {
+  accessToken?: string;
+  refreshToken?: string;
+};
+
+type CurrentUser = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export type AuthMode = "login" | "register";
+
+export const parseTokenExpiryMs = (token: string): number | null => {
   try {
     const [, payloadSegment] = token.split(".");
     if (!payloadSegment) return null;
@@ -20,17 +34,20 @@ const parseTokenExpiryMs = (token: string): number | null => {
   }
 };
 
+const getAccessTokenExpiry = (accessToken: string) =>
+  parseTokenExpiryMs(accessToken) ?? Date.now() + fallbackAccessTokenLifetimeMs;
+
 const refreshAccessToken = async (refreshToken: string) => {
-  const response = await fetch(`${backendBaseUrl}/auth/refresh?t=${encodeURIComponent(refreshToken)}`);
+  // The backend only exposes refresh as GET with the token in the query string.
+  const response = await fetch(`${serverBackendUrl}/auth/refresh?t=${encodeURIComponent(refreshToken)}`, {
+    cache: "no-store",
+  });
 
   if (!response.ok) {
     throw new Error("Refresh token request failed");
   }
 
-  const data = (await response.json()) as {
-    accessToken?: string;
-    refreshToken?: string;
-  };
+  const data = (await response.json()) as TokenResponse;
 
   if (!data.accessToken || !data.refreshToken) {
     throw new Error("Refresh token response missing tokens");
@@ -39,8 +56,30 @@ const refreshAccessToken = async (refreshToken: string) => {
   return {
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
-    accessTokenExpires: parseTokenExpiryMs(data.accessToken) ?? Date.now() + 14 * 60 * 1000,
+    accessTokenExpires: getAccessTokenExpiry(data.accessToken),
   };
+};
+
+// Login/register only return tokens, so fetch the profile to get the real id and display name.
+const fetchCurrentUser = async (accessToken: string): Promise<CurrentUser | null> => {
+  try {
+    const response = await fetch(`${serverBackendUrl}/graphql`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ query: "query CurrentUser { getCurrentUser { id name email } }" }),
+    });
+
+    if (!response.ok) return null;
+
+    const body = (await response.json()) as { data?: { getCurrentUser?: CurrentUser | null } };
+    return body.data?.getCurrentUser ?? null;
+  } catch {
+    return null;
+  }
 };
 
 export const authOptions: NextAuthOptions = {
@@ -57,56 +96,57 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const mode = credentials?.mode === "signin" ? "signin" : "login";
+        const mode: AuthMode = credentials?.mode === "register" ? "register" : "login";
         const name = credentials?.name?.trim();
         const email = credentials?.email?.trim();
         const password = credentials?.password;
 
-        if (!email || !password) {
+        if (!email || !password || (mode === "register" && !name)) {
           return null;
         }
 
+        let response: Response;
         try {
-          const endpoint = mode === "signin" ? "/auth/register" : "/auth/login";
-          const payload = mode === "signin"
-            ? { name: name || email, email, password }
-            : { email, password };
-
-          const response = await fetch(`${backendBaseUrl}${endpoint}`, {
+          response = await fetch(`${serverBackendUrl}/auth/${mode}`, {
             method: "POST",
+            cache: "no-store",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(mode === "register" ? { name, email, password } : { email, password }),
           });
-
-          if (!response.ok) {
-            return null;
-          }
-
-          const data = (await response.json()) as {
-            accessToken?: string;
-            refreshToken?: string;
-          };
-
-          if (!data.accessToken || !data.refreshToken) {
-            return null;
-          }
-
-          return {
-            id: email,
-            email,
-            name: email,
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
-            accessTokenExpires: parseTokenExpiryMs(data.accessToken) ?? Date.now() + 14 * 60 * 1000,
-          };
         } catch {
+          // Thrown messages are returned to the client as `signIn(...).error`.
+          throw new Error("BackendUnavailable");
+        }
+
+        if (!response.ok) {
+          // The backend answers 400 both for "wrong credentials" and "e-mail already taken".
+          if (mode === "register" && response.status === 400) {
+            throw new Error("EmailTaken");
+          }
           return null;
         }
+
+        const data = (await response.json()) as TokenResponse;
+        if (!data.accessToken || !data.refreshToken) {
+          return null;
+        }
+
+        const currentUser = await fetchCurrentUser(data.accessToken);
+
+        return {
+          id: currentUser?.id ?? email,
+          email: currentUser?.email ?? email,
+          name: currentUser?.name ?? name ?? email,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          accessTokenExpires: getAccessTokenExpiry(data.accessToken),
+        };
       },
     }),
-  ], callbacks: {
+  ],
+  callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.accessToken = user.accessToken;
@@ -139,9 +179,13 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
+    // Tokens stay inside the encrypted JWT cookie. Server code reads them with
+    // `getAccessToken()` (lib/server/session.ts), so the browser never receives them.
     async session({ session, token }) {
-      session.accessToken = token.accessToken;
       session.error = token.error;
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
       return session;
     },
   },

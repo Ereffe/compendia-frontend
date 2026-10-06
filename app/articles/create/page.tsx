@@ -1,48 +1,29 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
-import ArticleCreateContainer from "@/components/articles/articleCreateContainer";
-import { authOptions } from "@/lib/auth";
+import ArticleCreateForm from "@/components/articles/articleCreateForm/articleCreateForm";
+import { requireAccessToken } from "@/lib/server/session";
 
 export default async function CreateArticlePage() {
-  const session = await getServerSession(authOptions);
-  const hasAccess =
-    Boolean(session?.accessToken) &&
-    session?.error !== "RefreshAccessTokenError";
-
-  if (!hasAccess) {
-    redirect("/");
-  }
-
-  if (!session?.accessToken) {
-    redirect("/");
-  }
+  await requireAccessToken();
+  const t = await getTranslations();
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 my-3 sm:px-8 sm:py-12 bg-card/60 rounded-2xl">
-      <div className="space-y-4" style={{ animationDelay: "40ms" }}>
+    <section className="container-page my-3 flex flex-col gap-8 py-8 sm:py-12">
+      <div className="space-y-3">
         <Link
           href="/articles"
           className="inline-flex rounded-full border border-border/70 bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-foreground backdrop-blur transition-colors hover:bg-accent"
         >
-          Wróć do artykułów
+          {t("common.backToArticles")}
         </Link>
         <div>
-          <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
-            Utwórz nowy artykuł
-          </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Podziel się swoją wiedzą ze społecznością. Artykuły mogą zawierać
-            notatki, wyjaśnienia, przykłady i materiały do nauki powiązane z
-            wybranymi tematami.
-          </p>
+          <h1 className="text-4xl font-bold leading-tight sm:text-5xl">{t("create.title")}</h1>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{t("create.description")}</p>
         </div>
       </div>
 
-      <div className="space-y-6" style={{ animationDelay: "80ms" }}>
-        <ArticleCreateContainer />
-      </div>
+      <ArticleCreateForm />
     </section>
   );
 }

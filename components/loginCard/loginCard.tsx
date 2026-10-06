@@ -1,24 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  createHandleCredentialsSignIn,
-  getActionLabel,
-  getDescriptionLabel,
-} from "./loginCardController";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+
+import { type AuthMode, createHandleCredentialsSignIn, type LoginError } from "./loginCardController";
 
 export default function LoginCard() {
+  const t = useTranslations("login");
   const router = useRouter();
-  const [mode, setMode] = useState<"login" | "signin">("login");
+  const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LoginError | null>(null);
 
-  const actionLabel = getActionLabel(mode);
-  const descriptionLabel = getDescriptionLabel(mode);
+  const actionLabel = t(`modes.${mode}`);
+  const descriptionLabel = t(`descriptions.${mode}`);
   const handleCredentialsSignIn = createHandleCredentialsSignIn({
     mode,
     email,
@@ -31,7 +30,7 @@ export default function LoginCard() {
   });
 
   return (
-    <section className="w-full max-w-md rounded-3xl border border-border/70 bg-card/85 p-6 shadow-[0_20px_80px_-42px_rgba(15,23,42,0.7)] backdrop-blur sm:p-8">
+    <section className="w-full max-w-md rounded-3xl border border-border/70 bg-card/85 p-5 shadow-[0_20px_80px_-42px_rgba(15,23,42,0.7)] backdrop-blur sm:p-8">
       <p className="text-xs font-bold uppercase tracking-[0.24em] text-teal-700 dark:text-teal-300">Compendia</p>
 
       <div className="mt-4 inline-flex rounded-full border border-border bg-background p-1">
@@ -41,15 +40,15 @@ export default function LoginCard() {
           className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${mode === "login" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
             }`}
         >
-          Zaloguj się
+          {t("modes.login")}
         </button>
         <button
           type="button"
-          onClick={() => setMode("signin")}
-          className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${mode === "signin" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+          onClick={() => setMode("register")}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${mode === "register" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
             }`}
         >
-          Zarejestruj się
+          {t("modes.register")}
         </button>
       </div>
 
@@ -57,17 +56,17 @@ export default function LoginCard() {
       <p className="mt-2 text-sm text-muted-foreground">{descriptionLabel}</p>
 
       <form onSubmit={handleCredentialsSignIn} className="mt-6 space-y-3">
-        {mode === "signin" ? (
+        {mode === "register" ? (
           <>
             <label htmlFor="name" className="text-sm font-medium text-foreground/90">
-              Imię
+              {t("name")}
             </label>
             <input
               id="name"
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Twoje imię"
+              placeholder={t("namePlaceholder")}
               autoComplete="name"
               className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
             />
@@ -75,28 +74,28 @@ export default function LoginCard() {
         ) : null}
 
         <label htmlFor="email" className="text-sm font-medium text-foreground/90">
-          E-mail
+          {t("email")}
         </label>
         <input
           id="email"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="student@uczelnia.edu"
+          placeholder={t("emailPlaceholder")}
           autoComplete="email"
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
         />
 
         <label htmlFor="password" className="text-sm font-medium text-foreground/90">
-          Hasło
+          {t("password")}
         </label>
         <input
           id="password"
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          placeholder="Wpisz hasło"
-          autoComplete="current-password"
+          placeholder={t("passwordPlaceholder")}
+          autoComplete={mode === "register" ? "new-password" : "current-password"}
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
         />
 
@@ -109,7 +108,11 @@ export default function LoginCard() {
         </button>
       </form>
 
-      {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="mt-4 text-sm text-destructive" role="alert">
+          {t(`errors.${error.key}`, error.values)}
+        </p>
+      ) : null}
     </section>
   );
 }

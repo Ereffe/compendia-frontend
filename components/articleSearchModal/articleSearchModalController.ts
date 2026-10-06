@@ -1,33 +1,31 @@
-export type ArticleSearchItem = {
-    title: string;
-    publishedAt: string;
-    author: string;
-    id: string;
-    content: string;
-};
+import getBrowserClient from "@/lib/apolloBrowser";
+import {
+    ARTICLES_QUERY,
+    type GraphqlArticleSummary,
+    mapArticleToSearchItem,
+    type PagedArticles,
+} from "@/services/graphql/articles";
+import type { ArticleSearchItem } from "@/types/articles";
 
-export const filterArticles = (articles: ArticleSearchItem[], query: string): ArticleSearchItem[] => {
-    const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) {
-        return articles;
-    }
+export type { ArticleSearchItem } from "@/types/articles";
 
-    return articles.filter((article) => {
-        const haystack = [article.title, article.author].join(" ").toLowerCase();
-        return haystack.includes(normalizedQuery);
+export const SEARCH_DEBOUNCE_MS = 300;
+export const SEARCH_MIN_LENGTH = 2;
+const SEARCH_RESULTS_LIMIT = 20;
+
+/** Full-text search on the backend (title and content). `articles` is a public query. */
+export const searchArticles = async (query: string): Promise<{ items: ArticleSearchItem[]; total: number }> => {
+    const result = await getBrowserClient().query<{ articles: PagedArticles<GraphqlArticleSummary> }>({
+        query: ARTICLES_QUERY,
+        variables: { search: query.trim(), page: 0, size: SEARCH_RESULTS_LIMIT },
+        fetchPolicy: "network-only",
     });
+
+    const articles = result.data?.articles;
+    return {
+        items: (articles?.content ?? []).map(mapArticleToSearchItem),
+        total: articles?.totalElements ?? 0,
+    };
 };
 
-export const getNoResultsMessage = (): string => "Nie znaleziono artykułów dla tego zapytania.";
-
-export const getSearchPlaceholder = (): string => "Szukaj artykułów...";
-
-export const getSearchButtonLabel = (): string => "Szukaj artykułów, tematów lub autorów";
-
-export const getSearchExample = (): string => "Przykład: optymalizacja SQL, planowanie procesów, listy wiązane...";
-
-export const getTotalResultsLabel = (count: number): string => {
-    if (count === 0) return "Brak wyników";
-    if (count === 1) return "1 wynik";
-    return `${count} wyniki`;
-};
+export const shouldSearch = (query: string): boolean => query.trim().length >= SEARCH_MIN_LENGTH;

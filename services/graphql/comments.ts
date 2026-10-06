@@ -1,9 +1,8 @@
 import { gql } from "@apollo/client";
 
-import getBrowserClient from "@/lib/apolloBrowser";
-import { CommentItem } from "@/types/comments";
+import type { CommentItem } from "@/types/comments";
 
-const addCommentMutation = gql`
+export const ADD_COMMENT_MUTATION = gql`
     mutation AddComment($articleId: ID!, $content: String!, $parentCommentId: Int) {
         addComment(articleId: $articleId, content: $content, parentCommentId: $parentCommentId) {
             id
@@ -25,23 +24,12 @@ const addCommentMutation = gql`
     }
 `;
 
-const upvoteCommentMutation = gql`
+// Returns the rated comment's id (Int!), not a boolean.
+export const RATE_COMMENT_MUTATION = gql`
     mutation RateComment($commentId: Int!, $positive: Boolean!) {
         rateComment(commentId: $commentId, positive: $positive)
     }
 `;
-
-export async function rateComment(commentId: string, positive: boolean) {
-    const client = getBrowserClient();
-    const res = await client.mutate<{ rateComment: boolean }>({
-        mutation: upvoteCommentMutation,
-        variables: { commentId: Number.parseInt(commentId), positive },
-    });
-
-    if (res.error || res.data?.rateComment === undefined) {
-        throw new Error(res.error?.message ?? "Failed to rate comment");
-    }
-}
 
 export type GraphqlCommentItem = Omit<CommentItem, "parentCommentId" | "replies"> & {
     parentComment?: {
@@ -58,22 +46,3 @@ export const mapGraphqlCommentToCommentItem = (comment: GraphqlCommentItem): Com
     rating: comment.rating,
     parentCommentId: comment.parentComment?.id ?? null,
 });
-
-export async function addComment(articleId: string, trimmedContent: string, parentCommentId: string | null = null) {
-    const client = getBrowserClient();
-    const res = await client.mutate<{ addComment: GraphqlCommentItem }>({
-        mutation: addCommentMutation,
-        variables: {
-            articleId,
-            content: trimmedContent,
-            parentCommentId: parentCommentId ? Number.parseInt(parentCommentId) : null,
-        },
-    });
-
-    const addedComment = res.data?.addComment;
-    if (res.error || !addedComment) {
-        throw new Error(res.error?.message ?? "Failed to add comment");
-    }
-
-    return mapGraphqlCommentToCommentItem(addedComment);
-}

@@ -1,13 +1,15 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { renderWithIntl } from "@/test/renderWithIntl";
 
 import Header from "./header";
 
 const replace = vi.fn();
 const refresh = vi.fn();
-const logout = vi.fn();
 const signOut = vi.fn();
+let sessionStatus: "authenticated" | "unauthenticated" = "authenticated";
 
 let pathname = "/articles";
 
@@ -26,12 +28,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("next-auth/react", () => ({
     signOut: (...args: unknown[]) => signOut(...args),
-}));
-
-vi.mock("@/hooks/stores/useAuthStore", () => ({
-    useAuthStore: {
-        getState: () => ({ logout }),
-    },
+    useSession: () => ({
+        status: sessionStatus,
+        data: sessionStatus === "authenticated" ? { user: { name: "Ala" } } : null,
+    }),
 }));
 
 vi.mock("./themeToggle", () => ({
@@ -46,13 +46,14 @@ afterEach(() => {
     cleanup();
     vi.clearAllMocks();
     pathname = "/articles";
+    sessionStatus = "authenticated";
 });
 
 describe("Header", () => {
     it("does not render on the home page", () => {
         pathname = "/";
 
-        const { container } = render(<Header hasAccess={false} />);
+        const { container } = renderWithIntl(<Header />);
 
         expect(container.firstChild).toBeNull();
     });
@@ -60,7 +61,7 @@ describe("Header", () => {
     it("renders navigation links and logout flow when the user has access", async () => {
         const user = userEvent.setup();
 
-        render(<Header hasAccess />);
+        renderWithIntl(<Header />);
 
         expect(screen.getByRole("link", { name: "COMPENDIA" })).toHaveAttribute("href", "/articles");
         expect(screen.getByRole("link", { name: "Wszystkie artykuły" })).toHaveAttribute("href", "/all-articles/1");
@@ -69,14 +70,14 @@ describe("Header", () => {
 
         await user.click(screen.getByRole("button", { name: "Wyloguj" }));
 
-        expect(logout).toHaveBeenCalledTimes(1);
         expect(signOut).toHaveBeenCalledWith({ redirect: false });
         expect(replace).toHaveBeenCalledWith("/");
         expect(refresh).toHaveBeenCalledTimes(1);
     });
 
     it("shows the login modal when the user does not have access", () => {
-        render(<Header hasAccess={false} />);
+        sessionStatus = "unauthenticated";
+        renderWithIntl(<Header />);
 
         expect(screen.getByTestId("login-modal")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "Wyloguj" })).not.toBeInTheDocument();

@@ -1,6 +1,8 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { renderWithIntl } from "@/test/renderWithIntl";
 
 import LoginModal from "./login-modal";
 
@@ -16,7 +18,7 @@ describe("LoginModal", () => {
     it("opens the login card when the trigger is clicked", async () => {
         const user = userEvent.setup();
 
-        render(<LoginModal />);
+        renderWithIntl(<LoginModal />);
 
         expect(screen.getByRole("button", { name: "Zaloguj się" })).toBeInTheDocument();
         expect(screen.queryByTestId("login-card")).not.toBeInTheDocument();

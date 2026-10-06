@@ -7,15 +7,15 @@ Compendia is a Next.js app for reading, creating, and discussing educational art
 - Next.js 16 with the App Router
 - React 19 + TypeScript
 - Tailwind CSS 4
-- next-auth for session management
-- GraphQL-based data fetching against the Compendia backend
-- Zustand for client-side vote state
+- next-auth for session management (backend tokens stay server-side)
+- Apollo Client: server components for reads, Server Actions for writes
+- Zustand for per-user local vote state
 
 ## Requirements
 
 - Node.js 20 or newer
 - npm
-- A running Compendia backend, available by default at `http://localhost:8080`
+- A running Compendia backend (e.g. `http://localhost:8080`)
 
 ## Setup
 
@@ -25,9 +25,14 @@ Install dependencies:
 npm install
 ```
 
-Create a local environment file with the values used by the app (to get variables, contact developer in dm)
+Create `.env.local` (ask the maintainer for the secret values):
 
-The frontend reads `NEXT_PUBLIC_BACKEND_URL` directly from `.env.local`.
+```bash
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8080   # inlined into the client at build time
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=<random 32+ byte string>
+# BACKEND_INTERNAL_URL=http://backend:8080      # optional: server-side backend URL (Docker)
+```
 
 Start the development server:
 
@@ -43,7 +48,17 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - `npm run build` - create a production build
 - `npm run start` - run the production server
 - `npm run lint` - run ESLint
-- `npm run test` - run Vitest
+- `npm run typecheck` - run the TypeScript compiler
+- `npm run test` - run Vitest (`npm test -- --run` for a single run)
+
+## Docker
+
+```bash
+NEXTAUTH_SECRET=... NEXT_PUBLIC_BACKEND_URL=http://localhost:8080 docker compose up --build
+```
+
+The image uses Next's standalone output and runs as a non-root user. `NEXT_PUBLIC_BACKEND_URL` is a
+build arg. Secrets are passed only at runtime, never copied into the image.
 
 ## Main Routes
 
@@ -57,7 +72,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Features
 
 - Authentication with next-auth credentials flow
-- Article browsing and search across title, category, and author
+- Article browsing and full-text search (backend `articles(search:)`)
 - Markdown article creation form
 - Nested comment threads with inline replies
 - Comment voting with optimistic client-side updates
@@ -68,7 +83,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - `app/` - App Router pages, layouts, and API routes
 - `components/` - reusable UI and feature components
 - `components/articles/` - article-specific UI and controllers
-- `services/graphql/` - GraphQL requests and mappers
+- `app/actions/` - Server Actions (authenticated mutations)
+- `lib/server/` - server-only Apollo client and session helpers
+- `services/graphql/` - GraphQL documents, types and mappers
 - `hooks/` - shared client hooks and stores
 - `lib/` - auth and utility helpers
 - `types/` - shared TypeScript types

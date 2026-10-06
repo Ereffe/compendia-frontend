@@ -10,6 +10,12 @@
 !.yarn/releases
 !.yarn/versions
 
+AGENTS.md
+/docs
+/scripts/qa
+/.claude
+/skills-lock.json
+
 # testing
 /coverage
 

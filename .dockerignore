@@ -1,0 +1,19 @@
+node_modules
+.next
+.out
+coverage
+.git
+.gitignore
+.github
+.npm
+*.log
+.DS_Store
+README.md
+AGENTS.md
+notatki.txt
+vitest.*
+**/*.test.ts
+**/*.test.tsx
+# Never send env files (secrets) to the build context.
+.env*
+scripts/qa

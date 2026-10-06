@@ -1,133 +1,100 @@
 import type { Dispatch, SetStateAction } from "react";
 import type React from "react";
-import type { ApolloClient } from "@apollo/client";
-import { gql } from "@apollo/client";
-import getBrowserClient from "@/lib/apolloBrowser";
 
-export type CreatedArticle = {
-    id: string;
-    title: string;
-};
+import { createArticleAction } from "@/app/actions/articles";
+import type { ArticleComplexity } from "@/types/articles";
+import type { ErrorKey } from "@/types/errors";
 
 type CreateHandleArticleSubmitParams = {
-    client?: ApolloClient;
-    isScientific?: boolean;
+    scientific: boolean;
     title: string;
     content: string;
-    subjectId?: number;
-    tags?: Array<string>;
-    references?: Array<string>;
-    complexity: string;
+    doi: string;
+    complexity: ArticleComplexity;
     isSubmitting: boolean;
     setIsSubmitting: Dispatch<SetStateAction<boolean>>;
-    setError: Dispatch<SetStateAction<string | null>>;
-    setSuccess: Dispatch<SetStateAction<string | null>>;
-    router: ReturnType<typeof import("next/navigation").useRouter>;
+    setError: Dispatch<SetStateAction<ErrorKey | null>>;
 };
+
+// Crossref-style DOI: "10." + registrant code + "/" + suffix.
+const DOI_PATTERN = /^10\.\d{4,9}\/\S+$/;
+
+/** Accepts bare DOIs as well as https://doi.org/... links and returns the bare DOI. */
+export const normalizeDoi = (value: string): string =>
+    value.trim().replace(/^(?:https?:\/\/)?(?:dx\.)?doi\.org\//i, "").replace(/^doi:\s*/i, "");
 
 export const validateArticleFormInputs = (
     title: string,
     content: string,
-): string | null => {
-    const trimmedTitle = title.trim();
-    const trimmedContent = content.trim();
+    scientific = false,
+    doi = "",
+): ErrorKey | null => {
+    if (!title.trim() || !content.trim()) {
+        return "missingTitleOrContent";
+    }
 
-    if (!trimmedTitle || !trimmedContent) {
-        return "Uzupełnij tytuł i treść.";
+    if (scientific) {
+        const normalizedDoi = normalizeDoi(doi);
+        if (!normalizedDoi) {
+            return "missingDoi";
+        }
+        if (!DOI_PATTERN.test(normalizedDoi)) {
+            return "invalidDoi";
+        }
     }
 
     return null;
 };
 
-export const getComplexityOptions = (): Array<{ value: string; label: string }> => [
-    { value: "SIMPLE", label: "Proste" },
-    { value: "INTERMEDIATE", label: "Średnie" },
-    { value: "COMPLEX", label: "Zaawansowane" },
-];
+/** Matches the backend column (articles.title VARCHAR(200)). */
+export const TITLE_MAX_LENGTH = 200;
 
-export const getFormSubmitLabel = (isSubmitting: boolean): string => {
-    return isSubmitting ? "Tworzenie..." : "Utwórz artykuł";
-};
+/** Labels come from the `complexity` translation namespace. */
+export const COMPLEXITY_OPTIONS: ArticleComplexity[] = ["SIMPLE", "INTERMEDIATE", "COMPLEX"];
 
 export const createHandleArticleSubmit =
     ({
+        scientific,
         title,
         content,
-        references = [],
+        doi,
         complexity,
         isSubmitting,
         setIsSubmitting,
         setError,
-        setSuccess,
-        router,
     }: CreateHandleArticleSubmitParams) =>
         async (event: React.SyntheticEvent<HTMLFormElement>) => {
             event.preventDefault();
-
-            const validationError = validateArticleFormInputs(title, content);
-            if (validationError) {
-                setError(validationError);
-                return;
-            }
 
             if (isSubmitting) {
                 return;
             }
 
+            const validationError = validateArticleFormInputs(title, content, scientific, doi);
+            if (validationError) {
+                setError(validationError);
+                return;
+            }
+
             setIsSubmitting(true);
             setError(null);
-            setSuccess(null);
 
             try {
-                const ADD_ARTICLE = gql`
-                    mutation AddArticle(
-                        $title: String!
-                        $content: String!
-                        $complexity: String!
-                        $references: [String!]
-                    ) {
-                        addArticle(
-                            title: $title
-                            content: $content
-                            complexity: $complexity
-                            references: $references
-                        ) {
-                            id
-                            title
-                        }
-                    }
-                `;
-
-                const variables = {
-                    title: title.trim(),
-                    content: content.trim(),
+                // On success the action redirects on the server and this call never yields a result.
+                // Calling router.push + router.refresh here instead raced and cancelled the navigation.
+                const result = await createArticleAction({
+                    title,
+                    content,
                     complexity,
-                    references,
-                };
-
-                const apolloClient = getBrowserClient();
-
-                const result = await apolloClient.mutate<{ addArticle: CreatedArticle }>({
-                    mutation: ADD_ARTICLE,
-                    variables,
+                    references: scientific ? [normalizeDoi(doi)] : [],
                 });
 
-                const created = result.data?.addArticle;
-
-                if (!created) {
-                    throw new Error("Nie udało się utworzyć artykułu.");
+                if (result && !result.ok) {
+                    setError(result.error);
+                    setIsSubmitting(false);
                 }
-
-                setSuccess("Artykuł został utworzony.");
-                router.push(`/articles/${created.id}`);
-                router.refresh();
-            } catch (submitError) {
-                setError(
-                    submitError instanceof Error
-                        ? submitError.message
-                        : "Nie udało się utworzyć artykułu.",
-                );
-            } finally {
+            } catch {
+                setError("createArticleFailed");
                 setIsSubmitting(false);
             }
         };

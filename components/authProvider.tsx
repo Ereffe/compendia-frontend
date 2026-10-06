@@ -2,7 +2,8 @@
 
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
-import SessionSync from "@/components/sessionSync";
+
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 type AuthProviderProps = {
   children: React.ReactNode;
@@ -11,9 +12,8 @@ type AuthProviderProps = {
 export default function AuthProvider({ children }: Readonly<AuthProviderProps>) {
   return (
     <SessionProvider>
-      <SessionSync />
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        {children}
+        <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
       </ThemeProvider>
     </SessionProvider>
   );

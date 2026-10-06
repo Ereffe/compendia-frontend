@@ -1,5 +1,7 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { renderWithIntl } from "@/test/renderWithIntl";
 
 import ThemeToggle from "./themeToggle";
 
@@ -37,7 +39,7 @@ describe("ThemeToggle", () => {
         });
         vi.spyOn(globalThis, "cancelAnimationFrame").mockImplementation(() => undefined);
 
-        render(<ThemeToggle />);
+        renderWithIntl(<ThemeToggle />);
 
         const button = await screen.findByRole("button", { name: expectedLabel });
         button.click();

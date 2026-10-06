@@ -1,10 +1,12 @@
 "use client";
 
 import { type ReactNode, type SyntheticEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useFormatter, useTranslations } from "next-intl";
 
-import { useAuthStore } from "@/hooks/stores/useAuthStore";
 import { useVoteStore } from "@/hooks/stores/useVoteStore";
-import { CommentItem } from "@/types/comments";
+import type { CommentItem } from "@/types/comments";
+import type { ErrorKey } from "@/types/errors";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,24 +16,32 @@ import {
     countComments,
     createRateCommentHandler,
     createSubmitCommentHandler,
-    getCommentsLabel,
-    getSessionLabel,
 } from "./articleCommentsController";
+
+const commentDateFormat = { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" } as const;
 
 type ArticleCommentsProps = Readonly<{
     articleId: string;
     initialComments: CommentItem[];
+    /** Total comments on the backend; can exceed initialComments.length when the list is truncated. */
+    totalCount?: number;
 }>;
 
-export default function ArticleComments({ articleId, initialComments }: ArticleCommentsProps) {
-    const { accessToken, isLoading, error: authError } = useAuthStore();
+export default function ArticleComments({ articleId, initialComments, totalCount }: ArticleCommentsProps) {
+    const t = useTranslations("comments");
+    const tErrors = useTranslations("errors");
+    const format = useFormatter();
+    const { data: session, status } = useSession();
+    const isLoading = status === "loading";
+    const canComment = status === "authenticated" && !session?.error;
+    const userKey = canComment ? (session?.user?.id ?? session?.user?.email ?? null) : null;
     const [comments, setComments] = useState<CommentItem[]>(() => buildCommentTree(initialComments));
     const [content, setContent] = useState("");
     const [activeReplyCommentId, setActiveReplyCommentId] = useState<string | null>(null);
     const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
     const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<ErrorKey | null>(null);
     const [isHydrated, setIsHydrated] = useState(false);
 
     const { setVote, clearVote, getVote } = useVoteStore();
@@ -44,35 +54,30 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
         setComments(buildCommentTree(initialComments));
     }, [initialComments]);
 
-    const canComment = useMemo(() => Boolean(accessToken) && !authError, [accessToken, authError]);
     const totalComments = useMemo(() => countComments(comments), [comments]);
-    const commentsLabel = useMemo(() => getCommentsLabel(totalComments), [totalComments]);
-    const sessionLabel = useMemo(() => getSessionLabel(isLoading, canComment), [isLoading, canComment]);
+    const displayedTotal = Math.max(totalComments, totalCount ?? 0);
+    const isTruncated = totalCount !== undefined && totalCount > initialComments.length;
 
-    const dateFormatter = useMemo(
-        () =>
-            new Intl.DateTimeFormat("pl-PL", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-            }),
-        []
-    );
+    let sessionLabel = "";
+    if (isLoading) sessionLabel = t("checkingSession");
+    else if (!canComment) sessionLabel = t("mustSignIn");
+
+    const getRepliesToggleLabel = (repliesCount: number, isExpanded: boolean) => {
+        if (isExpanded) return t("hideReplies");
+        if (repliesCount === 0) return t("noReplies");
+        return t("showReplies", { count: repliesCount });
+    };
 
     const handleRateComment = useMemo(
         () =>
             createRateCommentHandler({
-                articleId,
-                accessToken,
-                authError,
+                userKey,
                 setVote,
                 clearVote,
                 setComments,
                 setError,
             }),
-        [articleId, accessToken, authError, setVote, clearVote]
+        [userKey, setVote, clearVote]
     );
 
     const submitComment = useMemo(
@@ -138,21 +143,6 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
         }));
     }, []);
 
-    const getRepliesToggleLabel = useCallback((repliesCount: number, isExpanded: boolean) => {
-        if (isExpanded) {
-            return "Ukryj odpowiedzi";
-        }
-
-        if (repliesCount === 0) {
-            return "Brak odpowiedzi";
-        }
-
-        if (repliesCount === 1) {
-            return "Pokaż 1 odpowiedź";
-        }
-        return `Pokaż ${repliesCount} odpowiedzi`;
-    }, []);
-
     const renderVoteButtons = (comment: CommentItem, hasVoted: boolean, isPositiveVote: boolean, isNegativeVote: boolean) => {
         if (!isHydrated) {
             return (
@@ -172,20 +162,22 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                 <Button
                     variant={isPositiveVote ? "default" : "outline"}
                     size="xs"
-                    style={{ backgroundColor: "green", color: "white" }}
+                    className={isPositiveVote ? "bg-emerald-600 text-white hover:bg-emerald-700" : "text-emerald-700 dark:text-emerald-400"}
                     onClick={() => handleRateComment(comment.id, true)}
-                    disabled={hasVoted}
-                    title={hasVoted ? "Już zagłosowano" : "Głos pozytywny"}
+                    disabled={hasVoted || !canComment}
+                    aria-label={t("upvote", { count: comment.rating.positive })}
+                    title={hasVoted ? t("alreadyVoted") : undefined}
                 >
                     +{comment.rating.positive}
                 </Button>
                 <Button
                     variant={isNegativeVote ? "default" : "outline"}
                     size="xs"
-                    style={{ backgroundColor: "red", color: "white" }}
+                    className={isNegativeVote ? "bg-red-600 text-white hover:bg-red-700" : "text-red-700 dark:text-red-400"}
                     onClick={() => handleRateComment(comment.id, false)}
-                    disabled={hasVoted}
-                    title={hasVoted ? "Już zagłosowano" : "Głos negatywny"}
+                    disabled={hasVoted || !canComment}
+                    aria-label={t("downvote", { count: comment.rating.negative })}
+                    title={hasVoted ? t("alreadyVoted") : undefined}
                 >
                     -{comment.rating.negative}
                 </Button>
@@ -198,13 +190,13 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
             <Textarea
                 value={replyDrafts[commentId] ?? ""}
                 onChange={(event) => handleReplyChange(commentId, event.target.value)}
-                placeholder="Napisz odpowiedź..."
+                placeholder={t("replyPlaceholder")}
                 className="min-h-20 rounded-xl border-border bg-background text-foreground"
                 disabled={!canComment || isSubmitting}
             />
             <div className="flex justify-end gap-2">
                 <Button type="submit" size="xs" disabled={isSubmitting || (replyDrafts[commentId] ?? "").trim().length === 0}>
-                    {isSubmitting ? "Publikowanie..." : "Dodaj odpowiedź"}
+                    {isSubmitting ? t("submitting") : t("submitReply")}
                 </Button>
             </div>
         </form>
@@ -214,8 +206,8 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
         comment: CommentItem,
         depth = 0
     ): ReactNode => {
-        const userVote = isHydrated
-            ? getVote(articleId, comment.id)
+        const userVote = isHydrated && userKey
+            ? getVote(userKey, comment.id)
             : undefined;
 
         const isPositiveVote = userVote === "positive";
@@ -251,19 +243,14 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
 
                                 {depth > 0 ? (
                                     <span className="text-xs text-muted-foreground">
-                                        odpowiedź
+                                        {t("replyBadge")}
                                     </span>
                                 ) : null}
                             </div>
 
                             <p className="text-xs text-muted-foreground">
-                                {dateFormatter.format(
-                                    new Date(comment.datePosted)
-                                )}
-
-                                {comment.editedAt
-                                    ? " · edytowano"
-                                    : ""}
+                                {format.dateTime(new Date(comment.datePosted), commentDateFormat)}
+                                {comment.editedAt ? ` · ${t("edited")}` : ""}
                             </p>
                         </div>
 
@@ -277,7 +264,7 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                         </div>
                     </div>
 
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground/90">
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground/90 wrap-anywhere">
                         {comment.content}
                     </p>
 
@@ -291,9 +278,7 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                             }
                             disabled={!canComment}
                         >
-                            {isReplyFormVisible
-                                ? "Anuluj"
-                                : "Odpowiedz"}
+                            {isReplyFormVisible ? t("cancel") : t("reply")}
                         </Button>
 
                         {hasReplies ? (
@@ -329,7 +314,7 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
                 </article>
 
                 {hasReplies && isRepliesExpanded ? (
-                    <div className="relative mt-3 border-l border-border/50 pl-4 space-y-3">
+                    <div className="relative mt-3 space-y-3 border-l border-border/50 pl-2 sm:pl-4">
                         {comment.replies?.map((reply) =>
                             renderComment(reply, depth + 1)
                         )}
@@ -344,35 +329,40 @@ export default function ArticleComments({ articleId, initialComments }: ArticleC
     return (
         <Card className="border-border/70 bg-card/80 backdrop-blur">
             <CardHeader className="border-b border-border">
-                <CardTitle className="text-xl text-foreground">Komentarze</CardTitle>
-                <CardDescription>{commentsLabel}</CardDescription>
+                <CardTitle className="text-xl text-foreground">{t("title")}</CardTitle>
+                <CardDescription>{t("count", { count: displayedTotal })}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
                 <form className="space-y-3" onSubmit={handleSubmit}>
                     <Textarea
                         value={content}
                         onChange={(event) => setContent(event.target.value)}
-                        placeholder={canComment ? "Napisz komentarz..." : "Zaloguj się, aby napisać komentarz"}
+                        placeholder={canComment ? t("placeholder") : t("placeholderSignedOut")}
                         className="min-h-28 rounded-xl border-border bg-background text-foreground"
                         disabled={!canComment || isSubmitting}
                     />
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm text-muted-foreground">{sessionLabel}</p>
                         <Button type="submit" disabled={!canComment || isSubmitting || content.trim().length === 0}>
-                            {isSubmitting ? "Publikowanie..." : "Dodaj komentarz"}
+                            {isSubmitting ? t("submitting") : t("submit")}
                         </Button>
                     </div>
-                    {error ? <p className="text-sm text-destructive">{error}</p> : null}
+                    {error ? <p className="text-sm text-destructive" role="alert">{tErrors(error)}</p> : null}
                 </form>
 
                 <div className="space-y-4">
                     {comments.length === 0 ? (
                         <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-6 text-sm text-muted-foreground">
-                            Brak komentarzy.
+                            {t("empty")}
                         </div>
                     ) : (
                         comments.map((comment) => renderComment(comment))
                     )}
+                    {isTruncated ? (
+                        <p className="text-center text-sm text-muted-foreground">
+                            {t("truncated", { shown: initialComments.length, total: totalCount })}
+                        </p>
+                    ) : null}
                 </div>
             </CardContent>
         </Card>

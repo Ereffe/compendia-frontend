@@ -1,29 +1,17 @@
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
-import { SetContextLink } from "@apollo/client/link/context";
-import { useAuthStore } from "@/hooks/stores/useAuthStore";
+import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
+
+import { publicBackendUrl } from "@/lib/config";
 
 let client: ApolloClient | null = null;
 
-function makeClient() {
-    const httpLink = new HttpLink({ uri: `${process.env.NEXT_PUBLIC_BACKEND_URL ?? ""}/graphql` });
-
-    const authLink = new SetContextLink(({ headers }, _) => {
-        const accessToken = useAuthStore.getState().accessToken;
-        return {
-            headers: {
-                ...headers,
-                ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-            },
-        };
-    });
-
-    return new ApolloClient({
-        link: authLink.concat(httpLink),
+/**
+ * Browser client for PUBLIC queries only (search, citation graph). It sends no credentials.
+ * Authenticated mutations go through Server Actions in `app/actions/*`.
+ */
+export default function getBrowserClient() {
+    client ??= new ApolloClient({
+        link: new HttpLink({ uri: `${publicBackendUrl}/graphql` }),
         cache: new InMemoryCache(),
     });
-}
-
-export default function getBrowserClient() {
-    if (!client) client = makeClient();
     return client;
 }

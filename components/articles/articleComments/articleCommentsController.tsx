@@ -1,12 +1,12 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import { addComment, rateComment } from "@/services/graphql/comments";
+import { addCommentAction, rateCommentAction } from "@/app/actions/comments";
+import type { VoteType } from "@/hooks/stores/useVoteStore";
 import type { CommentItem } from "@/types/comments";
+import type { ErrorKey } from "@/types/errors";
 
-type VoteType = "positive" | "negative";
-
-type SetVote = (articleId: string, commentId: string, voteType: VoteType) => void;
-type ClearVote = (articleId: string, commentId: string) => void;
+type SetVote = (userKey: string, commentId: string, voteType: VoteType) => void;
+type ClearVote = (userKey: string, commentId: string) => void;
 
 const normalizeComment = (comment: CommentItem): CommentItem => ({
     ...comment,
@@ -88,70 +88,38 @@ export const insertReply = (comments: CommentItem[], parentCommentId: string, re
         };
     });
 
-export const getCommentsLabel = (commentsCount: number) => {
-    if (commentsCount === 0) {
-        return "Bądź pierwszą osobą, która skomentuje ten artykuł.";
-    }
-
-    let suffix = "komentarzy";
-
-    if (commentsCount === 1) {
-        suffix = "komentarz";
-    } else if (commentsCount >= 2 && commentsCount <= 4) {
-        suffix = "komentarze";
-    }
-
-    return `${commentsCount} ${suffix}`;
-};
-
-export const getSessionLabel = (isLoading: boolean, canComment: boolean) => {
-    if (isLoading) {
-        return "Sprawdzanie sesji...";
-    }
-
-    if (canComment) {
-        return "";
-    }
-
-    return "Musisz być zalogowany, aby komentować.";
-};
-
 type CreateRateCommentHandlerParams = {
-    articleId: string;
-    accessToken: string | null;
-    authError: string | null;
+    /** Identifies the signed-in user in the local vote store; null when signed out. */
+    userKey: string | null;
     setVote: SetVote;
     clearVote: ClearVote;
     setComments: Dispatch<SetStateAction<CommentItem[]>>;
-    setError: Dispatch<SetStateAction<string | null>>;
+    setError: Dispatch<SetStateAction<ErrorKey | null>>;
 };
 
 export const createRateCommentHandler = ({
-    articleId,
-    accessToken,
-    authError,
+    userKey,
     setVote,
     clearVote,
     setComments,
     setError,
 }: CreateRateCommentHandlerParams) => (commentId: string, positive: boolean) => {
-    if (!accessToken || authError) {
-        setError("Musisz być zalogowany, aby głosować");
+    if (!userKey) {
+        setError("voteRequiresLogin");
         return;
     }
 
     const voteType: VoteType = positive ? "positive" : "negative";
-    setVote(articleId, commentId, voteType);
+    setVote(userKey, commentId, voteType);
     setComments((currentComments) => updateCommentRating(currentComments, commentId, voteType, 1));
     setError(null);
 
     void (async () => {
-        try {
-            await rateComment(commentId, positive);
-        } catch (rateError) {
-            clearVote(articleId, commentId);
+        const result = await rateCommentAction(commentId, positive);
+        if (!result.ok) {
+            clearVote(userKey, commentId);
             setComments((currentComments) => updateCommentRating(currentComments, commentId, voteType, -1));
-            setError(rateError instanceof Error ? rateError.message : "Nie udało się ocenić komentarza");
+            setError(result.error);
         }
     })();
 };
@@ -161,7 +129,7 @@ type CreateSubmitCommentHandlerParams = {
     canComment: boolean;
     setComments: Dispatch<SetStateAction<CommentItem[]>>;
     setIsSubmitting: Dispatch<SetStateAction<boolean>>;
-    setError: Dispatch<SetStateAction<string | null>>;
+    setError: Dispatch<SetStateAction<ErrorKey | null>>;
 };
 
 type SubmitCommentParams = {
@@ -190,8 +158,13 @@ export const createSubmitCommentHandler = ({
         setError(null);
 
         try {
-            const addedComment = await addComment(articleId, trimmedContent, parentCommentId ?? null);
+            const result = await addCommentAction(articleId, trimmedContent, parentCommentId ?? null);
+            if (!result.ok) {
+                setError(result.error);
+                return false;
+            }
 
+            const addedComment = { ...result.data, replies: [] };
             setComments((currentComments) => {
                 if (parentCommentId) {
                     return insertReply(currentComments, parentCommentId, addedComment);
@@ -201,8 +174,8 @@ export const createSubmitCommentHandler = ({
             });
 
             return true;
-        } catch (submitError) {
-            setError(submitError instanceof Error ? submitError.message : "Nie udało się dodać komentarza");
+        } catch {
+            setError("addCommentFailed");
             return false;
         } finally {
             setIsSubmitting(false);

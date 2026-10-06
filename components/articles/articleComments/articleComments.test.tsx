@@ -1,6 +1,8 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { renderWithIntl } from "@/test/renderWithIntl";
 
 import type { CommentItem } from "@/types/comments";
 import ArticleComments from "./articleComments";
@@ -10,23 +12,18 @@ const rateComment = vi.fn();
 const setVote = vi.fn();
 const clearVote = vi.fn();
 const getVote = vi.fn();
-let authState = {
-    accessToken: "token-123",
-    isLoading: false,
-    error: null as string | null,
-};
 
-vi.mock("@/services/graphql/comments", () => ({
-    addComment: (...args: unknown[]) => addComment(...args),
-    rateComment: (...args: unknown[]) => rateComment(...args),
+type SessionState = { status: "authenticated" | "unauthenticated" | "loading"; data: { user: { id: string } } | null };
+const signedIn: SessionState = { status: "authenticated", data: { user: { id: "u-me" } } };
+let sessionState: SessionState = signedIn;
+
+vi.mock("@/app/actions/comments", () => ({
+    addCommentAction: (...args: unknown[]) => addComment(...args),
+    rateCommentAction: (...args: unknown[]) => rateComment(...args),
 }));
 
-vi.mock("@/hooks/stores/useAuthStore", () => ({
-    useAuthStore: () => ({
-        accessToken: authState.accessToken,
-        isLoading: authState.isLoading,
-        error: authState.error,
-    }),
+vi.mock("next-auth/react", () => ({
+    useSession: () => sessionState,
 }));
 
 vi.mock("@/hooks/stores/useVoteStore", () => ({
@@ -40,11 +37,7 @@ vi.mock("@/hooks/stores/useVoteStore", () => ({
 afterEach(() => {
     cleanup();
     vi.clearAllMocks();
-    authState = {
-        accessToken: "token-123",
-        isLoading: false,
-        error: null,
-    };
+    sessionState = signedIn;
 });
 
 describe("ArticleComments", () => {
@@ -70,16 +63,18 @@ describe("ArticleComments", () => {
         const user = userEvent.setup();
 
         addComment.mockResolvedValue({
-            id: "c3",
-            content: "Nowa odpowiedź",
-            datePosted: "2026-05-07T12:00:00.000Z",
-            user: { id: "u3", name: "Autor" },
-            rating: { positive: 0, negative: 0 },
-            parentCommentId: "c1",
-            replies: [],
+            ok: true,
+            data: {
+                id: "c3",
+                content: "Nowa odpowiedź",
+                datePosted: "2026-05-07T12:00:00.000Z",
+                user: { id: "u3", name: "Autor" },
+                rating: { positive: 0, negative: 0 },
+                parentCommentId: "c1",
+            },
         });
 
-        render(<ArticleComments articleId="a1" initialComments={initialComments} />);
+        renderWithIntl(<ArticleComments articleId="a1" initialComments={initialComments} />);
 
         expect(screen.getByText("2 komentarze")).toBeInTheDocument();
         expect(screen.getByText("Pierwszy komentarz")).toBeInTheDocument();
@@ -101,15 +96,33 @@ describe("ArticleComments", () => {
     });
 
     it("disables commenting when there is no active session", async () => {
-        authState = {
-            accessToken: "",
-            isLoading: false,
-            error: null,
-        };
+        sessionState = { status: "unauthenticated", data: null };
 
-        render(<ArticleComments articleId="a1" initialComments={initialComments} />);
+        renderWithIntl(<ArticleComments articleId="a1" initialComments={initialComments} />);
 
         expect(screen.getByPlaceholderText("Zaloguj się, aby napisać komentarz")).toBeDisabled();
         expect(screen.getByText("Musisz być zalogowany, aby komentować.")).toBeInTheDocument();
+    });
+
+    it("tells the user when only part of the comments is shown", () => {
+        renderWithIntl(<ArticleComments articleId="a1" initialComments={initialComments} totalCount={250} />);
+
+        expect(screen.getByText("250 komentarzy")).toBeInTheDocument();
+        expect(screen.getByText("Wyświetlono 2 najnowszych z 250 komentarzy.")).toBeInTheDocument();
+    });
+
+    it("records the vote for the signed-in user and rolls back when the server rejects it", async () => {
+        const user = userEvent.setup();
+        rateComment.mockResolvedValue({ ok: false, error: "rateCommentFailed" });
+
+        renderWithIntl(<ArticleComments articleId="a1" initialComments={initialComments} />);
+
+        await user.click(screen.getByRole("button", { name: "Głos pozytywny (2)" }));
+
+        expect(setVote).toHaveBeenCalledWith("u-me", "c1", "positive");
+        await waitFor(() => {
+            expect(clearVote).toHaveBeenCalledWith("u-me", "c1");
+        });
+        expect(screen.getByText("Nie udało się ocenić komentarza.")).toBeInTheDocument();
     });
 });

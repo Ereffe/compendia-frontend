@@ -1,0 +1,268 @@
+{
+  "metadata": {
+    "description": "Compendia porządkuje notatki, pomysły i projekty w jednym żyjącym centrum wiedzy."
+  },
+  "common": {
+    "brand": "Compendia",
+    "backToArticles": "Wróć do artykułów",
+    "backToHome": "Wróć na stronę główną",
+    "goToArticles": "Przejdź do artykułów",
+    "createArticle": "Utwórz artykuł",
+    "authorBy": "Autor: {name}",
+    "unknownAuthor": "Nieznany autor",
+    "close": "Zamknij",
+    "loading": "Wczytywanie…"
+  },
+  "header": {
+    "allArticles": "Wszystkie artykuły",
+    "createArticle": "Stwórz artykuł",
+    "logout": "Wyloguj",
+    "logoutAs": "Wyloguj ({name})",
+    "menu": "Menu",
+    "openMenu": "Otwórz menu",
+    "navigation": "Nawigacja"
+  },
+  "language": {
+    "label": "Język",
+    "switchTo": "Zmień język na: {language}",
+    "pl": "Polski",
+    "en": "English"
+  },
+  "theme": {
+    "toLight": "Przełącz na jasny motyw",
+    "toDark": "Przełącz na ciemny motyw",
+    "light": "Jasny motyw",
+    "dark": "Ciemny motyw"
+  },
+  "footer": {
+    "tagline": "Stworzone dla studentów i wykładowców, którzy uczą się lepiej razem."
+  },
+  "landing": {
+    "title": "Jedno miejsce na notatki, artykuły i uporządkowaną naukę.",
+    "subtitle": "Zaloguj się, aby kontynuować dokładnie tam, gdzie skończyłeś, i trzymać materiały w jednym miejscu.",
+    "highlights": {
+      "context": {
+        "title": "Notatki w kontekście",
+        "description": "Zachowuj powiązania między artykułami, pomysłami i materiałami do nauki."
+      },
+      "quickAccess": {
+        "title": "Szybki dostęp",
+        "description": "Wracaj do najnowszych treści bez przeklikiwania menu."
+      },
+      "learning": {
+        "title": "Stworzone do nauki",
+        "description": "Skupiona przestrzeń dla studentów i wykładowców pracujących razem."
+      }
+    },
+    "sessionExpired": "Twoja sesja wygasła. Zaloguj się ponownie."
+  },
+  "login": {
+    "modes": {
+      "login": "Zaloguj się",
+      "register": "Zarejestruj się"
+    },
+    "descriptions": {
+      "login": "Wpisz e-mail i hasło, aby kontynuować.",
+      "register": "Utwórz konto, podając imię, e-mail i hasło."
+    },
+    "name": "Imię",
+    "namePlaceholder": "Twoje imię",
+    "email": "E-mail",
+    "emailPlaceholder": "student@uczelnia.edu",
+    "password": "Hasło",
+    "passwordPlaceholder": "Wpisz hasło",
+    "modalTitle": "Zaloguj się do Compendia",
+    "modalDescription": "Zaloguj się, aby kontynuować.",
+    "errors": {
+      "missingFieldsLogin": "Wpisz e-mail i hasło.",
+      "missingFieldsRegister": "Wpisz imię, e-mail i hasło.",
+      "invalidEmail": "Wpisz poprawny adres e-mail.",
+      "passwordTooShort": "Hasło musi mieć co najmniej {min} znaków.",
+      "registerFailed": "Rejestracja nie powiodła się.",
+      "invalidCredentials": "Nieprawidłowy e-mail lub hasło.",
+      "emailTaken": "Konto z tym adresem e-mail już istnieje.",
+      "backendUnavailable": "Serwer jest niedostępny. Spróbuj ponownie za chwilę.",
+      "loginFailed": "Nie udało się zalogować. Spróbuj ponownie."
+    }
+  },
+  "articles": {
+    "title": "Najnowsze artykuły",
+    "description": "Przeglądaj najnowsze wpisy, otwieraj pełne artykuły i wracaj do czytania bez utraty kontekstu.",
+    "empty": "Brak artykułów do wyświetlenia."
+  },
+  "archive": {
+    "title": "Wszystkie artykuły",
+    "description": "Przeglądaj wszystkie artykuły dostępne na platformie. Znajdź inspirację, poszerz swoją wiedzę i odkryj nowe tematy.",
+    "pageOf": "Strona {page} z {total}",
+    "empty": "Brak artykułów do wyświetlenia",
+    "previous": "Poprzednia",
+    "next": "Następna",
+    "morePages": "Więcej stron",
+    "pagination": "Paginacja"
+  },
+  "article": {
+    "notFoundTitle": "Artykuł nie znaleziony",
+    "notFoundDescription": "Szukany artykuł nie istnieje lub został usunięty. Sprawdź adres URL lub przejdź do listy artykułów."
+  },
+  "complexity": {
+    "SIMPLE": "Proste",
+    "INTERMEDIATE": "Średnie",
+    "COMPLEX": "Zaawansowane"
+  },
+  "comments": {
+    "title": "Komentarze",
+    "count": "{count, plural, =0 {Bądź pierwszą osobą, która skomentuje ten artykuł.} one {# komentarz} few {# komentarze} many {# komentarzy} other {# komentarza}}",
+    "checkingSession": "Sprawdzanie sesji...",
+    "mustSignIn": "Musisz być zalogowany, aby komentować.",
+    "placeholder": "Napisz komentarz...",
+    "placeholderSignedOut": "Zaloguj się, aby napisać komentarz",
+    "submit": "Dodaj komentarz",
+    "submitting": "Publikowanie...",
+    "replyPlaceholder": "Napisz odpowiedź...",
+    "submitReply": "Dodaj odpowiedź",
+    "reply": "Odpowiedz",
+    "cancel": "Anuluj",
+    "replyBadge": "odpowiedź",
+    "edited": "edytowano",
+    "empty": "Brak komentarzy.",
+    "truncated": "Wyświetlono {shown} najnowszych z {total} komentarzy.",
+    "hideReplies": "Ukryj odpowiedzi",
+    "noReplies": "Brak odpowiedzi",
+    "showReplies": "{count, plural, one {Pokaż # odpowiedź} other {Pokaż # odpowiedzi}}",
+    "upvote": "Głos pozytywny ({count})",
+    "downvote": "Głos negatywny ({count})",
+    "alreadyVoted": "Już zagłosowano"
+  },
+  "search": {
+    "openLabel": "Otwórz wyszukiwarkę artykułów",
+    "buttonLabel": "Szukaj artykułów i tematów",
+    "example": "Przykład: optymalizacja SQL, planowanie procesów, listy wiązane...",
+    "open": "Otwórz",
+    "title": "Wyszukiwanie artykułów",
+    "description": "Zacznij pisać, aby przeszukać tytuły i treść wszystkich artykułów.",
+    "placeholder": "Szukaj artykułów...",
+    "searching": "Szukanie…",
+    "results": "{count, plural, =0 {Brak wyników} one {# wynik} few {# wyniki} many {# wyników} other {# wyniku}}",
+    "noResults": "Nie znaleziono artykułów dla tego zapytania.",
+    "failed": "Wyszukiwanie nie powiodło się. Spróbuj ponownie."
+  },
+  "create": {
+    "title": "Utwórz nowy artykuł",
+    "description": "Podziel się swoją wiedzą ze społecznością. Artykuły mogą zawierać notatki, wyjaśnienia, przykłady i materiały do nauki powiązane z wybranymi tematami.",
+    "scientific": "Artykuł naukowy",
+    "titleLabel": "Tytuł",
+    "titlePlaceholder": "Np. Wprowadzenie do struktur danych",
+    "doiLabel": "Numer DOI",
+    "doiPlaceholder": "np. 10.1234/56789",
+    "contentLabel": "Treść",
+    "scientificContentLabel": "Komentarz do artykułu naukowego",
+    "contentPlaceholder": "Rozpocznij pisać markdown...",
+    "complexityLabel": "Poziom trudności",
+    "redirectHint": "Po wysłaniu formularza zostaniesz przekierowany do nowo utworzonego artykułu.",
+    "submit": "Utwórz artykuł",
+    "submitting": "Tworzenie...",
+    "typeLabel": "Typ artykułu",
+    "typeRegular": "Zwykły artykuł",
+    "typeRegularHint": "Notatki, wyjaśnienia i materiały do nauki.",
+    "typeScientificHint": "Komentarz do publikacji naukowej wskazanej numerem DOI.",
+    "doiHint": "Wklej DOI lub link doi.org. Publikacja zostanie dodana jako źródło z grafem cytowań.",
+    "titleCounter": "{count}/{max}",
+    "markdownHint": "Obsługiwany jest Markdown: nagłówki, listy, kod, linki i tabele.",
+    "complexityHints": {
+      "SIMPLE": "Dla początkujących, bez specjalistycznej wiedzy.",
+      "INTERMEDIATE": "Zakłada znajomość podstaw tematu.",
+      "COMPLEX": "Dla osób, które dobrze znają dziedzinę."
+    },
+    "tipsTitle": "Wskazówki",
+    "tips": {
+      "headings": "## Nagłówek dzieli tekst na sekcje.",
+      "lists": "- punkt albo 1. punkt tworzy listę.",
+      "code": "`kod` w tekście, ``` dla bloku kodu.",
+      "links": "[tekst](https://adres) dodaje link."
+    }
+  },
+  "graph": {
+    "title": "Graf cytowań",
+    "subtitle": "Jak to źródło łączy się z literaturą, którą cytuje.",
+    "papers": "{count, plural, one {# praca} few {# prace} many {# prac} other {# pracy}}",
+    "links": "{count, plural, one {# cytowanie} few {# cytowania} many {# cytowań} other {# cytowania}}",
+    "reference": "Źródło",
+    "chooseReference": "Wybierz źródło",
+    "show": "Pokaż graf",
+    "hide": "Ukryj graf",
+    "depth": "Głębokość",
+    "depthHint": "Liczba kroków cytowań od źródła",
+    "layout": "Układ",
+    "layouts": {
+      "concentric": "Promienisty",
+      "breadthfirst": "Drzewo",
+      "cose": "Swobodny"
+    },
+    "zoomIn": "Przybliż",
+    "zoomOut": "Oddal",
+    "fit": "Dopasuj widok",
+    "exportPng": "Pobierz jako PNG",
+    "refresh": "Odśwież dane",
+    "loading": "Wczytywanie grafu…",
+    "legend": {
+      "root": "Źródło",
+      "cited": "Cytowana praca",
+      "missing": "Brak metadanych"
+    },
+    "kind": {
+      "root": "Źródło artykułu",
+      "cited": "Cytowana praca",
+      "missing": "Brak metadanych"
+    },
+    "selectHint": "Kliknij węzeł, aby zobaczyć szczegóły pracy.",
+    "hoverHint": "Najedź na węzeł, aby podświetlić jego cytowania.",
+    "missingDescription": "Nie udało się pobrać tytułu ani autorów tej pracy. Znany jest tylko jej DOI.",
+    "authorsMore": "i {count} innych",
+    "depthBadge": "{depth, plural, =0 {źródło} one {# krok od źródła} few {# kroki od źródła} many {# kroków od źródła} other {# kroku od źródła}}",
+    "copyDoi": "Kopiuj DOI",
+    "copied": "Skopiowano",
+    "expand": "Pokaż jej cytowania",
+    "openSource": "Otwórz",
+    "clearSelection": "Zamknij szczegóły",
+    "empty": "Brak danych grafu dla tego DOI.",
+    "emptyHint": "Ta praca nie ma cytowań z rozpoznawalnym DOI albo nie udało się pobrać jej metadanych.",
+    "loadFailed": "Nie udało się wczytać grafu cytowań.",
+    "expandFailed": "Nie udało się pobrać cytowań tej pracy.",
+    "retry": "Spróbuj ponownie"
+  },
+  "notFound": {
+    "title": "Strona nie znaleziona",
+    "description": "Przepraszamy, ale szukana strona nie istnieje. Sprawdź adres URL lub wróć do głównej strony."
+  },
+  "error": {
+    "title": "Coś poszło nie tak",
+    "description": "Nie udało się połączyć z serwerem albo wystąpił nieoczekiwany błąd. Spróbuj ponownie za chwilę.",
+    "code": "Kod błędu: {digest}",
+    "retry": "Spróbuj ponownie"
+  },
+  "errors": {
+    "notSignedIn": "Musisz być zalogowany.",
+    "voteRequiresLogin": "Musisz być zalogowany, aby głosować.",
+    "emptyComment": "Komentarz nie może być pusty.",
+    "addCommentFailed": "Nie udało się dodać komentarza.",
+    "rateCommentFailed": "Nie udało się ocenić komentarza.",
+    "missingTitleOrContent": "Uzupełnij tytuł i treść.",
+    "invalidComplexity": "Nieprawidłowy poziom trudności.",
+    "missingDoi": "Podaj numer DOI artykułu naukowego.",
+    "invalidDoi": "Nieprawidłowy numer DOI (np. 10.1234/56789).",
+    "createArticleFailed": "Nie udało się utworzyć artykułu.",
+    "sessionExpired": "Sesja wygasła. Zaloguj się ponownie.",
+    "forbidden": "Nie masz uprawnień do tej operacji.",
+    "notFound": "Nie znaleziono zasobu.",
+    "generic": "Wystąpił nieoczekiwany błąd."
+  },
+  "references": {
+    "title": "Źródła",
+    "subtitle": "Publikacje, na których opiera się ten artykuł.",
+    "count": "{count, plural, one {# źródło} few {# źródła} many {# źródeł} other {# źródła}}",
+    "authorsMore": "i {count} innych",
+    "copyDoi": "Kopiuj DOI",
+    "copied": "Skopiowano",
+    "showInGraph": "Pokaż w grafie"
+  }
+}

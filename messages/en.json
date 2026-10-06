@@ -1,0 +1,268 @@
+{
+  "metadata": {
+    "description": "Compendia organizes notes, ideas and projects in one living knowledge hub."
+  },
+  "common": {
+    "brand": "Compendia",
+    "backToArticles": "Back to articles",
+    "backToHome": "Back to home page",
+    "goToArticles": "Go to articles",
+    "createArticle": "Create article",
+    "authorBy": "By {name}",
+    "unknownAuthor": "Unknown author",
+    "close": "Close",
+    "loading": "Loading…"
+  },
+  "header": {
+    "allArticles": "All articles",
+    "createArticle": "Create article",
+    "logout": "Log out",
+    "logoutAs": "Log out ({name})",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "navigation": "Navigation"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Switch language to: {language}",
+    "pl": "Polski",
+    "en": "English"
+  },
+  "theme": {
+    "toLight": "Switch to light theme",
+    "toDark": "Switch to dark theme",
+    "light": "Light theme",
+    "dark": "Dark theme"
+  },
+  "footer": {
+    "tagline": "Built for students and lecturers who learn better together."
+  },
+  "landing": {
+    "title": "One place for notes, articles and organized learning.",
+    "subtitle": "Sign in to pick up exactly where you left off and keep your materials in one place.",
+    "highlights": {
+      "context": {
+        "title": "Notes in context",
+        "description": "Keep the connections between articles, ideas and study materials."
+      },
+      "quickAccess": {
+        "title": "Quick access",
+        "description": "Get back to the latest content without digging through menus."
+      },
+      "learning": {
+        "title": "Built for learning",
+        "description": "A focused space for students and lecturers working together."
+      }
+    },
+    "sessionExpired": "Your session has expired. Please sign in again."
+  },
+  "login": {
+    "modes": {
+      "login": "Sign in",
+      "register": "Sign up"
+    },
+    "descriptions": {
+      "login": "Enter your e-mail and password to continue.",
+      "register": "Create an account with your name, e-mail and password."
+    },
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "E-mail",
+    "emailPlaceholder": "student@university.edu",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "modalTitle": "Sign in to Compendia",
+    "modalDescription": "Sign in to continue.",
+    "errors": {
+      "missingFieldsLogin": "Enter your e-mail and password.",
+      "missingFieldsRegister": "Enter your name, e-mail and password.",
+      "invalidEmail": "Enter a valid e-mail address.",
+      "passwordTooShort": "Password must be at least {min} characters long.",
+      "registerFailed": "Sign-up failed.",
+      "invalidCredentials": "Invalid e-mail or password.",
+      "emailTaken": "An account with this e-mail already exists.",
+      "backendUnavailable": "The server is unavailable. Please try again shortly.",
+      "loginFailed": "Sign-in failed. Please try again."
+    }
+  },
+  "articles": {
+    "title": "Latest articles",
+    "description": "Browse the newest posts, open full articles and get back to reading without losing context.",
+    "empty": "No articles to display."
+  },
+  "archive": {
+    "title": "All articles",
+    "description": "Browse every article on the platform. Find inspiration, broaden your knowledge and discover new topics.",
+    "pageOf": "Page {page} of {total}",
+    "empty": "No articles to display",
+    "previous": "Previous",
+    "next": "Next",
+    "morePages": "More pages",
+    "pagination": "Pagination"
+  },
+  "article": {
+    "notFoundTitle": "Article not found",
+    "notFoundDescription": "The article you are looking for does not exist or has been removed. Check the URL or go to the article list."
+  },
+  "complexity": {
+    "SIMPLE": "Simple",
+    "INTERMEDIATE": "Intermediate",
+    "COMPLEX": "Advanced"
+  },
+  "comments": {
+    "title": "Comments",
+    "count": "{count, plural, =0 {Be the first to comment on this article.} one {# comment} other {# comments}}",
+    "checkingSession": "Checking session...",
+    "mustSignIn": "You need to be signed in to comment.",
+    "placeholder": "Write a comment...",
+    "placeholderSignedOut": "Sign in to write a comment",
+    "submit": "Add comment",
+    "submitting": "Publishing...",
+    "replyPlaceholder": "Write a reply...",
+    "submitReply": "Add reply",
+    "reply": "Reply",
+    "cancel": "Cancel",
+    "replyBadge": "reply",
+    "edited": "edited",
+    "empty": "No comments yet.",
+    "truncated": "Showing the {shown} newest of {total} comments.",
+    "hideReplies": "Hide replies",
+    "noReplies": "No replies",
+    "showReplies": "{count, plural, one {Show # reply} other {Show # replies}}",
+    "upvote": "Upvote ({count})",
+    "downvote": "Downvote ({count})",
+    "alreadyVoted": "Already voted"
+  },
+  "search": {
+    "openLabel": "Open article search",
+    "buttonLabel": "Search articles and topics",
+    "example": "Example: SQL optimization, process scheduling, linked lists...",
+    "open": "Open",
+    "title": "Article search",
+    "description": "Start typing to search the titles and content of all articles.",
+    "placeholder": "Search articles...",
+    "searching": "Searching…",
+    "results": "{count, plural, =0 {No results} one {# result} other {# results}}",
+    "noResults": "No articles found for this query.",
+    "failed": "Search failed. Please try again."
+  },
+  "create": {
+    "title": "Create a new article",
+    "description": "Share your knowledge with the community. Articles can include notes, explanations, examples and study materials related to chosen topics.",
+    "scientific": "Scientific article",
+    "titleLabel": "Title",
+    "titlePlaceholder": "E.g. Introduction to data structures",
+    "doiLabel": "DOI",
+    "doiPlaceholder": "e.g. 10.1234/56789",
+    "contentLabel": "Content",
+    "scientificContentLabel": "Commentary on the scientific article",
+    "contentPlaceholder": "Start writing markdown...",
+    "complexityLabel": "Difficulty",
+    "redirectHint": "After submitting you will be redirected to the new article.",
+    "submit": "Create article",
+    "submitting": "Creating...",
+    "typeLabel": "Article type",
+    "typeRegular": "Regular article",
+    "typeRegularHint": "Notes, explanations and study materials.",
+    "typeScientificHint": "Commentary on a scientific publication identified by its DOI.",
+    "doiHint": "Paste a DOI or a doi.org link. The publication is added as a reference with a citation graph.",
+    "titleCounter": "{count}/{max}",
+    "markdownHint": "Markdown is supported: headings, lists, code, links and tables.",
+    "complexityHints": {
+      "SIMPLE": "For beginners, no specialist knowledge needed.",
+      "INTERMEDIATE": "Assumes the basics of the topic.",
+      "COMPLEX": "For readers who know the field well."
+    },
+    "tipsTitle": "Tips",
+    "tips": {
+      "headings": "## Heading splits the text into sections.",
+      "lists": "- item or 1. item makes a list.",
+      "code": "`code` inline, ``` for a code block.",
+      "links": "[text](https://address) adds a link."
+    }
+  },
+  "graph": {
+    "title": "Citation graph",
+    "subtitle": "How this reference connects to the literature it cites.",
+    "papers": "{count, plural, one {# paper} other {# papers}}",
+    "links": "{count, plural, one {# citation} other {# citations}}",
+    "reference": "Reference",
+    "chooseReference": "Choose a reference",
+    "show": "Show graph",
+    "hide": "Hide graph",
+    "depth": "Depth",
+    "depthHint": "Number of citation steps from the reference",
+    "layout": "Layout",
+    "layouts": {
+      "concentric": "Radial",
+      "breadthfirst": "Tree",
+      "cose": "Free"
+    },
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit to view",
+    "exportPng": "Download as PNG",
+    "refresh": "Refresh data",
+    "loading": "Loading graph…",
+    "legend": {
+      "root": "Reference",
+      "cited": "Cited paper",
+      "missing": "No metadata"
+    },
+    "kind": {
+      "root": "Article's reference",
+      "cited": "Cited paper",
+      "missing": "No metadata"
+    },
+    "selectHint": "Click a node to see the paper's details.",
+    "hoverHint": "Hover a node to highlight its citations.",
+    "missingDescription": "The title and authors of this paper could not be retrieved. Only its DOI is known.",
+    "authorsMore": "and {count} more",
+    "depthBadge": "{depth, plural, =0 {reference} one {# step from the reference} other {# steps from the reference}}",
+    "copyDoi": "Copy DOI",
+    "copied": "Copied",
+    "expand": "Show its citations",
+    "openSource": "Open",
+    "clearSelection": "Close details",
+    "empty": "No graph data for this DOI.",
+    "emptyHint": "This paper has no citations with a recognizable DOI, or its metadata could not be retrieved.",
+    "loadFailed": "Could not load the citation graph.",
+    "expandFailed": "Could not load this paper's citations.",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "Sorry, the page you are looking for does not exist. Check the URL or go back to the home page."
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "We could not reach the server or an unexpected error occurred. Please try again shortly.",
+    "code": "Error code: {digest}",
+    "retry": "Try again"
+  },
+  "errors": {
+    "notSignedIn": "You need to be signed in.",
+    "voteRequiresLogin": "You need to be signed in to vote.",
+    "emptyComment": "A comment cannot be empty.",
+    "addCommentFailed": "Could not add the comment.",
+    "rateCommentFailed": "Could not rate the comment.",
+    "missingTitleOrContent": "Fill in the title and content.",
+    "invalidComplexity": "Invalid difficulty level.",
+    "missingDoi": "Enter the DOI of the scientific article.",
+    "invalidDoi": "Invalid DOI (e.g. 10.1234/56789).",
+    "createArticleFailed": "Could not create the article.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "forbidden": "You are not allowed to do this.",
+    "notFound": "Resource not found.",
+    "generic": "An unexpected error occurred."
+  },
+  "references": {
+    "title": "References",
+    "subtitle": "Publications this article builds on.",
+    "count": "{count, plural, one {# reference} other {# references}}",
+    "authorsMore": "and {count} more",
+    "copyDoi": "Copy DOI",
+    "copied": "Copied",
+    "showInGraph": "Show in graph"
+  }
+}
