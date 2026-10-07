@@ -8,13 +8,14 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
+import "katex/dist/katex.min.css";
 
 import { EditorSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMounted } from "@/hooks/use-mounted";
-import { articleUrlTransform } from "@/lib/articleContent";
+import { articleRehypePlugins, articleUrlTransform, mathRemarkPlugins } from "@/lib/articleContent";
 import { IMAGE_ACCEPT } from "@/lib/imageFile";
 import { cn } from "@/lib/utils";
 import type { ArticleComplexity } from "@/types/articles";
@@ -284,7 +285,11 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
               preview={isMobile ? "edit" : "live"}
               height={isMobile ? 300 : 500}
               visibleDragbar={false}
-              previewOptions={{ urlTransform: articleUrlTransform }}
+              previewOptions={{
+                urlTransform: articleUrlTransform,
+                remarkPlugins: mathRemarkPlugins,
+                rehypePlugins: articleRehypePlugins,
+              }}
               textareaProps={{
                 id: "content",
                 placeholder: t("create.contentPlaceholder"),
@@ -321,6 +326,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
             <li>{t("create.tips.lists")}</li>
             <li>{t("create.tips.code")}</li>
             <li>{t("create.tips.links")}</li>
+            <li>{t("create.tips.math")}</li>
           </ul>
         </details>
 

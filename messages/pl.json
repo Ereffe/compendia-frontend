@@ -205,7 +205,7 @@
     "typeRegularHint": "Notatki, wyjaśnienia i materiały do nauki.",
     "typeScientificHint": "Komentarz do publikacji naukowych wskazanych numerami DOI.",
     "titleCounter": "{count}/{max}",
-    "markdownHint": "Obsługiwany jest Markdown: nagłówki, listy, kod, linki i tabele.",
+    "markdownHint": "Obsługiwany jest Markdown: nagłówki, listy, kod, linki, tabele i wzory LaTeX.",
     "complexityHints": {
       "SIMPLE": "Dla początkujących, bez specjalistycznej wiedzy.",
       "INTERMEDIATE": "Zakłada znajomość podstaw tematu.",
@@ -216,7 +216,8 @@
       "headings": "## Nagłówek dzieli tekst na sekcje.",
       "lists": "- punkt albo 1. punkt tworzy listę.",
       "code": "`kod` w tekście, ``` dla bloku kodu.",
-      "links": "[tekst](https://adres) dodaje link."
+      "links": "[tekst](https://adres) dodaje link.",
+      "math": "$E = mc^2$ wstawia wzór w tekście, $$...$$ w osobnej linii."
     },
     "metadata": {
       "fetch": "Uzupełnij z DOI",

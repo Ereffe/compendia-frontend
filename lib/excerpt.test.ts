@@ -33,4 +33,8 @@ describe("toExcerpt", () => {
     it("cuts long text at a word boundary and adds an ellipsis", () => {
         expect(toExcerpt("Jeden dwa trzy cztery pięć sześć", 20)).toBe("Jeden dwa trzy…");
     });
+
+    it("drops block formulas, which read as noise in a card", () => {
+        expect(toExcerpt(String.raw`Całka $$\int_0^1 x \, dx$$ wynosi $\frac{1}{2}$.`)).toBe(String.raw`Całka wynosi $\frac{1}{2}$.`);
+    });
 });

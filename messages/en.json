@@ -205,7 +205,7 @@
     "typeRegularHint": "Notes, explanations and study materials.",
     "typeScientificHint": "Commentary on scientific publications identified by their DOIs.",
     "titleCounter": "{count}/{max}",
-    "markdownHint": "Markdown is supported: headings, lists, code, links and tables.",
+    "markdownHint": "Markdown is supported: headings, lists, code, links, tables and LaTeX formulas.",
     "complexityHints": {
       "SIMPLE": "For beginners, no specialist knowledge needed.",
       "INTERMEDIATE": "Assumes the basics of the topic.",
@@ -216,7 +216,8 @@
       "headings": "## Heading splits the text into sections.",
       "lists": "- item or 1. item makes a list.",
       "code": "`code` inline, ``` for a code block.",
-      "links": "[text](https://address) adds a link."
+      "links": "[text](https://address) adds a link.",
+      "math": "$E = mc^2$ adds an inline formula, $$...$$ a formula on its own line."
     },
     "metadata": {
       "fetch": "Fill in from DOI",

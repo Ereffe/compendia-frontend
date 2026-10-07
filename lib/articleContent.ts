@@ -1,10 +1,19 @@
 import { defaultUrlTransform } from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 
 const BACKEND_ASSET_PATH = /^\/api\/v1\/articles\/assets\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 
 export const ASSET_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const ASSET_CONTENT_TYPES = new Set(["image/png", "image/jpeg", "image/gif"]);
+
+export const mathRemarkPlugins = [remarkMath];
+
+export const articleRemarkPlugins = [remarkGfm, ...mathRemarkPlugins];
+
+export const articleRehypePlugins = [rehypeKatex];
 
 export const assetProxyPath = (assetId: string) => `/api/assets/${assetId}`;
 

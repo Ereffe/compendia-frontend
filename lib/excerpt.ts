@@ -5,6 +5,7 @@ export const EXCERPT_LENGTH = 180;
 export const markdownToPlainText = (markdown: string): string =>
     markdown
         .replace(/```[\s\S]*?(```|$)/g, " ")
+        .replace(/\$\$[\s\S]*?\$\$/g, " ")
         .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
         .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
         .replace(/<[^>]+>/g, " ")

@@ -1,13 +1,19 @@
 import { notFound, unstable_rethrow } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Markdown from "react-markdown";
+import "katex/dist/katex.min.css";
 
 import ArticleComments from "@/components/articles/articleComments/articleComments";
 import ArticleOwnerActions from "@/components/articles/articleOwnerActions";
 import ArticleRating from "@/components/articles/articleRating/articleRating";
 import ArticleReferences from "@/components/articles/articleReferences";
 import ArticleGraphContainer from "@/components/articles/articleGraph/ArticleGraphContainer";
-import { articleUrlTransform, cleanArticleMarkdown } from "@/lib/articleContent";
+import {
+  articleRehypePlugins,
+  articleRemarkPlugins,
+  articleUrlTransform,
+  cleanArticleMarkdown,
+} from "@/lib/articleContent";
 import { isValidArticleId } from "@/lib/articleId";
 import { isDetachedAuthorError, isNotFoundError } from "@/lib/graphqlErrors";
 import { authedQuery, getCurrentUserId, requireAccessToken } from "@/lib/server/session";
@@ -23,6 +29,7 @@ const proseClass = [
   "prose-a:text-teal-800 prose-a:underline-offset-[3px] hover:prose-a:text-teal-950 dark:prose-a:text-teal-300",
   "prose-code:font-mono prose-code:text-[0.85em] prose-pre:overflow-x-auto prose-pre:font-mono prose-pre:text-sm",
   "prose-img:rounded-md [&_table]:block [&_table]:overflow-x-auto [&_table]:font-sans [&_table]:text-sm",
+  "[&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-1",
 ].join(" ");
 
 const queryArticle = async (id: string, accessToken: string, withAuthor: boolean) =>
@@ -82,7 +89,7 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
 
           <div className={`${readingColumn} mt-10 border-t border-border pt-10`}>
             <div className={proseClass}>
-              <Markdown urlTransform={articleUrlTransform}>{cleanArticleMarkdown(article.content)}</Markdown>
+              <Markdown remarkPlugins={articleRemarkPlugins} rehypePlugins={articleRehypePlugins} urlTransform={articleUrlTransform}>{cleanArticleMarkdown(article.content)}</Markdown>
             </div>
             <div className="mt-12 border-t border-border pt-6">
               <ArticleRating articleId={article.id} initialRating={article.rating} />
