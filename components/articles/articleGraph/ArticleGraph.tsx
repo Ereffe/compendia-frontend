@@ -2,7 +2,6 @@
 
 import type cytoscape from "cytoscape";
 import {
-    AlertTriangle,
     Check,
     Copy,
     Download,
@@ -32,10 +31,16 @@ import {
     buildGraphElements,
     type CytoscapeNodeData,
     getGraphStats,
-    type GraphResponse,
-    mergeGraphs,
+    buildCitationGraph,
+    type DoiRecord,
+    type GraphNode,
+    MAX_DOI_LOOKUPS,
+    normalizeGraph,
+    pickNextLookup,
     type NodeKind,
+    toNodeId,
 } from "./articleGraphController";
+import { clearDoiRecordCache, fetchDoiRecord } from "./doiMetadata";
 import { buildLayout, buildStylesheet, getPalette, GRAPH_LAYOUTS, type GraphLayoutName } from "./graphStyles";
 
 const CytoscapeComponent = dynamic(() => import("react-cytoscapejs"), {
@@ -49,83 +54,98 @@ const LEVELS = Array.from({ length: MAX_GRAPH_LEVEL - MIN_GRAPH_LEVEL + 1 }, (_,
 
 const clampLevel = (level: number) => Math.min(MAX_GRAPH_LEVEL, Math.max(MIN_GRAPH_LEVEL, level));
 
-async function queryGraph(doi: string, level: number, fetchPolicy: "cache-first" | "network-only") {
-    const res = await getBrowserClient().query({
-        query: SCIENCE_ARTICLE_GRAPH_QUERY,
-        variables: { doi, level },
-        fetchPolicy,
-    });
-    return res.data ?? null;
+async function queryBackendGraph(doi: string) {
+    const res = await getBrowserClient().query({ query: SCIENCE_ARTICLE_GRAPH_QUERY, variables: { doi, level: 1 } });
+    return normalizeGraph(res.data ?? null)?.scienceArticleGraph ?? null;
+}
+
+type LoadedRecord = { record: DoiRecord; fallbackNodes: GraphNode[] };
+
+// Papers without references in Crossref (e.g. arXiv) fall back to the backend's slow scraper, one level only.
+async function loadRecord(doi: string, isRoot: boolean): Promise<LoadedRecord> {
+    const record = await fetchDoiRecord(doi);
+    if (!isRoot || record.references.length > 0) return { record, fallbackNodes: [] };
+    try {
+        const graph = await queryBackendGraph(doi);
+        if (!graph) return { record, fallbackNodes: [] };
+        const rootId = toNodeId(doi);
+        const nodes = graph.nodes.filter((node) => node.title);
+        return {
+            record: {
+                node: record.node ?? nodes.find((node) => toNodeId(node.doi) === rootId) ?? null,
+                references: graph.edges.filter((edge) => toNodeId(edge.first) === rootId).map((edge) => edge.second),
+            },
+            fallbackNodes: nodes,
+        };
+    } catch (err) {
+        console.error("Citation graph fallback query failed:", err);
+        return { record, fallbackNodes: [] };
+    }
 }
 
 type Hover = { node: CytoscapeNodeData; x: number; y: number };
+
+const readSerifFont = () => {
+    const serif = getComputedStyle(document.body).getPropertyValue("--font-newsreader").trim();
+    return serif ? `${serif}, ui-serif, Georgia, serif` : getComputedStyle(document.body).fontFamily || "serif";
+};
 
 export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: string; initialLevel?: number }>) {
     const t = useTranslations("graph");
     const { resolvedTheme } = useTheme();
     const [level, setLevel] = useState(() => clampLevel(initialLevel));
     const [layoutName, setLayoutName] = useState<GraphLayoutName>("concentric");
-    const [data, setData] = useState<GraphResponse | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<"loadFailed" | null>(null);
-    const [expandError, setExpandError] = useState(false);
-    const [expandingDoi, setExpandingDoi] = useState<string | null>(null);
-    const [selectedNode, setSelectedNode] = useState<CytoscapeNodeData | null>(null);
+    const [records, setRecords] = useState<ReadonlyMap<string, DoiRecord>>(() => new Map());
+    const [fallbackNodes, setFallbackNodes] = useState<ReadonlyMap<string, GraphNode>>(() => new Map());
+    const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
+    const [selectedId, setSelectedId] = useState<string | null>(null);
     const [hover, setHover] = useState<Hover | null>(null);
     const [fontFamily, setFontFamily] = useState("sans-serif");
     const cyRef = useRef<cytoscape.Core | null>(null);
 
-    useEffect(() => {
-        const serif = getComputedStyle(document.body).getPropertyValue("--font-newsreader").trim();
-        setFontFamily(serif ? `${serif}, ui-serif, Georgia, serif` : getComputedStyle(document.body).fontFamily || "serif");
-    }, []);
+    const rootId = toNodeId(doi);
+    const citation = useMemo(() => buildCitationGraph(doi, records, level, expanded, fallbackNodes), [doi, records, level, expanded, fallbackNodes]);
+    const elements = useMemo(() => buildGraphElements(citation.graph, doi), [citation.graph, doi]);
+    const stats = useMemo(() => getGraphStats(elements), [elements]);
+    const selectedNode = selectedId ? (elements.find((element) => element.data.id === selectedId)?.data as CytoscapeNodeData | undefined) ?? null : null;
+    const nextLookup = pickNextLookup(elements, records, selectedId);
 
-    const fetchGraph = useCallback(
-        async (fetchPolicy: "cache-first" | "network-only", isCancelled: () => boolean = () => false) => {
-            setLoading(true);
-            setError(null);
-            try {
-                const graph = await queryGraph(doi, level, fetchPolicy);
-                if (!isCancelled()) {
-                    setData(graph);
-                    setSelectedNode(null);
-                }
-            } catch (err) {
-                console.error("Citation graph query failed:", err);
-                if (!isCancelled()) setError("loadFailed");
-            } finally {
-                if (!isCancelled()) setLoading(false);
+    useEffect(() => {
+        if (!nextLookup) return;
+        void loadRecord(nextLookup, toNodeId(nextLookup) === rootId).then(({ record, fallbackNodes: found }) => {
+            setRecords((previous) => new Map(previous).set(toNodeId(nextLookup), record));
+            if (found.length > 0) {
+                setFallbackNodes((previous) => new Map([...previous, ...found.map((node) => [toNodeId(node.doi), node] as const)]));
             }
-        },
-        [doi, level],
-    );
+        });
+    }, [nextLookup, rootId]);
 
-    useEffect(() => {
-        let cancelled = false;
-        void fetchGraph("cache-first", () => cancelled);
-        return () => {
-            cancelled = true;
-        };
-    }, [fetchGraph]);
+    const rootRecord = records.get(rootId);
+    const budgetLeft = records.size < MAX_DOI_LOOKUPS;
+    const initialLoading = !rootRecord;
+    const loadingDepth = citation.waiting && budgetLeft && !initialLoading;
+    const depthLimited = citation.waiting && !budgetLeft;
+    const isEmpty = rootRecord !== undefined && citation.graph.scienceArticleGraph.edges.length === 0;
+    const selectedRecord = selectedNode ? records.get(selectedNode.id) : undefined;
+    const selectedExpanded = selectedNode ? expanded.has(selectedNode.id) : false;
+    const expandError = selectedExpanded && selectedRecord?.references.length === 0;
 
-    const expandNode = async (nodeDoi: string) => {
-        setExpandingDoi(nodeDoi);
-        setExpandError(false);
-        try {
-            const graph = await queryGraph(nodeDoi, 1, "cache-first");
-            setData((previous) => mergeGraphs(previous, graph));
-        } catch (err) {
-            console.error("Expanding citation graph failed:", err);
-            setExpandError(true);
-        } finally {
-            setExpandingDoi(null);
-        }
+    const expandNode = (nodeId: string) => setExpanded((previous) => new Set(previous).add(nodeId));
+
+    const refresh = () => {
+        clearDoiRecordCache();
+        setRecords(new Map());
+        setFallbackNodes(new Map());
+        setExpanded(new Set());
+        setSelectedId(null);
     };
 
-    const elements = useMemo(() => buildGraphElements(data, doi), [data, doi]);
-    const stats = useMemo(() => getGraphStats(elements), [elements]);
     const stylesheet = useMemo(() => buildStylesheet(resolvedTheme, fontFamily), [resolvedTheme, fontFamily]);
-    const layout = useMemo(() => buildLayout(layoutName, stats.maxDepth), [layoutName, stats.maxDepth]);
+    const structureKey = stats.papers;
+    const layout = useMemo(
+        () => Object.assign(buildLayout(layoutName, stats.maxDepth), { structureKey }),
+        [layoutName, stats.maxDepth, structureKey],
+    );
     const palette = getPalette(resolvedTheme);
 
     const clearHighlight = useCallback((cy: cytoscape.Core) => {
@@ -140,6 +160,7 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
             if (cyRef.current === cy) return;
             cyRef.current?.removeAllListeners();
             cyRef.current = cy;
+            setFontFamily(readSerifFont());
             cy.minZoom(0.25);
             cy.maxZoom(3);
 
@@ -164,12 +185,12 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                 const node = evt.target as cytoscape.NodeSingular;
                 cy.nodes().removeClass("labeled");
                 node.addClass("labeled");
-                setSelectedNode(node.data() as CytoscapeNodeData);
+                setSelectedId(node.id());
             });
             cy.on("tap", (evt) => {
                 if (evt.target === cy) {
                     cy.nodes().unselect().removeClass("labeled");
-                    setSelectedNode(null);
+                    setSelectedId(null);
                 }
             });
         },
@@ -178,7 +199,7 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
 
     const clearSelection = () => {
         cyRef.current?.nodes().unselect().removeClass("labeled");
-        setSelectedNode(null);
+        setSelectedId(null);
     };
 
     const zoomBy = (factor: number) => {
@@ -195,15 +216,14 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
         link.click();
     };
 
-    const hasGraph = elements.length > 0;
-    const initialLoading = loading && !data;
+    const hasGraph = !initialLoading && !isEmpty && elements.length > 0;
 
     return (
         <div className="flex flex-col">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-border/70 px-4 py-3 sm:px-6">
                 <Segmented label={t("depth")} hint={t("depthHint")}>
                     {LEVELS.map((value) => (
-                        <SegmentButton key={value} active={level === value} onClick={() => setLevel(value)} disabled={loading && level !== value}>
+                        <SegmentButton key={value} active={level === value} onClick={() => setLevel(value)}>
                             {value}
                         </SegmentButton>
                     ))}
@@ -217,6 +237,8 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                     ))}
                 </Segmented>
 
+                {depthLimited ? <p className="text-xs text-muted-foreground">{t("depthLimited", { depth: citation.shownDepth })}</p> : null}
+                {citation.hidden > 0 ? <p className="text-xs text-muted-foreground">{t("hiddenPapers", { count: citation.hidden })}</p> : null}
             </div>
 
             <div className="grid lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -246,10 +268,10 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                         </div>
                     ) : null}
 
-                    {data ? (
+                    {rootRecord ? (
                         <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-md border border-border bg-card">
-                            <IconButton label={t("refresh")} onClick={() => void fetchGraph("network-only")} disabled={loading} className="rounded-none">
-                                <RotateCw className={cn(loading && "animate-spin")} />
+                            <IconButton label={t("refresh")} onClick={refresh} className="rounded-none">
+                                <RotateCw className={cn(loadingDepth && "animate-spin")} />
                             </IconButton>
                             <IconButton label={t("exportPng")} onClick={exportPng} disabled={!hasGraph} className="rounded-none border-t border-border/70">
                                 <Download />
@@ -288,25 +310,14 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                             <GraphCanvasSkeleton />
                         </LoadingRegion>
                     ) : null}
-                    {loading && data ? (
+                    {loadingDepth && hasGraph ? (
                         <div className="absolute inset-0 flex items-start justify-center bg-card/40 pt-4">
                             <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground shadow-sm">
                                 <Spinner className="size-3.5" /> {t("loading")}
                             </span>
                         </div>
                     ) : null}
-                    {!loading && error ? (
-                        <CanvasState
-                            icon={<AlertTriangle className="size-6 text-destructive" />}
-                            title={t(error)}
-                            action={
-                                <Button size="sm" variant="outline" onClick={() => void fetchGraph("network-only")}>
-                                    <RotateCw /> {t("retry")}
-                                </Button>
-                            }
-                        />
-                    ) : null}
-                    {!loading && !error && data && !hasGraph ? (
+                    {isEmpty ? (
                         <CanvasState icon={<SearchX className="size-6 text-muted-foreground" />} title={t("empty")} description={t("emptyHint")} />
                     ) : null}
                 </div>
@@ -331,8 +342,10 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                     {selectedNode ? (
                         <NodeDetails
                             node={selectedNode}
-                            expanding={expandingDoi === selectedNode.doi}
-                            onExpand={() => void expandNode(selectedNode.doi)}
+                            expanding={selectedExpanded && !selectedRecord}
+                            canExpand={!selectedExpanded && selectedNode.depth >= citation.shownDepth && (selectedRecord?.references.length ?? 1) > 0}
+                            lookingUp={!selectedRecord && budgetLeft}
+                            onExpand={() => expandNode(selectedNode.id)}
                             onClose={clearSelection}
                         />
                     ) : (
@@ -351,9 +364,18 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
 function NodeDetails({
     node,
     expanding,
+    canExpand,
+    lookingUp,
     onExpand,
     onClose,
-}: Readonly<{ node: CytoscapeNodeData; expanding: boolean; onExpand: () => void; onClose: () => void }>) {
+}: Readonly<{
+    node: CytoscapeNodeData;
+    expanding: boolean;
+    canExpand: boolean;
+    lookingUp: boolean;
+    onExpand: () => void;
+    onClose: () => void;
+}>) {
     const t = useTranslations("graph");
     const [copied, setCopied] = useState(false);
     const shownAuthors = node.authors.slice(0, 3);
@@ -391,7 +413,11 @@ function NodeDetails({
                 {node.kind !== "root" ? <p className="mt-1 text-xs text-muted-foreground">{t("depthBadge", { depth: node.depth })}</p> : null}
             </div>
 
-            {node.kind === "missing" ? (
+            {lookingUp ? (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Spinner className="size-3.5" /> {t("lookingUp")}
+                </p>
+            ) : node.kind === "missing" ? (
                 <p className="text-sm text-muted-foreground">{t("missingDescription")}</p>
             ) : shownAuthors.length > 0 ? (
                 <p className="text-sm text-muted-foreground">
@@ -408,7 +434,7 @@ function NodeDetails({
             </div>
 
             <div className="flex flex-wrap gap-2">
-                {node.kind !== "missing" ? (
+                {canExpand || expanding ? (
                     <Button size="sm" onClick={onExpand} disabled={expanding}>
                         {expanding ? <Spinner className="size-3.5" /> : <GitBranchPlus />}
                         {t("expand")}
