@@ -1,3 +1,5 @@
+import { cleanArticleMarkdown } from "./articleContent";
+
 export const EXCERPT_LENGTH = 180;
 
 export const markdownToPlainText = (markdown: string): string =>
@@ -14,7 +16,7 @@ export const markdownToPlainText = (markdown: string): string =>
         .trim();
 
 export const toExcerpt = (markdown: string, maxLength = EXCERPT_LENGTH): string => {
-    const text = markdownToPlainText(markdown);
+    const text = markdownToPlainText(cleanArticleMarkdown(markdown));
     if (text.length <= maxLength) return text;
     const cut = text.slice(0, maxLength);
     const lastSpace = cut.lastIndexOf(" ");

@@ -1,8 +1,9 @@
 "use client";
 
-import { ChevronRight, Download, History } from "lucide-react";
+import { ChevronRight, History, ImagePlus } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useFormatter, useTranslations } from "next-intl";
+import type React from "react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import "@uiw/react-md-editor/markdown-editor.css";
@@ -10,18 +11,20 @@ import "@uiw/react-markdown-preview/markdown.css";
 
 import { EditorSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMounted } from "@/hooks/use-mounted";
+import { articleUrlTransform } from "@/lib/articleContent";
+import { IMAGE_ACCEPT } from "@/lib/imageFile";
 import { cn } from "@/lib/utils";
 import type { ArticleComplexity } from "@/types/articles";
 import type { ErrorKey } from "@/types/errors";
 import {
+  areReferencesEqual,
   COMPLEXITY_OPTIONS,
   createHandleArticleSubmit,
-  createHandleFetchDoiMetadata,
-  type DoiMetadataStatus,
+  createHandleFillFromMetadata,
+  type DoiMetadataMessage,
   type EditableArticle,
   TITLE_MAX_LENGTH,
 } from "./articleCreateFormController";
@@ -36,6 +39,9 @@ import {
   subscribeToNothing,
   writeDraft,
 } from "./articleDraft";
+import { createHandleImageFiles, stripUploadPlaceholders } from "./editorImagesController";
+import ArticleReferencesEditor, { REFERENCE_INPUT_ID } from "./articleReferencesEditor";
+import PdfDropzone, { PDF_INPUT_ID } from "./pdfDropzone";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
   ssr: false,
@@ -59,16 +65,21 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
   const editorColorMode = mounted ? (resolvedTheme === "dark" ? "dark" : "light") : undefined;
   const isMobile = useIsMobile();
   const isEditing = article !== undefined;
-  const hasReference = Boolean(article?.doi);
+  const initialReferences = article?.references ?? [];
+  const hasReference = initialReferences.length > 0;
   const [scientific, setScientific] = useState(article ? hasReference : initialScientific);
   const [title, setTitle] = useState(article?.title ?? "");
-  const [doi, setDoi] = useState(article?.doi ?? "");
+  const [references, setReferences] = useState(initialReferences);
+  const [doiInput, setDoiInput] = useState("");
   const [content, setContent] = useState(article?.content ?? "");
   const [complexity, setComplexity] = useState<ArticleComplexity>(article?.complexity ?? "SIMPLE");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ErrorKey | null>(null);
-  const [isFetchingMetadata, setIsFetchingMetadata] = useState(false);
-  const [metadataStatus, setMetadataStatus] = useState<DoiMetadataStatus | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfJobId, setPdfJobId] = useState<string | null>(null);
+  const [pendingUploads, setPendingUploads] = useState(0);
+  const [imageError, setImageError] = useState<ErrorKey | null>(null);
+  const [fillMessage, setFillMessage] = useState<DoiMetadataMessage | null>(null);
   const [draftDecided, setDraftDecided] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
 
@@ -79,20 +90,20 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
   useEffect(() => () => forgetInitialDraft(draftKey), [draftKey]);
 
   useEffect(() => {
-    if (!draftKey || savedDraft || isSubmitting || isDraftEmpty({ title, content, doi })) return;
+    if (!draftKey || savedDraft || isSubmitting || isDraftEmpty({ title, content, references })) return;
     const timer = globalThis.setTimeout(() => {
       const savedAt = new Date().toISOString();
-      if (writeDraft(draftKey, { scientific, title, content, doi, complexity, savedAt })) setDraftSavedAt(savedAt);
+      if (writeDraft(draftKey, { scientific, title, content, references, complexity, savedAt })) setDraftSavedAt(savedAt);
     }, DRAFT_SAVE_DELAY_MS);
     return () => globalThis.clearTimeout(timer);
-  }, [draftKey, savedDraft, isSubmitting, scientific, title, content, doi, complexity]);
+  }, [draftKey, savedDraft, isSubmitting, scientific, title, content, references, complexity]);
 
   const restoreDraft = () => {
     if (!savedDraft) return;
     setScientific(savedDraft.scientific);
     setTitle(savedDraft.title);
-    setContent(savedDraft.content);
-    setDoi(savedDraft.doi);
+    setContent(stripUploadPlaceholders(savedDraft.content));
+    setReferences(savedDraft.references);
     setComplexity(savedDraft.complexity);
     setDraftSavedAt(savedDraft.savedAt);
     setDraftDecided(true);
@@ -104,8 +115,12 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
   };
 
   const isDirty = article
-    ? title !== article.title || content !== article.content || doi !== article.doi || complexity !== article.complexity
-    : Boolean(title.trim() || content.trim() || doi.trim());
+    ? title !== article.title ||
+      content !== article.content ||
+      complexity !== article.complexity ||
+      !areReferencesEqual(references, initialReferences) ||
+      Boolean(doiInput.trim())
+    : Boolean(title.trim() || content.trim() || references.length > 0 || doiInput.trim() || pdfFile);
   useEffect(() => {
     if (!isDirty || isSubmitting) return;
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -115,29 +130,68 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
     return () => globalThis.removeEventListener("beforeunload", onBeforeUnload);
   }, [isDirty, isSubmitting]);
 
-  const handleSubmit = createHandleArticleSubmit({
+  const submitArticle = createHandleArticleSubmit({
     editedArticle: article,
     scientific,
     title,
     content,
-    doi,
+    references,
+    pendingDoiInput: doiInput,
     complexity,
+    pdfFile,
     isSubmitting,
     setIsSubmitting,
     setError,
     onSubmitStart: () => clearDraft(draftKey),
+    onPdfImportStarted: setPdfJobId,
   });
 
-  const handleFetchMetadata = createHandleFetchDoiMetadata({
-    doi,
+  const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
+    if (pendingUploads > 0 && !pdfFile) {
+      event.preventDefault();
+      setError("imageUploadPending");
+      return;
+    }
+    void submitArticle(event);
+  };
+
+  const handleImageFiles = createHandleImageFiles({
+    defaultAlt: t("create.images.defaultAlt"),
+    getSelection: () => {
+      const textarea = document.getElementById("content");
+      return textarea instanceof HTMLTextAreaElement
+        ? { start: textarea.selectionStart, end: textarea.selectionEnd }
+        : { start: content.length, end: content.length };
+    },
+    setContent,
+    setPendingUploads,
+    setImageError,
+  });
+
+  const takeImageFiles = (event: React.ClipboardEvent | React.DragEvent, files: FileList) => {
+    const images = [...files].filter((file) => file.type.startsWith("image/"));
+    if (images.length === 0) return;
+    event.preventDefault();
+    void handleImageFiles(images);
+  };
+
+  const handlePdfJobError = (jobError: ErrorKey) => {
+    setPdfJobId(null);
+    setIsSubmitting(false);
+    setError(jobError);
+  };
+
+  let submitLabel = t(isEditing ? "edit.submit" : "create.submit");
+  if (pdfFile) submitLabel = t(isSubmitting ? "create.pdf.submitting" : "create.pdf.submit");
+  else if (isSubmitting) submitLabel = t(isEditing ? "edit.submitting" : "create.submitting");
+
+  const handleFillFromMetadata = createHandleFillFromMetadata({
     title,
     content,
     labels: { authors: t("create.metadata.authorsHeading"), abstract: t("create.metadata.abstractHeading") },
-    isFetching: isFetchingMetadata,
-    setIsFetching: setIsFetchingMetadata,
     setTitle,
     setContent,
-    setStatus: setMetadataStatus,
+    setMessage: setFillMessage,
   });
 
   return (
@@ -198,10 +252,29 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
           />
         </div>
 
-        <div className="px-5 pb-2 pt-6 sm:px-8">
+        <div className="flex items-end justify-between gap-3 px-5 pb-2 pt-6 sm:px-8">
           <label htmlFor="content" className={fieldLabel}>
             {scientific ? t("create.scientificContentLabel") : t("create.contentLabel")}
           </label>
+          <Button asChild variant="ghost" size="sm" className="-mb-1 text-muted-foreground">
+            <label className={cn("cursor-pointer", isSubmitting && "pointer-events-none opacity-50")}>
+              <ImagePlus aria-hidden />
+              {t("create.images.insert")}
+              <input
+                type="file"
+                accept={IMAGE_ACCEPT}
+                multiple
+                className="sr-only"
+                disabled={isSubmitting}
+                aria-describedby="content-images-hint"
+                onChange={(event) => {
+                  const files = [...(event.target.files ?? [])];
+                  event.target.value = "";
+                  if (files.length > 0) void handleImageFiles(files);
+                }}
+              />
+            </label>
+          </Button>
         </div>
         <div className="px-5 sm:px-8">
           <div className="overflow-hidden rounded-md border border-border" data-color-mode={editorColorMode}>
@@ -211,13 +284,31 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
               preview={isMobile ? "edit" : "live"}
               height={isMobile ? 300 : 500}
               visibleDragbar={false}
+              previewOptions={{ urlTransform: articleUrlTransform }}
               textareaProps={{
                 id: "content",
                 placeholder: t("create.contentPlaceholder"),
+                "aria-describedby": "content-images-hint",
+                onPaste: (event) => takeImageFiles(event, event.clipboardData.files),
+                onDragOver: (event) => {
+                  if (event.dataTransfer.types.includes("Files")) event.preventDefault();
+                },
+                onDrop: (event) => takeImageFiles(event, event.dataTransfer.files),
               }}
               className="rounded-none! bg-background text-sm shadow-none!"
             />
           </div>
+        </div>
+
+        <div className="grid gap-1 px-5 pt-2 text-xs leading-5 sm:px-8">
+          {imageError ? (
+            <p className="text-destructive" role="alert">
+              {t(`errors.${imageError}`)}
+            </p>
+          ) : null}
+          <p id="content-images-hint" className="text-muted-foreground" aria-live="polite">
+            {pendingUploads > 0 ? t("create.images.uploading", { count: pendingUploads }) : t("create.images.hint")}
+          </p>
         </div>
 
         <details className="group px-5 py-4 text-sm text-muted-foreground sm:px-8">
@@ -232,6 +323,21 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
             <li>{t("create.tips.links")}</li>
           </ul>
         </details>
+
+        {scientific ? (
+          <section className="border-t border-border px-5 py-6 sm:px-8 sm:py-8" aria-labelledby="article-references-heading">
+            <ArticleReferencesEditor
+              references={references}
+              onReferencesChange={setReferences}
+              doiInput={doiInput}
+              onDoiInputChange={setDoiInput}
+              minCount={hasReference ? 1 : 0}
+              disabled={isSubmitting}
+              onFill={handleFillFromMetadata}
+              fillMessage={fillMessage}
+            />
+          </section>
+        ) : null}
       </div>
 
       <aside className="sheet divide-y divide-border lg:sticky lg:top-6">
@@ -257,47 +363,32 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
             </div>
 
             {scientific ? (
-              <div className="mt-4 grid gap-2">
-                <label htmlFor="doi" className={fieldLabel}>
-                  {t("create.doiLabel")}
-                </label>
-                <Input
-                  id="doi"
-                  value={doi}
-                  onChange={(event) => {
-                    setDoi(event.target.value);
-                    setMetadataStatus(null);
-                  }}
-                  placeholder={t("create.doiPlaceholder")}
-                  className="bg-background font-mono text-sm"
-                  aria-describedby="doi-hint"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleFetchMetadata}
-                  disabled={isFetchingMetadata || isSubmitting}
-                  className="w-full"
-                >
-                  {isFetchingMetadata ? <Spinner className="size-4" /> : <Download className="size-4" aria-hidden />}
-                  {isFetchingMetadata ? t("create.metadata.fetching") : t("create.metadata.fetch")}
-                </Button>
-                {metadataStatus?.kind === "error" ? (
-                  <p className="text-xs leading-5 text-destructive" role="alert">
-                    {t(`errors.${metadataStatus.error}`)}
-                  </p>
-                ) : null}
-                <p className="text-xs leading-5 text-muted-foreground" role="status">
-                  {metadataStatus?.kind === "info" ? t(`create.metadata.${metadataStatus.message}`) : null}
-                </p>
-                <p id="doi-hint" className="text-xs leading-5 text-muted-foreground">
-                  {hasReference ? `${t("edit.doiUnchangedHint")} ${t("edit.referenceLocked")}` : t("create.doiHint")}
-                </p>
-              </div>
+              <p className="mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-xs leading-5 text-muted-foreground">
+                <span>
+                  {references.length > 0 ? t("references.count", { count: references.length }) : t("create.references.none")}
+                </span>
+                <a href={`#${REFERENCE_INPUT_ID}`} className="font-medium text-teal-800 underline-offset-2 hover:underline dark:text-teal-300">
+                  {t("create.references.edit")}
+                </a>
+              </p>
             ) : null}
           </fieldset>
         </div>
+
+        {isEditing ? null : (
+          <div className={panelSection}>
+            <label htmlFor={PDF_INPUT_ID} className={cn(fieldLabel, "mb-3 block")}>
+              {t("create.pdf.label")}
+            </label>
+            <PdfDropzone
+              file={pdfFile}
+              onFileChange={setPdfFile}
+              jobId={pdfJobId}
+              onJobError={handlePdfJobError}
+              disabled={isSubmitting}
+            />
+          </div>
+        )}
 
         <div className={panelSection}>
           <fieldset>
@@ -324,9 +415,9 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
               {t(`errors.${error}`)}
             </p>
           ) : null}
-          <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
+          <Button type="submit" size="lg" disabled={isSubmitting || (pendingUploads > 0 && !pdfFile)} className="w-full">
             {isSubmitting ? <Spinner className="size-4" /> : null}
-            {isSubmitting ? t(isEditing ? "edit.submitting" : "create.submitting") : t(isEditing ? "edit.submit" : "create.submit")}
+            {submitLabel}
           </Button>
           <p className="text-xs leading-5 text-muted-foreground">{t(isEditing ? "edit.redirectHint" : "create.redirectHint")}</p>
           {draftKey ? (

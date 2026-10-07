@@ -193,8 +193,6 @@
     "scientific": "Artykuł naukowy",
     "titleLabel": "Tytuł",
     "titlePlaceholder": "Np. Wprowadzenie do struktur danych",
-    "doiLabel": "Numer DOI",
-    "doiPlaceholder": "np. 10.1234/56789",
     "contentLabel": "Treść",
     "scientificContentLabel": "Komentarz do artykułu naukowego",
     "contentPlaceholder": "Rozpocznij pisać markdown...",
@@ -205,8 +203,7 @@
     "typeLabel": "Typ artykułu",
     "typeRegular": "Zwykły artykuł",
     "typeRegularHint": "Notatki, wyjaśnienia i materiały do nauki.",
-    "typeScientificHint": "Komentarz do publikacji naukowej wskazanej numerem DOI.",
-    "doiHint": "Wklej DOI lub link doi.org. Publikacja zostanie dodana jako źródło z grafem cytowań.",
+    "typeScientificHint": "Komentarz do publikacji naukowych wskazanych numerami DOI.",
     "titleCounter": "{count}/{max}",
     "markdownHint": "Obsługiwany jest Markdown: nagłówki, listy, kod, linki i tabele.",
     "complexityHints": {
@@ -223,7 +220,6 @@
     },
     "metadata": {
       "fetch": "Uzupełnij z DOI",
-      "fetching": "Pobieranie danych...",
       "filled": "Uzupełniono tytuł i treść danymi publikacji. Sprawdź je przed wysłaniem.",
       "kept": "Uzupełniono puste pola. Pola, które były już wypełnione, zostały bez zmian.",
       "empty": "Nie znaleziono danych dla tego DOI. Uzupełnij pola samodzielnie.",
@@ -237,6 +233,43 @@
       "discard": "Odrzuć",
       "autosaveHint": "Szkic zapisuje się automatycznie na tym urządzeniu.",
       "savedAt": "Szkic zapisany o {time} na tym urządzeniu."
+    },
+    "references": {
+      "addLabel": "Dodaj źródło po DOI",
+      "add": "Dodaj",
+      "placeholder": "np. 10.1234/56789 lub link doi.org",
+      "hint": "Możesz wkleić kilka DOI naraz, każde w nowej linii lub oddzielone spacją. Enter dodaje, Shift+Enter przechodzi do nowej linii.",
+      "empty": "Nie dodano jeszcze żadnych źródeł. Artykuł naukowy potrzebuje co najmniej jednego.",
+      "none": "Brak źródeł",
+      "edit": "Edytuj źródła",
+      "loading": "Pobieranie danych publikacji",
+      "notFound": "Nie znaleziono danych tej publikacji. Sprawdź, czy DOI jest poprawne.",
+      "fill": "Uzupełnij z DOI {doi}",
+      "moveUp": "Przesuń wyżej: {doi}",
+      "moveDown": "Przesuń niżej: {doi}",
+      "remove": "Usuń źródło: {doi}",
+      "locked": "Podczas edycji artykuł musi mieć co najmniej jedno źródło. Dodaj nowe, zanim usuniesz ostatnie."
+    },
+    "pdf": {
+      "label": "Import z PDF",
+      "drop": "Upuść plik PDF tutaj",
+      "dropActive": "Upuść, aby dodać plik",
+      "browse": "albo kliknij, aby wybrać (do 50 MB)",
+      "remove": "Usuń plik {name}",
+      "hint": "Treść artykułu może zostać wygenerowana z pliku PDF. Podaj tytuł i poziom trudności, a resztę przygotuje import.",
+      "selectedHint": "Treść zostanie wygenerowana z PDF. Tekst z edytora i źródła nie zostaną użyte.",
+      "submit": "Utwórz artykuł z PDF",
+      "submitting": "Tworzenie z PDF...",
+      "progress": {
+        "PENDING": "Plik wysłany. Czeka w kolejce na przetworzenie...",
+        "PROCESSING": "Przetwarzanie PDF. To może potrwać kilka minut, nie zamykaj tej strony."
+      }
+    },
+    "images": {
+      "insert": "Wstaw obraz",
+      "hint": "Wklej lub upuść obraz w edytorze albo użyj przycisku „Wstaw obraz”. PNG, JPG lub GIF, do 10 MB.",
+      "uploading": "{count, plural, one {Wysyłanie obrazu...} few {Wysyłanie # obrazów...} many {Wysyłanie # obrazów...} other {Wysyłanie # obrazu...}}",
+      "defaultAlt": "obraz"
     }
   },
   "edit": {
@@ -246,9 +279,7 @@
     "submitting": "Zapisywanie...",
     "redirectHint": "Po zapisaniu wrócisz do artykułu.",
     "cancel": "Anuluj",
-    "backToArticle": "Wróć do artykułu",
-    "referenceLocked": "Źródła nie można usunąć podczas edycji. Możesz podać inne DOI.",
-    "doiUnchangedHint": "Zostaw bez zmian, aby zachować obecne źródło."
+    "backToArticle": "Wróć do artykułu"
   },
   "graph": {
     "title": "Graf cytowań",
@@ -320,7 +351,7 @@
     "rateCommentFailed": "Nie udało się ocenić komentarza.",
     "missingTitleOrContent": "Uzupełnij tytuł i treść.",
     "invalidComplexity": "Nieprawidłowy poziom trudności.",
-    "missingDoi": "Podaj numer DOI artykułu naukowego.",
+    "missingDoi": "Dodaj co najmniej jedno DOI artykułu naukowego.",
     "invalidDoi": "Nieprawidłowy numer DOI (np. 10.1234/56789).",
     "createArticleFailed": "Nie udało się utworzyć artykułu.",
     "sessionExpired": "Sesja wygasła. Zaloguj się ponownie.",
@@ -345,7 +376,22 @@
     "changeEmailFailed": "Nie udało się zmienić adresu e-mail. Link mógł wygasnąć albo został już użyty.",
     "changePasswordFailed": "Nie udało się zmienić hasła. Link mógł wygasnąć albo został już użyty.",
     "invalidActionLink": "Ten link jest nieprawidłowy. Wyślij nowy ze strony konta.",
-    "doiMetadataFailed": "Nie udało się pobrać danych publikacji. Spróbuj ponownie."
+    "duplicateDoi": "Te DOI są już na liście źródeł.",
+    "pdfInvalidType": "To nie jest plik PDF.",
+    "pdfEmpty": "Plik jest pusty.",
+    "pdfTooLarge": "Plik jest za duży. Maksymalny rozmiar to 50 MB.",
+    "missingTitle": "Podaj tytuł artykułu.",
+    "pdfSingleFile": "Wybierz jeden plik PDF.",
+    "pdfImportFailed": "Nie udało się utworzyć artykułu z PDF. Spróbuj ponownie albo z innym plikiem.",
+    "pdfImportBusy": "Serwer jest teraz zajęty. Spróbuj ponownie za chwilę.",
+    "pdfImportLost": "Nie znaleziono zadania importu. Sprawdź listę artykułów albo spróbuj ponownie.",
+    "pdfImportStatusFailed": "Nie udało się sprawdzić postępu importu. Artykuł może pojawić się na liście za chwilę.",
+    "imageInvalidType": "Obsługiwane są tylko obrazy PNG, JPG i GIF.",
+    "imageEmpty": "Plik obrazu jest pusty.",
+    "imageTooLarge": "Obraz jest za duży. Maksymalny rozmiar to 10 MB.",
+    "imageUploadFailed": "Nie udało się wysłać obrazu. Spróbuj ponownie.",
+    "imageUploadBusy": "Serwer jest teraz zajęty. Spróbuj wysłać obraz za chwilę.",
+    "imageUploadPending": "Poczekaj, aż wszystkie obrazy zostaną wysłane."
   },
   "references": {
     "title": "Źródła",
@@ -421,6 +467,7 @@
   },
   "toasts": {
     "articleCreated": "Artykuł został opublikowany.",
+    "articleImported": "Artykuł został utworzony z PDF. Sprawdź wygenerowaną treść.",
     "articleSaved": "Zapisano zmiany w artykule.",
     "articleDeleted": "Artykuł został usunięty.",
     "commentAdded": "Dodano komentarz.",

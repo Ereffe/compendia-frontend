@@ -7,8 +7,9 @@ import ArticleOwnerActions from "@/components/articles/articleOwnerActions";
 import ArticleRating from "@/components/articles/articleRating/articleRating";
 import ArticleReferences from "@/components/articles/articleReferences";
 import ArticleGraphContainer from "@/components/articles/articleGraph/ArticleGraphContainer";
+import { articleUrlTransform, cleanArticleMarkdown } from "@/lib/articleContent";
 import { isValidArticleId } from "@/lib/articleId";
-import { isNotFoundError } from "@/lib/graphqlErrors";
+import { isDetachedAuthorError, isNotFoundError } from "@/lib/graphqlErrors";
 import { authedQuery, getCurrentUserId, requireAccessToken } from "@/lib/server/session";
 import { ARTICLE_QUERY, articleDateFormat, COMMENTS_PAGE_SIZE, type GraphqlArticle } from "@/services/graphql/articles";
 import { mapGraphqlCommentToCommentItem } from "@/services/graphql/comments";
@@ -24,18 +25,19 @@ const proseClass = [
   "prose-img:rounded-md [&_table]:block [&_table]:overflow-x-auto [&_table]:font-sans [&_table]:text-sm",
 ].join(" ");
 
+const queryArticle = async (id: string, accessToken: string, withAuthor: boolean) =>
+  (await authedQuery(accessToken, ARTICLE_QUERY, { id, commentsPage: 0, commentsSize: COMMENTS_PAGE_SIZE, withAuthor })).article;
+
 async function fetchArticle(id: string, accessToken: string): Promise<GraphqlArticle | null> {
   try {
-    const data = await authedQuery(accessToken, ARTICLE_QUERY, {
-      id,
-      commentsPage: 0,
-      commentsSize: COMMENTS_PAGE_SIZE,
-    });
-    return data.article;
+    return await queryArticle(id, accessToken, true);
   } catch (error) {
     unstable_rethrow(error);
     if (isNotFoundError(error)) {
       return null;
+    }
+    if (isDetachedAuthorError(error)) {
+      return queryArticle(id, accessToken, false);
     }
     throw error;
   }
@@ -80,7 +82,7 @@ export default async function ArticlePage({ params }: Readonly<{ params: Promise
 
           <div className={`${readingColumn} mt-10 border-t border-border pt-10`}>
             <div className={proseClass}>
-              <Markdown>{article.content}</Markdown>
+              <Markdown urlTransform={articleUrlTransform}>{cleanArticleMarkdown(article.content)}</Markdown>
             </div>
             <div className="mt-12 border-t border-border pt-6">
               <ArticleRating articleId={article.id} initialRating={article.rating} />

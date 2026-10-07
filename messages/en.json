@@ -193,8 +193,6 @@
     "scientific": "Scientific article",
     "titleLabel": "Title",
     "titlePlaceholder": "E.g. Introduction to data structures",
-    "doiLabel": "DOI",
-    "doiPlaceholder": "e.g. 10.1234/56789",
     "contentLabel": "Content",
     "scientificContentLabel": "Commentary on the scientific article",
     "contentPlaceholder": "Start writing markdown...",
@@ -205,8 +203,7 @@
     "typeLabel": "Article type",
     "typeRegular": "Regular article",
     "typeRegularHint": "Notes, explanations and study materials.",
-    "typeScientificHint": "Commentary on a scientific publication identified by its DOI.",
-    "doiHint": "Paste a DOI or a doi.org link. The publication is added as a reference with a citation graph.",
+    "typeScientificHint": "Commentary on scientific publications identified by their DOIs.",
     "titleCounter": "{count}/{max}",
     "markdownHint": "Markdown is supported: headings, lists, code, links and tables.",
     "complexityHints": {
@@ -223,7 +220,6 @@
     },
     "metadata": {
       "fetch": "Fill in from DOI",
-      "fetching": "Fetching details...",
       "filled": "Filled in the title and content from the publication. Check them before submitting.",
       "kept": "Filled in the empty fields. Fields that were already filled in were left unchanged.",
       "empty": "No details found for this DOI. Fill in the fields yourself.",
@@ -237,6 +233,43 @@
       "discard": "Discard",
       "autosaveHint": "Your draft is saved automatically on this device.",
       "savedAt": "Draft saved at {time} on this device."
+    },
+    "references": {
+      "addLabel": "Add a reference by DOI",
+      "add": "Add",
+      "placeholder": "e.g. 10.1234/56789 or a doi.org link",
+      "hint": "You can paste several DOIs at once, one per line or separated by spaces. Enter adds them, Shift+Enter starts a new line.",
+      "empty": "No references yet. A scientific article needs at least one.",
+      "none": "No references",
+      "edit": "Edit references",
+      "loading": "Loading publication details",
+      "notFound": "No details found for this publication. Check that the DOI is correct.",
+      "fill": "Fill in from DOI {doi}",
+      "moveUp": "Move up: {doi}",
+      "moveDown": "Move down: {doi}",
+      "remove": "Remove reference: {doi}",
+      "locked": "While editing, the article must keep at least one reference. Add a new one before removing the last."
+    },
+    "pdf": {
+      "label": "Import from PDF",
+      "drop": "Drop a PDF file here",
+      "dropActive": "Drop to add the file",
+      "browse": "or click to choose one (up to 50 MB)",
+      "remove": "Remove file {name}",
+      "hint": "The article content can be generated from a PDF. Enter a title and difficulty, and the import does the rest.",
+      "selectedHint": "The content will be generated from the PDF. The editor text and references won't be used.",
+      "submit": "Create article from PDF",
+      "submitting": "Creating from PDF...",
+      "progress": {
+        "PENDING": "File sent. Waiting in the queue...",
+        "PROCESSING": "Processing the PDF. This can take a few minutes, don't close this page."
+      }
+    },
+    "images": {
+      "insert": "Insert image",
+      "hint": "Paste or drop an image into the editor, or use \"Insert image\". PNG, JPG or GIF, up to 10 MB.",
+      "uploading": "{count, plural, one {Uploading image...} other {Uploading # images...}}",
+      "defaultAlt": "image"
     }
   },
   "edit": {
@@ -246,9 +279,7 @@
     "submitting": "Saving...",
     "redirectHint": "After saving you'll return to the article.",
     "cancel": "Cancel",
-    "backToArticle": "Back to the article",
-    "referenceLocked": "The source can't be removed while editing. You can enter a different DOI.",
-    "doiUnchangedHint": "Leave it unchanged to keep the current source."
+    "backToArticle": "Back to the article"
   },
   "graph": {
     "title": "Citation graph",
@@ -320,7 +351,7 @@
     "rateCommentFailed": "Could not rate the comment.",
     "missingTitleOrContent": "Fill in the title and content.",
     "invalidComplexity": "Invalid difficulty level.",
-    "missingDoi": "Enter the DOI of the scientific article.",
+    "missingDoi": "Add at least one DOI for the scientific article.",
     "invalidDoi": "Invalid DOI (e.g. 10.1234/56789).",
     "createArticleFailed": "Could not create the article.",
     "sessionExpired": "Your session has expired. Please sign in again.",
@@ -345,7 +376,22 @@
     "changeEmailFailed": "Couldn't change the e-mail address. The link may have expired or already been used.",
     "changePasswordFailed": "Couldn't change the password. The link may have expired or already been used.",
     "invalidActionLink": "This link isn't valid. Send a new one from your account page.",
-    "doiMetadataFailed": "Couldn't fetch the publication details. Please try again."
+    "duplicateDoi": "These DOIs are already in the references.",
+    "pdfInvalidType": "This isn't a PDF file.",
+    "pdfEmpty": "The file is empty.",
+    "pdfTooLarge": "The file is too large. The maximum size is 50 MB.",
+    "missingTitle": "Enter a title for the article.",
+    "pdfSingleFile": "Choose a single PDF file.",
+    "pdfImportFailed": "Couldn't create an article from the PDF. Try again or use another file.",
+    "pdfImportBusy": "The server is busy right now. Try again in a moment.",
+    "pdfImportLost": "The import job wasn't found. Check the article list or try again.",
+    "pdfImportStatusFailed": "Couldn't check the import progress. The article may appear in the list shortly.",
+    "imageInvalidType": "Only PNG, JPG and GIF images are supported.",
+    "imageEmpty": "The image file is empty.",
+    "imageTooLarge": "The image is too large. The maximum size is 10 MB.",
+    "imageUploadFailed": "Couldn't upload the image. Please try again.",
+    "imageUploadBusy": "The server is busy right now. Try uploading the image again in a moment.",
+    "imageUploadPending": "Wait until all images have finished uploading."
   },
   "references": {
     "title": "References",
@@ -421,6 +467,7 @@
   },
   "toasts": {
     "articleCreated": "The article has been published.",
+    "articleImported": "The article was created from the PDF. Check the generated content.",
     "articleSaved": "Changes to the article saved.",
     "articleDeleted": "The article has been deleted.",
     "commentAdded": "Comment added.",

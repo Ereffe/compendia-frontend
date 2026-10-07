@@ -6,7 +6,7 @@ export type ArticleDraft = {
     scientific: boolean;
     title: string;
     content: string;
-    doi: string;
+    references: string[];
     complexity: ArticleComplexity;
     savedAt: string;
 };
@@ -17,8 +17,17 @@ const DRAFT_KEY_PREFIX = "compendia:article-draft:";
 
 export const getDraftKey = (userKey: string | null): string | null => (userKey ? `${DRAFT_KEY_PREFIX}${userKey}` : null);
 
-export const isDraftEmpty = (draft: Pick<ArticleDraft, "title" | "content" | "doi">): boolean =>
-    !draft.title.trim() && !draft.content.trim() && !draft.doi.trim();
+export const isDraftEmpty = (draft: Pick<ArticleDraft, "title" | "content" | "references">): boolean =>
+    !draft.title.trim() && !draft.content.trim() && draft.references.length === 0;
+
+const isStringArray = (value: unknown): value is string[] =>
+    Array.isArray(value) && value.every((item) => typeof item === "string");
+
+const readDraftReferences = (draft: Record<string, unknown>): string[] | null => {
+    if (isStringArray(draft.references)) return draft.references;
+    if (typeof draft.doi === "string") return draft.doi.trim() ? [draft.doi.trim()] : [];
+    return null;
+};
 
 export const parseDraft = (raw: string | null): ArticleDraft | null => {
     if (!raw) return null;
@@ -26,15 +35,23 @@ export const parseDraft = (raw: string | null): ArticleDraft | null => {
         const value: unknown = JSON.parse(raw);
         if (typeof value !== "object" || value === null) return null;
         const draft = value as Record<string, unknown>;
+        const references = readDraftReferences(draft);
         const isValid =
             typeof draft.scientific === "boolean" &&
             typeof draft.title === "string" &&
             typeof draft.content === "string" &&
-            typeof draft.doi === "string" &&
+            references !== null &&
             typeof draft.savedAt === "string" &&
             COMPLEXITY_OPTIONS.includes(draft.complexity as ArticleComplexity);
         if (!isValid) return null;
-        const parsed = draft as ArticleDraft;
+        const parsed: ArticleDraft = {
+            scientific: draft.scientific as boolean,
+            title: draft.title as string,
+            content: draft.content as string,
+            references,
+            complexity: draft.complexity as ArticleComplexity,
+            savedAt: draft.savedAt as string,
+        };
         return isDraftEmpty(parsed) ? null : parsed;
     } catch {
         return null;

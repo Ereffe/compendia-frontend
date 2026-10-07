@@ -16,6 +16,11 @@ export const isNotFoundError = (error: unknown): boolean => {
     return classification === "NOT_FOUND" || classification === "BAD_REQUEST";
 };
 
+// A cached article whose author can't be loaded any more (backend issue 6c).
+export const isDetachedAuthorError = (error: unknown): boolean =>
+    CombinedGraphQLErrors.is(error) &&
+    error.errors.some((graphqlError) => graphqlError.message.includes("Could not initialize proxy [org.compedia.users.entities.User#"));
+
 export const isAuthRejected = (error: unknown): boolean =>
     (ServerError.is(error) && (error.statusCode === 401 || error.statusCode === 403)) ||
     getGraphqlClassification(error) === "UNAUTHORIZED";

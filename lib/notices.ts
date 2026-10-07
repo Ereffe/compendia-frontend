@@ -1,6 +1,6 @@
 export const NOTICE_PARAM = "notice";
 
-const NOTICES = ["articleCreated", "articleSaved", "articleDeleted"] as const;
+const NOTICES = ["articleCreated", "articleImported", "articleSaved", "articleDeleted"] as const;
 
 export type Notice = (typeof NOTICES)[number];
 

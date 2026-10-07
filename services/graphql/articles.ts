@@ -65,7 +65,7 @@ export const ARTICLES_QUERY = graphql(`
 `);
 
 export const ARTICLE_QUERY = graphql(`
-    query Article($id: String!, $commentsPage: Int!, $commentsSize: Int!) {
+    query Article($id: String!, $commentsPage: Int!, $commentsSize: Int!, $withAuthor: Boolean!) {
         article(id: $id) {
             id
             title
@@ -103,7 +103,7 @@ export const ARTICLE_QUERY = graphql(`
                 description
                 url
             }
-            author {
+            author @include(if: $withAuthor) {
                 id
                 name
             }

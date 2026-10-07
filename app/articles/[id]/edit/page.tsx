@@ -4,6 +4,7 @@ import { notFound, redirect, unstable_rethrow } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import ArticleCreateForm from "@/components/articles/articleCreateForm/articleCreateForm";
+import { cleanArticleMarkdown } from "@/lib/articleContent";
 import { isValidArticleId } from "@/lib/articleId";
 import { isNotFoundError } from "@/lib/graphqlErrors";
 import { authedQuery, getCurrentUserId, requireAccessToken } from "@/lib/server/session";
@@ -39,7 +40,7 @@ export default async function EditArticlePage({ params }: Readonly<{ params: Pro
   }
 
   const t = await getTranslations();
-  const doi = article.references?.find((reference) => reference != null)?.doi ?? "";
+  const references = (article.references ?? []).flatMap((reference) => (reference ? [reference.doi] : []));
 
   return (
     <section className="container-page flex flex-col gap-8 py-8 sm:py-12">
@@ -59,9 +60,9 @@ export default async function EditArticlePage({ params }: Readonly<{ params: Pro
         article={{
           id: article.id,
           title: article.title,
-          content: article.content,
+          content: cleanArticleMarkdown(article.content),
           complexity: article.complexity,
-          doi,
+          references,
         }}
       />
     </section>

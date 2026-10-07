@@ -1,7 +1,7 @@
 import { CombinedGraphQLErrors, ServerError } from "@apollo/client/errors";
 import { describe, expect, it } from "vitest";
 
-import { isAuthRejected, isNotFoundError, toErrorKey } from "./graphqlErrors";
+import { isAuthRejected, isDetachedAuthorError, isNotFoundError, toErrorKey } from "./graphqlErrors";
 
 const serverError = (status: number) =>
     new ServerError("Response not successful", {
@@ -46,5 +46,21 @@ describe("isNotFoundError", () => {
         expect(isNotFoundError(graphqlError("BAD_REQUEST"))).toBe(true);
         expect(isNotFoundError(graphqlError("INTERNAL_ERROR"))).toBe(false);
         expect(isNotFoundError(serverError(404))).toBe(false);
+    });
+});
+
+describe("isDetachedAuthorError", () => {
+    const withMessage = (message: string) =>
+        new CombinedGraphQLErrors({ errors: [{ message, extensions: { classification: "INTERNAL_ERROR" } }] });
+
+    it("recognizes the backend's unloaded author proxy", () => {
+        expect(
+            isDetachedAuthorError(withMessage("Could not initialize proxy [org.compedia.users.entities.User#cb33] - no session")),
+        ).toBe(true);
+    });
+
+    it("ignores other errors", () => {
+        expect(isDetachedAuthorError(withMessage("Something else"))).toBe(false);
+        expect(isDetachedAuthorError(new Error("Could not initialize proxy [org.compedia.users.entities.User#x]"))).toBe(false);
     });
 });
