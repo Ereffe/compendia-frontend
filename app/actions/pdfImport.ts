@@ -6,13 +6,11 @@ import { redirect, unstable_rethrow } from "next/navigation";
 import { serverBackendUrl } from "@/lib/config";
 import { SESSION_EXPIRED_PATH } from "@/lib/graphqlErrors";
 import { withNotice } from "@/lib/notices";
-import { validatePdfFile } from "@/lib/pdfFile";
+import { jobIdSchema, pdfImportAcceptedSchema, pdfImportSchema, pdfImportStatusSchema } from "@/lib/schemas";
 import { authedMutate, getAccessToken } from "@/lib/server/session";
+import { parseInput } from "@/lib/validation";
 import { EDIT_ARTICLE_MUTATION } from "@/services/graphql/articles";
 import type { ActionResult } from "@/types/articles";
-
-const COMPLEXITIES = new Set<string>(["SIMPLE", "INTERMEDIATE", "COMPLEX"]);
-const JOB_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type PdfImportProgress = "PENDING" | "PROCESSING";
 
@@ -35,14 +33,9 @@ export async function startPdfImportAction(formData: FormData): Promise<ActionRe
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
-    const pdf = formData.get("pdf");
-    const title = String(formData.get("title") ?? "").trim();
-    const complexity = String(formData.get("complexity") ?? "");
-    if (!(pdf instanceof File)) return { ok: false, error: "pdfInvalidType" };
-    const pdfError = validatePdfFile(pdf);
-    if (pdfError) return { ok: false, error: pdfError };
-    if (!title) return { ok: false, error: "missingTitle" };
-    if (!COMPLEXITIES.has(complexity)) return { ok: false, error: "invalidComplexity" };
+    const parsed = parseInput(pdfImportSchema, Object.fromEntries(formData), "pdfImportFailed");
+    if (!parsed.ok) return parsed;
+    const { pdf, title, complexity } = parsed.data;
 
     const body = new FormData();
     body.append("pdf", pdf, pdf.name);
@@ -71,15 +64,14 @@ export async function startPdfImportAction(formData: FormData): Promise<ActionRe
         return { ok: false, error: "pdfImportFailed" };
     }
 
-    const data = (await response.json().catch(() => null)) as { jobId?: unknown } | null;
-    if (typeof data?.jobId !== "string") return { ok: false, error: "pdfImportFailed" };
-    return { ok: true, data: { jobId: data.jobId } };
+    const accepted = parseInput(pdfImportAcceptedSchema, await response.json().catch(() => null), "pdfImportFailed");
+    return accepted.ok ? { ok: true, data: { jobId: accepted.data.jobId } } : { ok: false, error: "pdfImportFailed" };
 }
 
 export async function getPdfImportStatusAction(jobId: string): Promise<ActionResult<{ status: PdfImportProgress }>> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
-    if (!JOB_ID_PATTERN.test(jobId)) return { ok: false, error: "pdfImportLost" };
+    if (!jobIdSchema.safeParse(jobId).success) return { ok: false, error: "pdfImportLost" };
 
     let response: Response;
     try {
@@ -97,14 +89,14 @@ export async function getPdfImportStatusAction(jobId: string): Promise<ActionRes
     if (response.status === 404) return { ok: false, error: "pdfImportLost" };
     if (!response.ok) return { ok: false, error: "pdfImportStatusFailed" };
 
-    const data = (await response.json().catch(() => null)) as { status?: unknown; articleId?: unknown } | null;
-    if (data?.status === "FAILED") return { ok: false, error: "pdfImportFailed" };
-    if (data?.status === "DONE" && typeof data.articleId === "string") {
-        await evictImportedArticle(accessToken, data.articleId);
+    const job = parseInput(pdfImportStatusSchema, await response.json().catch(() => null), "pdfImportStatusFailed");
+    if (!job.ok) return job;
+    if (job.data.status === "FAILED") return { ok: false, error: "pdfImportFailed" };
+    if (job.data.status === "DONE") {
+        await evictImportedArticle(accessToken, job.data.articleId);
         revalidatePath("/articles");
         revalidatePath("/all-articles/[page]", "page");
-        redirect(withNotice(`/articles/${data.articleId}`, "articleImported"));
+        redirect(withNotice(`/articles/${job.data.articleId}`, "articleImported"));
     }
-    if (data?.status === "PENDING" || data?.status === "PROCESSING") return { ok: true, data: { status: data.status } };
-    return { ok: false, error: "pdfImportStatusFailed" };
+    return { ok: true, data: { status: job.data.status } };
 }

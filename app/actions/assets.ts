@@ -2,21 +2,21 @@
 
 import { redirect } from "next/navigation";
 
-import { ASSET_ID_PATTERN } from "@/lib/articleContent";
 import { serverBackendUrl } from "@/lib/config";
 import { SESSION_EXPIRED_PATH } from "@/lib/graphqlErrors";
-import { hasImageSignature, IMAGE_EXTENSIONS, validateImageFile } from "@/lib/imageFile";
+import { hasImageSignature, IMAGE_EXTENSIONS } from "@/lib/imageFile";
+import { assetIdSchema, imageUploadSchema } from "@/lib/schemas";
 import { getAccessToken } from "@/lib/server/session";
+import { parseInput } from "@/lib/validation";
 import type { ActionResult } from "@/types/articles";
 
 export async function uploadImageAction(formData: FormData): Promise<ActionResult<{ assetId: string }>> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
-    const image = formData.get("image");
-    if (!(image instanceof File)) return { ok: false, error: "imageInvalidType" };
-    const imageError = validateImageFile(image);
-    if (imageError) return { ok: false, error: imageError };
+    const parsed = parseInput(imageUploadSchema, Object.fromEntries(formData), "imageInvalidType");
+    if (!parsed.ok) return parsed;
+    const { image } = parsed.data;
 
     // The backend trusts the file extension, so check the bytes really are the declared image type.
     const bytes = new Uint8Array(await image.arrayBuffer());
@@ -46,6 +46,6 @@ export async function uploadImageAction(formData: FormData): Promise<ActionResul
         return { ok: false, error: "imageUploadFailed" };
     }
 
-    const assetId = (await response.text().catch(() => "")).trim();
-    return ASSET_ID_PATTERN.test(assetId) ? { ok: true, data: { assetId } } : { ok: false, error: "imageUploadFailed" };
+    const assetId = parseInput(assetIdSchema, (await response.text().catch(() => "")).trim(), "imageUploadFailed");
+    return assetId.ok ? { ok: true, data: { assetId: assetId.data } } : assetId;
 }

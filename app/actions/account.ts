@@ -2,8 +2,9 @@
 
 import { unstable_rethrow } from "next/navigation";
 
-import { isValidActionId, validateEmail, validateName, validateNewPassword } from "@/lib/account";
 import { isAuthRejected } from "@/lib/graphqlErrors";
+import { actionIdSchema, emailSchema, nameSchema, newPasswordSchema } from "@/lib/schemas";
+import { parseInput } from "@/lib/validation";
 import { getServerClient } from "@/lib/server/apollo";
 import { authedMutate, authedQuery, getAccessToken } from "@/lib/server/session";
 import {
@@ -22,13 +23,11 @@ export async function changeNameAction(name: string): Promise<ActionResult<{ nam
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
-    const validationError = validateName(name);
-    if (validationError) return { ok: false, error: validationError };
+    const parsed = parseInput(nameSchema, name, "emptyName");
+    if (!parsed.ok) return parsed;
 
     try {
-        const data = await authedMutate(accessToken, CHANGE_NAME_MUTATION, {
-            name: name.trim(),
-        });
+        const data = await authedMutate(accessToken, CHANGE_NAME_MUTATION, { name: parsed.data });
         if (!data.changeUsersName) return { ok: false, error: "changeNameFailed" };
         return { ok: true, data: { name: data.changeUsersName.name } };
     } catch (error) {
@@ -42,13 +41,12 @@ export async function requestEmailChangeAction(email: string): Promise<ActionRes
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
-    const validationError = validateEmail(email);
-    if (validationError) return { ok: false, error: validationError };
+    const parsed = parseInput(emailSchema, email, "invalidEmail");
+    if (!parsed.ok) return parsed;
 
-    const trimmedEmail = email.trim();
     try {
-        await authedQuery(accessToken, REQUEST_EMAIL_CHANGE_QUERY, { email: trimmedEmail });
-        return { ok: true, data: { email: trimmedEmail } };
+        await authedQuery(accessToken, REQUEST_EMAIL_CHANGE_QUERY, { email: parsed.data });
+        return { ok: true, data: { email: parsed.data } };
     } catch (error) {
         unstable_rethrow(error);
         console.error("requestEmailChangeAction failed:", error);
@@ -71,15 +69,15 @@ export async function requestPasswordChangeAction(): Promise<ActionResult<null>>
 }
 
 export async function confirmEmailChangeAction(actionId: string, email: string): Promise<ActionResult<null>> {
-    if (!isValidActionId(actionId)) return { ok: false, error: "invalidActionLink" };
-
-    const validationError = validateEmail(email);
-    if (validationError) return { ok: false, error: validationError };
+    const parsedId = parseInput(actionIdSchema, actionId, "invalidActionLink");
+    if (!parsedId.ok) return parsedId;
+    const parsedEmail = parseInput(emailSchema, email, "invalidEmail");
+    if (!parsedEmail.ok) return parsedEmail;
 
     try {
         const result = await getServerClient().mutate({
             mutation: CHANGE_EMAIL_MUTATION,
-            variables: { actionId, email: email.trim() },
+            variables: { actionId: parsedId.data, email: parsedEmail.data },
             fetchPolicy: "no-cache",
         });
         if (!result.data?.changeUsersEmail) return { ok: false, error: "changeEmailFailed" };
@@ -95,15 +93,15 @@ export async function confirmPasswordChangeAction(
     password: string,
     confirmation: string,
 ): Promise<ActionResult<null>> {
-    if (!isValidActionId(actionId)) return { ok: false, error: "invalidActionLink" };
-
-    const validationError = validateNewPassword(password, confirmation);
-    if (validationError) return { ok: false, error: validationError };
+    const parsedId = parseInput(actionIdSchema, actionId, "invalidActionLink");
+    if (!parsedId.ok) return parsedId;
+    const parsedPassword = parseInput(newPasswordSchema, { password, confirmation }, "passwordTooShort");
+    if (!parsedPassword.ok) return parsedPassword;
 
     try {
         const result = await getServerClient().mutate({
             mutation: CHANGE_PASSWORD_MUTATION,
-            variables: { actionId, password },
+            variables: { actionId: parsedId.data, password: parsedPassword.data.password },
             fetchPolicy: "no-cache",
         });
         if (!result.data?.changeUsersPassword) return { ok: false, error: "changePasswordFailed" };

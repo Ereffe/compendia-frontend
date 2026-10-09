@@ -392,7 +392,8 @@
     "imageTooLarge": "Obraz jest za duży. Maksymalny rozmiar to 10 MB.",
     "imageUploadFailed": "Nie udało się wysłać obrazu. Spróbuj ponownie.",
     "imageUploadBusy": "Serwer jest teraz zajęty. Spróbuj wysłać obraz za chwilę.",
-    "imageUploadPending": "Poczekaj, aż wszystkie obrazy zostaną wysłane."
+    "imageUploadPending": "Poczekaj, aż wszystkie obrazy zostaną wysłane.",
+    "titleTooLong": "Tytuł może mieć najwyżej 200 znaków."
   },
   "references": {
     "title": "Źródła",

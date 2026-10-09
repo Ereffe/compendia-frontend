@@ -1,9 +1,10 @@
 import { serverBackendUrl } from "@/lib/config";
-import { ASSET_CONTENT_TYPES, ASSET_ID_PATTERN } from "@/lib/articleContent";
+import { ASSET_CONTENT_TYPES } from "@/lib/articleContent";
+import { assetIdSchema } from "@/lib/schemas";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ assetId: string }> }) {
     const { assetId } = await params;
-    if (!ASSET_ID_PATTERN.test(assetId)) return new Response(null, { status: 404 });
+    if (!assetIdSchema.safeParse(assetId).success) return new Response(null, { status: 404 });
 
     let response: Response;
     try {

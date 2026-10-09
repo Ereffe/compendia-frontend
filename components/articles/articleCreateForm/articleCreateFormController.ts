@@ -4,6 +4,7 @@ import type React from "react";
 import { createArticleAction, editArticleAction } from "@/app/actions/articles";
 import { startPdfImportAction } from "@/app/actions/pdfImport";
 import { type GraphNode, normalizeDoi } from "@/components/articles/articleGraph/articleGraphController";
+import { COMPLEXITIES, TITLE_MAX_LENGTH } from "@/lib/schemas";
 import type { ArticleComplexity } from "@/types/articles";
 import type { ErrorKey } from "@/types/errors";
 
@@ -129,10 +130,9 @@ export const validateArticleFormInputs = (
     return scientific && references.length === 0 ? "missingDoi" : null;
 };
 
-/** Matches the backend column (articles.title VARCHAR(200)). */
-export const TITLE_MAX_LENGTH = 200;
+export { TITLE_MAX_LENGTH };
 
-export const COMPLEXITY_OPTIONS: ArticleComplexity[] = ["SIMPLE", "INTERMEDIATE", "COMPLEX"];
+export const COMPLEXITY_OPTIONS: ArticleComplexity[] = [...COMPLEXITIES];
 
 // Re-sending unchanged DOIs makes the backend look them up again, and a failed lookup drops the reference.
 export const getEditedReferences = (scientific: boolean, references: string[], initialReferences: string[]): string[] | null => {

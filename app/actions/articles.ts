@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect, unstable_rethrow } from "next/navigation";
 
-import { isValidArticleId } from "@/lib/articleId";
 import { withNotice } from "@/lib/notices";
 import { toErrorKey } from "@/lib/graphqlErrors";
+import { articleIdSchema, createArticleSchema, editArticleSchema } from "@/lib/schemas";
+import { parseInput } from "@/lib/validation";
 import { authedMutate, getAccessToken } from "@/lib/server/session";
 import {
     ADD_ARTICLE_MUTATION,
@@ -14,8 +15,6 @@ import {
     RATE_ARTICLE_MUTATION,
 } from "@/services/graphql/articles";
 import type { ActionError, ActionResult, ArticleComplexity } from "@/types/articles";
-
-const COMPLEXITIES = new Set<string>(["SIMPLE", "INTERMEDIATE", "COMPLEX"]);
 
 export type CreateArticleInput = {
     title: string;
@@ -28,19 +27,16 @@ export async function createArticleAction(input: CreateArticleInput): Promise<Ac
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
-    const title = input.title.trim();
-    const content = input.content.trim();
-    if (!title || !content) return { ok: false, error: "missingTitleOrContent" };
-    if (!COMPLEXITIES.has(input.complexity)) return { ok: false, error: "invalidComplexity" };
-
-    const references = input.references.map((doi) => doi.trim()).filter(Boolean);
+    const parsed = parseInput(createArticleSchema, input, "createArticleFailed");
+    if (!parsed.ok) return parsed;
+    const { title, content, complexity, references } = parsed.data;
 
     let articleId: string;
     try {
         const data = await authedMutate(accessToken, ADD_ARTICLE_MUTATION, {
             title,
             content,
-            complexity: input.complexity,
+            complexity,
             references: references.length > 0 ? references : null,
         });
         articleId = data.addArticle.id;
@@ -70,22 +66,19 @@ export type EditArticleInput = {
 export async function editArticleAction(articleId: string, input: EditArticleInput): Promise<ActionError> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
-    if (!isValidArticleId(articleId)) return { ok: false, error: "notFound" };
+    if (!articleIdSchema.safeParse(articleId).success) return { ok: false, error: "notFound" };
 
-    const title = input.title.trim();
-    const content = input.content.trim();
-    if (!title || !content) return { ok: false, error: "missingTitleOrContent" };
-    if (!COMPLEXITIES.has(input.complexity)) return { ok: false, error: "invalidComplexity" };
-
-    const references = input.references?.map((doi) => doi.trim()).filter(Boolean) ?? [];
+    const parsed = parseInput(editArticleSchema, input, "editArticleFailed");
+    if (!parsed.ok) return parsed;
+    const { title, content, complexity, references } = parsed.data;
 
     try {
         await authedMutate(accessToken, EDIT_ARTICLE_MUTATION, {
             articleId,
             title,
             content,
-            complexity: input.complexity,
-            references: references.length > 0 ? references : null,
+            complexity,
+            references: references && references.length > 0 ? references : null,
         });
     } catch (error) {
         unstable_rethrow(error);
@@ -101,7 +94,7 @@ export async function editArticleAction(articleId: string, input: EditArticleInp
 export async function deleteArticleAction(articleId: string): Promise<ActionError> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
-    if (!isValidArticleId(articleId)) return { ok: false, error: "notFound" };
+    if (!articleIdSchema.safeParse(articleId).success) return { ok: false, error: "notFound" };
 
     try {
         const data = await authedMutate(accessToken, DELETE_ARTICLE_MUTATION, { articleId });
@@ -120,7 +113,7 @@ export async function deleteArticleAction(articleId: string): Promise<ActionErro
 export async function rateArticleAction(articleId: string, positive: boolean): Promise<ActionResult<null>> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
-    if (!isValidArticleId(articleId)) return { ok: false, error: "notFound" };
+    if (!articleIdSchema.safeParse(articleId).success) return { ok: false, error: "notFound" };
 
     try {
         await authedMutate(accessToken, RATE_ARTICLE_MUTATION, { articleId, positive });

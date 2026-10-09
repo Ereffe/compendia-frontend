@@ -392,7 +392,8 @@
     "imageTooLarge": "The image is too large. The maximum size is 10 MB.",
     "imageUploadFailed": "Couldn't upload the image. Please try again.",
     "imageUploadBusy": "The server is busy right now. Try uploading the image again in a moment.",
-    "imageUploadPending": "Wait until all images have finished uploading."
+    "imageUploadPending": "Wait until all images have finished uploading.",
+    "titleTooLong": "The title can be at most 200 characters long."
   },
   "references": {
     "title": "References",

@@ -3,6 +3,8 @@
 import { unstable_rethrow } from "next/navigation";
 
 import { toErrorKey } from "@/lib/graphqlErrors";
+import { addCommentSchema, commentIdSchema, editCommentSchema } from "@/lib/schemas";
+import { parseInput } from "@/lib/validation";
 import { authedMutate, getAccessToken } from "@/lib/server/session";
 import {
     ADD_COMMENT_MUTATION,
@@ -22,15 +24,11 @@ export async function addCommentAction(
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
-    const trimmedContent = content.trim();
-    if (!trimmedContent) return { ok: false, error: "emptyComment" };
+    const parsed = parseInput(addCommentSchema, { articleId, content, parentCommentId }, "addCommentFailed");
+    if (!parsed.ok) return parsed;
 
     try {
-        const data = await authedMutate(accessToken, ADD_COMMENT_MUTATION, {
-            articleId,
-            content: trimmedContent,
-            parentCommentId: parentCommentId ? Number.parseInt(parentCommentId, 10) : null,
-        });
+        const data = await authedMutate(accessToken, ADD_COMMENT_MUTATION, parsed.data);
         return { ok: true, data: mapGraphqlCommentToCommentItem(data.addComment) };
     } catch (error) {
         unstable_rethrow(error);
@@ -43,11 +41,11 @@ export async function rateCommentAction(commentId: string, positive: boolean): P
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
+    const parsedId = parseInput(commentIdSchema, commentId, "rateCommentFailed");
+    if (!parsedId.ok) return parsedId;
+
     try {
-        await authedMutate(accessToken, RATE_COMMENT_MUTATION, {
-            commentId: Number.parseInt(commentId, 10),
-            positive,
-        });
+        await authedMutate(accessToken, RATE_COMMENT_MUTATION, { commentId: parsedId.data, positive });
         return { ok: true, data: null };
     } catch (error) {
         unstable_rethrow(error);
@@ -60,13 +58,13 @@ export async function editCommentAction(commentId: string, content: string): Pro
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
-    const trimmedContent = content.trim();
-    if (!trimmedContent) return { ok: false, error: "emptyComment" };
+    const parsed = parseInput(editCommentSchema, { commentId, content }, "editCommentFailed");
+    if (!parsed.ok) return parsed;
 
     try {
         const data = await authedMutate(accessToken, EDIT_COMMENT_MUTATION, {
-            commentId: Number.parseInt(commentId, 10),
-            newContent: trimmedContent,
+            commentId: parsed.data.commentId,
+            newContent: parsed.data.content,
         });
         return { ok: true, data: data.editComment };
     } catch (error) {
@@ -80,10 +78,11 @@ export async function deleteCommentAction(commentId: string): Promise<ActionResu
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
+    const parsedId = parseInput(commentIdSchema, commentId, "deleteCommentFailed");
+    if (!parsedId.ok) return parsedId;
+
     try {
-        const data = await authedMutate(accessToken, DELETE_COMMENT_MUTATION, {
-            commentId: Number.parseInt(commentId, 10),
-        });
+        const data = await authedMutate(accessToken, DELETE_COMMENT_MUTATION, { commentId: parsedId.data });
         if (!data.deleteComment) return { ok: false, error: "deleteCommentFailed" };
         return { ok: true, data: null };
     } catch (error) {

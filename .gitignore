@@ -11,6 +11,8 @@
 !.yarn/versions
 
 AGENTS.md
+CLAUDE.md
+.mcp.json
 /docs
 /scripts/qa
 /.claude

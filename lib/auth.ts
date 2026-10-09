@@ -6,6 +6,9 @@ import { serverBackendUrl } from "@/lib/config";
 
 const refreshTokenGraceMs = 5_000;
 const fallbackAccessTokenLifetimeMs = 14 * 60 * 1000;
+const sharedRefreshMs = 10_000;
+
+export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
 type TokenResponse = {
   accessToken?: string;
@@ -38,7 +41,9 @@ export const parseTokenExpiryMs = (token: string): number | null => {
 const getAccessTokenExpiry = (accessToken: string) =>
   parseTokenExpiryMs(accessToken) ?? Date.now() + fallbackAccessTokenLifetimeMs;
 
-const refreshAccessToken = async (refreshToken: string) => {
+type RefreshedTokens = { accessToken: string; refreshToken: string; accessTokenExpires: number };
+
+const requestTokenRefresh = async (refreshToken: string): Promise<RefreshedTokens> => {
   const response = await fetch(`${serverBackendUrl}/auth/refresh?t=${encodeURIComponent(refreshToken)}`, {
     cache: "no-store",
   });
@@ -58,6 +63,22 @@ const refreshAccessToken = async (refreshToken: string) => {
     refreshToken: data.refreshToken,
     accessTokenExpires: getAccessTokenExpiry(data.accessToken),
   };
+};
+
+const pendingRefreshes = new Map<string, Promise<RefreshedTokens>>();
+
+// A page load sends several requests at once; they share one refresh instead of each rotating the token.
+const refreshAccessToken = (refreshToken: string): Promise<RefreshedTokens> => {
+  const pending = pendingRefreshes.get(refreshToken);
+  if (pending) return pending;
+
+  const refresh = requestTokenRefresh(refreshToken);
+  pendingRefreshes.set(refreshToken, refresh);
+  refresh.then(
+    () => setTimeout(() => pendingRefreshes.delete(refreshToken), sharedRefreshMs),
+    () => pendingRefreshes.delete(refreshToken),
+  );
+  return refresh;
 };
 
 const fetchCurrentUser = async (accessToken: string): Promise<CurrentUser | null> => {
@@ -81,10 +102,11 @@ const fetchCurrentUser = async (accessToken: string): Promise<CurrentUser | null
   }
 };
 
-const withFreshAccessToken = async (token: JWT): Promise<JWT> => {
-  const expiresAt = token.accessTokenExpires;
+export const isAccessTokenFresh = (token: JWT, marginMs: number): boolean =>
+  Boolean(token.accessToken && token.accessTokenExpires && Date.now() < token.accessTokenExpires - marginMs);
 
-  if (token.accessToken && expiresAt && Date.now() < expiresAt - refreshTokenGraceMs) {
+export const withFreshAccessToken = async (token: JWT, marginMs = refreshTokenGraceMs): Promise<JWT> => {
+  if (isAccessTokenFresh(token, marginMs)) {
     return token;
   }
 
@@ -109,6 +131,7 @@ const withFreshAccessToken = async (token: JWT): Promise<JWT> => {
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
+    maxAge: SESSION_MAX_AGE_SECONDS,
   },
   providers: [
     CredentialsProvider({
