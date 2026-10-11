@@ -37,12 +37,12 @@ afterEach(() => {
 });
 
 describe("AccountSettings", () => {
-    it("shows the account identity with a generated avatar", () => {
-        const { container } = renderWithIntl(<AccountSettings user={user} />);
+    it("shows the account identity with an initials avatar", () => {
+        renderWithIntl(<AccountSettings user={user} />);
 
         expect(screen.getAllByText("ala@uni.edu").length).toBeGreaterThan(0);
         expect(screen.getByText("Użytkownik")).toBeInTheDocument();
-        expect(container.querySelector("svg[viewBox='0 0 100 100']")).not.toBeNull();
+        expect(screen.getByText("A")).toHaveAttribute("aria-hidden");
     });
 
     it("saves a new name and refreshes the session", async () => {

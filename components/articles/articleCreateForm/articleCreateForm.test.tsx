@@ -496,7 +496,9 @@ describe("ArticleCreateForm PDF import", () => {
 
         expect(await screen.findByText("praca.pdf")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Utwórz artykuł z PDF" })).toBeInTheDocument();
-        await user.click(screen.getByRole("button", { name: "Usuń plik praca.pdf" }));
+        const removeButtons = screen.getAllByRole("button", { name: "Usuń plik praca.pdf" });
+        expect(removeButtons).toHaveLength(2);
+        await user.click(removeButtons[1]);
         expect(screen.queryByText("praca.pdf")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Utwórz artykuł" })).toBeInTheDocument();
     });
@@ -534,7 +536,7 @@ describe("ArticleCreateForm PDF import", () => {
         expect((formData.get("pdf") as File).name).toBe("praca.pdf");
         expect(screen.getByRole("button", { name: /Tworzenie z PDF/ })).toBeDisabled();
         expect(screen.getByText(/Czeka w kolejce/)).toBeInTheDocument();
-        expect(screen.queryByRole("button", { name: "Usuń plik praca.pdf" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Usuń plik praca.pdf" })).toBeDisabled();
 
         await vi.advanceTimersByTimeAsync(4000);
         expect(getPdfImportStatusAction).toHaveBeenCalledWith("job-1");

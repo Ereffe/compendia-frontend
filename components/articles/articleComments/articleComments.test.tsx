@@ -91,7 +91,7 @@ describe("ArticleComments", () => {
         expect(screen.getByText("Nowa odpowiedź")).toBeInTheDocument();
     });
 
-    it("shows each author's generated avatar, the same for the same user id", () => {
+    it("links each author's avatar and name to their profile", () => {
         const { container } = renderWithIntl(
             <ArticleComments
                 articleId="a1"
@@ -103,11 +103,13 @@ describe("ArticleComments", () => {
             />,
         );
 
-        const avatars = [...container.querySelectorAll("article > img")].map((img) => img.getAttribute("src"));
-        expect(avatars).toHaveLength(3);
-        expect(avatars[0]).toMatch(/^data:image\/svg\+xml/);
-        expect(avatars[0]).toBe(avatars[1]);
-        expect(avatars[0]).not.toBe(avatars[2]);
+        const avatarLinks = [...container.querySelectorAll("article > a[aria-hidden]")];
+        expect(avatarLinks.map((link) => [link.getAttribute("href"), link.textContent])).toEqual([
+            ["/users/u1", "A"],
+            ["/users/u1", "A"],
+            ["/users/u2", "O"],
+        ]);
+        expect(screen.getAllByRole("link", { name: "Ala" })[0]).toHaveAttribute("href", "/users/u1");
     });
 
     it("disables commenting when there is no active session", async () => {
