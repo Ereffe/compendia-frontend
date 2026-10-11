@@ -12,5 +12,12 @@ export type CommentItem = {
         positive: number;
         negative: number;
     };
+    myVote: boolean | null;
     replies?: CommentItem[];
+};
+
+export type EditedComment = {
+    id: string;
+    content: string;
+    editedAt: string | null;
 };

@@ -1,48 +1,30 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
-import ArticleCreateContainer from "@/components/articles/articleCreateContainer";
-import { authOptions } from "@/lib/auth";
+import ArticleCreateForm from "@/components/articles/articleCreateForm/articleCreateForm";
+import { getCurrentUserId, requireAccessToken } from "@/lib/server/session";
 
 export default async function CreateArticlePage() {
-  const session = await getServerSession(authOptions);
-  const hasAccess =
-    Boolean(session?.accessToken) &&
-    session?.error !== "RefreshAccessTokenError";
-
-  if (!hasAccess) {
-    redirect("/");
-  }
-
-  if (!session?.accessToken) {
-    redirect("/");
-  }
+  await requireAccessToken();
+  const t = await getTranslations();
+  const userId = await getCurrentUserId();
 
   return (
-    <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 my-3 sm:px-8 sm:py-12 bg-card/60 rounded-2xl">
-      <div className="space-y-4" style={{ animationDelay: "40ms" }}>
+    <section className="container-reading flex flex-col gap-8 pb-6 pt-10 sm:pt-14">
+      <div>
         <Link
           href="/articles"
-          className="inline-flex rounded-full border border-border/70 bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-foreground backdrop-blur transition-colors hover:bg-accent"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          Wróć do artykułów
+          <ArrowLeft className="size-4" aria-hidden />
+          {t("common.backToArticles")}
         </Link>
-        <div>
-          <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
-            Utwórz nowy artykuł
-          </h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Podziel się swoją wiedzą ze społecznością. Artykuły mogą zawierać
-            notatki, wyjaśnienia, przykłady i materiały do nauki powiązane z
-            wybranymi tematami.
-          </p>
-        </div>
+        <h1 className="mt-4 title-page">{t("create.title")}</h1>
+        <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">{t("create.description")}</p>
       </div>
 
-      <div className="space-y-6" style={{ animationDelay: "80ms" }}>
-        <ArticleCreateContainer />
-      </div>
+      <ArticleCreateForm draftOwnerId={userId} />
     </section>
   );
 }

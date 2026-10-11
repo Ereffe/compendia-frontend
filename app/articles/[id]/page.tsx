@@ -1,214 +1,167 @@
-import { authOptions } from "@/lib/auth";
-import { mapGraphqlCommentToCommentItem, type GraphqlCommentItem } from "@/services/graphql/comments";
-import { getServerSession } from "next-auth";
-import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import { notFound, unstable_rethrow } from "next/navigation";
+import { getFormatter, getTranslations } from "next-intl/server";
 import Markdown from "react-markdown";
-import ArticleComments from "../../../components/articles/articleComments/articleComments";
-import type { CommentItem } from "@/types/comments";
-import { query } from "../../ApolloClient";
-import { gql } from "@apollo/client";
+import "katex/dist/katex.min.css";
 
-interface Article {
-  id: string;
-  title: string;
-  content: string;
-  datePosted: string;
-  complexity: string;
-  comments?: {
-    content: GraphqlCommentItem[];
-  };
-  author?: {
-    name: string;
-  } | null;
-  references?: Array<{
-    doi: string;
-    title: string;
-    authors: string;
-    description: string;
-    url: string;
-  }>;
-}
+import ArticleCitation from "@/components/articles/articleCitation";
+import ArticleComments from "@/components/articles/articleComments/articleComments";
+import ArticleOwnerActions from "@/components/articles/articleOwnerActions";
+import ArticleRating from "@/components/articles/articleRating/articleRating";
+import ArticleReferences from "@/components/articles/articleReferences";
+import ArticleGraphContainer from "@/components/articles/articleGraph/ArticleGraphContainer";
+import {
+  articleRehypePlugins,
+  articleRemarkPlugins,
+  articleUrlTransform,
+  cleanArticleMarkdown,
+  rehypeArticleSections,
+  type ArticleSection,
+} from "@/lib/articleContent";
+import { isValidArticleId } from "@/lib/articleId";
+import { siteUrl } from "@/lib/config";
+import { isNotFoundError } from "@/lib/graphqlErrors";
+import { authedQuery, getCurrentUserId, requireAccessToken } from "@/lib/server/session";
+import { ARTICLE_QUERY, articleDateFormat, COMMENTS_PAGE_SIZE, type GraphqlArticle } from "@/services/graphql/articles";
+import { mapGraphqlCommentToCommentItem } from "@/services/graphql/comments";
+import type { ArticleReference } from "@/types/articles";
 
-const ARTICLE_QUERY = gql`
-  query Article($id: String!, $page: Int!, $size: Int!) {
-    article(id: $id) {
-      id
-      title
-      content
-      datePosted
-      complexity
-      comments(page: $page, size: $size, sortBy: "datePosted", ascending: false) {
-        content {
-          id
-          content
-          datePosted
-          editedAt
-          user {
-            id
-            name
-          }
-          rating {
-            positive
-            negative
-          }
-          parentComment {
-            id
-          }
-        }
-      }
-      tags
-      references {
-        doi
-        title
-        authors
-        description
-        url
-      }
-      author {
-        name
-      }
-    }
-  }
-`;
+const readingColumn = "mx-auto w-full max-w-[40rem]";
+const sectionClass = "border-t border-border px-5 py-10 sm:px-12 sm:py-14";
+const proseClass = [
+  "prose prose-ink max-w-none font-serif text-[1.125rem] leading-[1.7] wrap-break-word sm:text-[1.1875rem]",
+  "prose-headings:scroll-mt-6 prose-headings:font-serif prose-headings:font-medium prose-headings:tracking-[-0.01em]",
+  "prose-a:text-link prose-a:decoration-1 prose-a:underline-offset-[3px] hover:prose-a:decoration-2 hyphens-auto [font-variant-numeric:oldstyle-nums_proportional-nums]",
+  "prose-code:font-mono prose-code:text-[0.85em] prose-pre:overflow-x-auto prose-pre:font-mono prose-pre:text-sm",
+  "prose-img:rounded-md [&_table]:block [&_table]:overflow-x-auto [&_table]:font-sans [&_table]:text-sm",
+  "[&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-1",
+].join(" ");
 
-const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-async function fetchArticle(id: string, accessToken: string): Promise<Article | null> {
+async function fetchArticle(id: string, accessToken: string): Promise<GraphqlArticle | null> {
   try {
-    const result = await query<{ article: Article }>({
-      query: ARTICLE_QUERY,
-      variables: { id, page: 0, size: 10 },
-      context: {
-        // forward auth header to backend
-        headers: { Authorization: `Bearer ${accessToken}` },
-        fetchOptions: { next: { revalidate: 0 } },
-      },
-    });
-
-    const article = result.data?.article;
-    if (!article) return null;
-
-    const normalizedComments: CommentItem[] =
-      article.comments?.content.map(mapGraphqlCommentToCommentItem) ?? [];
-
-    return {
-      ...article,
-      comments: { content: normalizedComments },
-    };
-  } catch (err) {
-    console.error("fetchArticle (apollo) error:", err);
-    return null;
+    return (await authedQuery(accessToken, ARTICLE_QUERY, { id, commentsPage: 0, commentsSize: COMMENTS_PAGE_SIZE })).article;
+  } catch (error) {
+    unstable_rethrow(error);
+    if (isNotFoundError(error)) {
+      return null;
+    }
+    throw error;
   }
 }
 
-export default async function ArticlePage({
-  params,
-}: Readonly<{ params: Promise<{ id: string }> }>) {
+export default async function ArticlePage({ params }: Readonly<{ params: Promise<{ id: string }> }>) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
+  const accessToken = await requireAccessToken();
 
-  if (!session?.accessToken || session.error === "RefreshAccessTokenError") {
-    redirect("/");
-  }
-
-  const article = await fetchArticle(id, session.accessToken);
-  if (!article) {
+  if (!isValidArticleId(id)) {
     notFound();
   }
 
+  const [article, currentUserId] = await Promise.all([fetchArticle(id, accessToken), getCurrentUserId()]);
+  if (!article) {
+    notFound();
+  }
+  const isAuthor = currentUserId !== null && article.author?.id === currentUserId;
+
+  const t = await getTranslations();
+  const format = await getFormatter();
+  const references = (article.references ?? []).filter((reference): reference is ArticleReference => reference != null);
+  const comments = article.comments.content.map(mapGraphqlCommentToCommentItem);
+  const sections: ArticleSection[] = [];
+  // Called directly, not as JSX: it renders synchronously so `sections` is filled before the contents list.
+  const body = Markdown({
+    children: cleanArticleMarkdown(article.content),
+    remarkPlugins: articleRemarkPlugins,
+    rehypePlugins: [[rehypeArticleSections, sections], ...articleRehypePlugins],
+    urlTransform: articleUrlTransform,
+  });
+  const datePosted = new Date(article.datePosted);
+  const citation = {
+    id: article.id,
+    author: article.author?.name ?? null,
+    title: article.title,
+    date: `${format.dateTime(datePosted, { year: "numeric" })}, ${format.dateTime(datePosted, { month: "long", day: "numeric" })}`,
+    year: format.dateTime(datePosted, { year: "numeric" }),
+    url: `${siteUrl}/articles/${article.id}`,
+  };
+
   return (
-    <>
-      <section className="relative mx-auto max-w-3xl px-6 py-10 sm:px-8 sm:py-16">
-        <article className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
-          <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-border pb-6">
-            {article.complexity && (
-              <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                {article.complexity}
-              </span>
-            )}
-            {article.datePosted && (
-              <span className="ml-auto text-xs font-medium text-muted-foreground">
-                {new Date(article.datePosted).toLocaleDateString("pl-PL", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </span>
-            )}
-          </div>
-
-          <h1 className="mb-4 text-4xl font-bold leading-tight text-foreground sm:text-5xl wrap-break-words">
-            {article.title}
-          </h1>
-
-          {article.author?.name && (
-            <p className="mb-8 border-b border-border pb-5 text-base font-medium text-muted-foreground">
-              By <span className="font-semibold">{article.author.name}</span>
+    <div className="container-reading py-6 sm:py-12">
+      <div className="sheet">
+        <article className="px-5 pb-12 pt-10 sm:px-12 sm:pb-16 sm:pt-16">
+          <header className={readingColumn}>
+            <h1 className="title-display wrap-break-word text-foreground">
+              {article.title}
+            </h1>
+            <p className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+              {article.author ? (
+                <Link href={`/users/${article.author.id}`} className="font-medium text-foreground underline-offset-4 hover:underline">
+                  {article.author.name}
+                </Link>
+              ) : (
+                <span className="font-medium text-foreground">{t("common.unknownAuthor")}</span>
+              )}
+              <span aria-hidden>·</span>
+              <time dateTime={article.datePosted}>{format.dateTime(datePosted, articleDateFormat)}</time>
+              <span aria-hidden>·</span>
+              <span>{t("article.level", { level: t(`complexity.${article.complexity}`) })}</span>
             </p>
-          )}
+            {isAuthor ? <ArticleOwnerActions articleId={article.id} /> : null}
+          </header>
 
-          <div className="prose prose-lg max-w-none space-y-6 text-muted-foreground dark:prose-invert">
-            <Markdown>{article.content}</Markdown>
+          {sections.length >= 3 ? (
+            <nav aria-labelledby="contents-heading" className={`${readingColumn} mt-10 border-t border-border pt-6`}>
+              <h2 id="contents-heading" className="text-sm font-semibold text-foreground">{t("article.contents")}</h2>
+              <ol className="mt-3 grid gap-1.5 text-[0.9375rem] leading-snug">
+                {sections.map((section, index) => (
+                  <li key={section.id} className="grid grid-cols-[1.75rem_minmax(0,1fr)]">
+                    <span className="tabular-nums text-muted-foreground">{index + 1}.</span>
+                    <a href={`#${section.id}`} className="text-link underline-offset-[3px] hover:underline wrap-anywhere">
+                      {section.title}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          ) : null}
+
+          <div className={`${readingColumn} mt-10 border-t border-border pt-10`}>
+            <div className={proseClass}>{body}</div>
+            <div className="mt-12 border-t border-border pt-6">
+              <ArticleRating articleId={article.id} initialRating={article.rating} initialVote={article.myVote} />
+            </div>
           </div>
         </article>
-      </section>
-      <section className="mx-auto max-w-3xl px-6 py-2 sm:px-8 sm:py-4">
-        {article.references && article.references.length > 0 && (
-          <div className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.6)] backdrop-blur sm:p-10">
-            <h2 className="mb-4 text-2xl font-bold leading-tight text-foreground">
-              Źródła
-            </h2>
-            <ul className="list-disc list-inside space-y-3 text-muted-foreground">
-              {article.references.map((reference) => (
-                <li key={reference.doi}>
-                  <a
-                    href={reference.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-teal-600 hover:underline"
-                  >
-                    {reference.title}
-                  </a>
-                  <p className="text-sm text-muted-foreground">
-                    {reference.authors}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {reference.description}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    DOI: {reference.doi}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    URL: {reference.url}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </section>
 
-      <section className="relative mx-auto max-w-3xl px-6 pb-10 sm:px-8">
-        <ArticleComments
-          articleId={article.id}
-          initialComments={article.comments?.content ?? []}
-        />
-      </section>
+        {references.length > 0 ? (
+          <>
+            <section className={sectionClass}>
+              <div className={readingColumn}>
+                <ArticleReferences references={references} />
+              </div>
+            </section>
+            <section id="citation-graph" className={`${sectionClass} scroll-mt-6`}>
+              <ArticleGraphContainer references={references} headerClassName={readingColumn} />
+            </section>
+          </>
+        ) : null}
 
-      <footer className="mx-auto max-w-6xl px-6 pb-10 pt-8 sm:px-8">
-        <div className="rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-semibold tracking-[0.18em] text-foreground">
-              COMPENDIA
-            </p>
-            <p>
-              Stworzone dla studentów i wykładowców, którzy uczą się lepiej
-              razem.
-            </p>
-            <p>© 2026 Compendia</p>
+        <section className={sectionClass}>
+          <div className={readingColumn}>
+            <ArticleCitation parts={citation} />
           </div>
-        </div>
-      </footer>
-    </>
+        </section>
+
+        <section className={sectionClass}>
+          <div className={readingColumn}>
+            <ArticleComments
+              articleId={article.id}
+              initialComments={comments}
+              totalCount={article.comments.totalElements}
+            />
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }

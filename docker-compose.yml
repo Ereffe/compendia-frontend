@@ -1,8 +1,14 @@
 services:
   web:
-    build: .
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-http://localhost:8080}
     ports:
       - "3000:3000"
     environment:
-      NODE_ENV: production
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?set NEXTAUTH_SECRET}
+      # Server-side requests can use an internal hostname, e.g. http://backend:8080
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-}
     container_name: compendia-frontend

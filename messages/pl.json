@@ -1,0 +1,486 @@
+{
+  "metadata": {
+    "description": "Artykuły edukacyjne i naukowe z bibliografią DOI i grafem cytowań."
+  },
+  "common": {
+    "brand": "Compendia",
+    "backToArticles": "Wróć do artykułów",
+    "backToHome": "Wróć na stronę główną",
+    "goToArticles": "Przejdź do artykułów",
+    "createArticle": "Utwórz artykuł",
+    "authorBy": "Autor: {name}",
+    "unknownAuthor": "Nieznany autor",
+    "close": "Zamknij",
+    "loading": "Wczytywanie…"
+  },
+  "header": {
+    "allArticles": "Wszystkie artykuły",
+    "createArticle": "Stwórz artykuł",
+    "users": "Użytkownicy",
+    "menu": "Menu",
+    "openMenu": "Otwórz menu",
+    "navigation": "Nawigacja",
+    "account": "Twoje konto",
+    "accountOf": "Konto: {name}"
+  },
+  "users": {
+    "title": "Użytkownicy",
+    "description": "Znajdź autorów po imieniu i zobacz ich artykuły.",
+    "searchLabel": "Szukaj użytkowników",
+    "placeholder": "Imię lub nazwisko",
+    "submit": "Szukaj",
+    "noResults": "Nie znaleziono użytkowników o tym imieniu.",
+    "empty": "Nikt jeszcze nie opublikował artykułu.",
+    "articleCount": "{count, plural, =0 {Brak artykułów} one {# artykuł} few {# artykuły} many {# artykułów} other {# artykułu}}",
+    "articlesHeading": "Artykuły",
+    "noArticles": "Ten użytkownik nie opublikował jeszcze artykułów.",
+    "accountSettings": "Ustawienia konta"
+  },
+  "language": {
+    "label": "Język",
+    "switchTo": "Zmień język na: {language}",
+    "pl": "Polski",
+    "en": "English"
+  },
+  "theme": {
+    "toLight": "Przełącz na jasny motyw",
+    "toDark": "Przełącz na ciemny motyw",
+    "light": "Jasny motyw",
+    "dark": "Ciemny motyw"
+  },
+  "footer": {
+    "tagline": "Artykuły edukacyjne i naukowe dla studentów i wykładowców."
+  },
+  "landing": {
+    "title": "Artykuły do nauki, ze źródłami na wierzchu.",
+    "subtitle": "Compendia to miejsce, w którym studenci i wykładowcy publikują notatki, wyjaśnienia i komentarze do publikacji naukowych. Źródła podajesz numerem DOI, a Compendia pokazuje, co one same cytują.",
+    "sessionExpired": "Twoja sesja wygasła. Zaloguj się ponownie.",
+    "recent": "Ostatnio opublikowane",
+    "recentHint": "Zaloguj się, aby przeczytać całe artykuły."
+  },
+  "login": {
+    "modes": {
+      "login": "Zaloguj się",
+      "register": "Zarejestruj się"
+    },
+    "name": "Imię",
+    "email": "E-mail",
+    "emailPlaceholder": "student@uczelnia.edu",
+    "password": "Hasło",
+    "modalTitle": "Zaloguj się do Compendia",
+    "modalDescription": "Zaloguj się, aby kontynuować.",
+    "switch": {
+      "login": "Masz już konto?",
+      "register": "Nie masz konta?"
+    },
+    "errors": {
+      "missingFieldsLogin": "Wpisz e-mail i hasło.",
+      "missingFieldsRegister": "Wpisz imię, e-mail i hasło.",
+      "invalidEmail": "Wpisz poprawny adres e-mail.",
+      "passwordTooShort": "Hasło musi mieć co najmniej {min} znaków.",
+      "registerFailed": "Rejestracja nie powiodła się.",
+      "invalidCredentials": "Nieprawidłowy e-mail lub hasło.",
+      "emailTaken": "Konto z tym adresem e-mail już istnieje.",
+      "backendUnavailable": "Serwer jest niedostępny. Spróbuj ponownie za chwilę.",
+      "loginFailed": "Nie udało się zalogować. Spróbuj ponownie."
+    }
+  },
+  "articles": {
+    "empty": "Brak artykułów do wyświetlenia.",
+    "titles": {
+      "newest": "Najnowsze artykuły",
+      "top": "Najlepiej oceniane",
+      "mostRated": "Najczęściej oceniane"
+    },
+    "descriptions": {
+      "newest": "Ostatnio opublikowane artykuły, od najnowszego.",
+      "top": "Artykuły, które czytelnicy ocenili najlepiej: najwięcej głosów pozytywnych po odjęciu negatywnych.",
+      "mostRated": "Artykuły, o których czytelnicy mają najwięcej do powiedzenia: najwięcej oddanych głosów."
+    },
+    "sortLabel": "Sortuj",
+    "sorts": {
+      "newest": "Najnowsze",
+      "top": "Najlepsze",
+      "mostRated": "Najwięcej ocen"
+    },
+    "levelLabel": "Poziom",
+    "allLevels": "Wszystkie",
+    "emptyFiltered": "Brak artykułów na tym poziomie.",
+    "emptyRated": "Żaden artykuł spełniający te kryteria nie ma jeszcze ocen.",
+    "ratingSummary": "Oceny: {positive} pozytywnych, {negative} negatywnych",
+    "commentCount": "{count, plural, =0 {Brak komentarzy} one {# komentarz} few {# komentarze} many {# komentarzy} other {# komentarza}}"
+  },
+  "archive": {
+    "title": "Wszystkie artykuły",
+    "description": "Wszystkie artykuły na platformie, od najnowszego.",
+    "pageOf": "Strona {page} z {total}",
+    "empty": "Brak artykułów do wyświetlenia",
+    "previous": "Poprzednia",
+    "next": "Następna",
+    "morePages": "Więcej stron",
+    "pagination": "Paginacja"
+  },
+  "article": {
+    "notFoundTitle": "Artykuł nie znaleziony",
+    "notFoundDescription": "Szukany artykuł nie istnieje lub został usunięty. Sprawdź adres URL lub przejdź do listy artykułów.",
+    "level": "Poziom: {level}",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "deleteTitle": "Usunąć ten artykuł?",
+    "deleteDescription": "Artykuł zostanie trwale usunięty razem z komentarzami. Tej operacji nie można cofnąć.",
+    "deleteConfirm": "Usuń artykuł",
+    "deleting": "Usuwanie…",
+    "cancel": "Anuluj",
+    "ratePrompt": "Czy ten artykuł był pomocny?",
+    "thanksForRating": "Dziękujemy za ocenę.",
+    "upvote": "Oceń pozytywnie ({count})",
+    "downvote": "Oceń negatywnie ({count})",
+    "removeVote": "Kliknij ponownie, aby wycofać głos",
+    "contents": "Spis treści",
+    "cite": {
+      "title": "Jak cytować",
+      "copy": "Kopiuj cytowanie {format}",
+      "copied": "Skopiowano"
+    }
+  },
+  "complexity": {
+    "SIMPLE": "Proste",
+    "INTERMEDIATE": "Średnie",
+    "COMPLEX": "Zaawansowane"
+  },
+  "comments": {
+    "title": "Komentarze",
+    "count": "{count, plural, =0 {Bądź pierwszą osobą, która skomentuje ten artykuł.} one {# komentarz} few {# komentarze} many {# komentarzy} other {# komentarza}}",
+    "checkingSession": "Sprawdzanie sesji...",
+    "mustSignIn": "Musisz być zalogowany, aby komentować.",
+    "placeholder": "Napisz komentarz...",
+    "placeholderSignedOut": "Zaloguj się, aby napisać komentarz",
+    "submit": "Dodaj komentarz",
+    "submitting": "Publikowanie...",
+    "replyPlaceholder": "Napisz odpowiedź...",
+    "submitReply": "Dodaj odpowiedź",
+    "reply": "Odpowiedz",
+    "cancel": "Anuluj",
+    "edited": "edytowano",
+    "empty": "Brak komentarzy.",
+    "shownOf": "Wyświetlono {shown} z {total} komentarzy.",
+    "loadMore": "Pokaż więcej komentarzy",
+    "loadingMore": "Wczytywanie…",
+    "hideReplies": "Ukryj odpowiedzi",
+    "noReplies": "Brak odpowiedzi",
+    "showReplies": "{count, plural, one {Pokaż # odpowiedź} other {Pokaż # odpowiedzi}}",
+    "upvote": "Głos pozytywny ({count})",
+    "downvote": "Głos negatywny ({count})",
+    "removeVote": "Kliknij ponownie, aby wycofać głos",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "editLabel": "Edytuj komentarz",
+    "save": "Zapisz",
+    "saving": "Zapisywanie…",
+    "deleteTitle": "Usunąć ten komentarz?",
+    "deleteDescription": "{replies, plural, =0 {Komentarz zostanie trwale usunięty.} one {Komentarz zostanie trwale usunięty razem z # odpowiedzią.} other {Komentarz zostanie trwale usunięty razem z # odpowiedziami.}}",
+    "deleteConfirm": "Usuń komentarz",
+    "deleting": "Usuwanie…"
+  },
+  "search": {
+    "openLabel": "Otwórz wyszukiwarkę artykułów",
+    "buttonLabel": "Szukaj w tytułach i treści artykułów",
+    "example": "np. optymalizacja SQL, planowanie procesów, listy wiązane",
+    "title": "Wyszukiwanie artykułów",
+    "description": "Zacznij pisać, aby przeszukać tytuły i treść wszystkich artykułów.",
+    "placeholder": "Szukaj artykułów...",
+    "searching": "Szukanie…",
+    "results": "{count, plural, =0 {Brak wyników} one {# wynik} few {# wyniki} many {# wyników} other {# wyniku}}",
+    "noResults": "Nie znaleziono artykułów dla tego zapytania.",
+    "failed": "Wyszukiwanie nie powiodło się. Spróbuj ponownie."
+  },
+  "create": {
+    "title": "Utwórz nowy artykuł",
+    "description": "Notatki, wyjaśnienia i materiały do nauki albo komentarz do publikacji naukowej wskazanej numerem DOI.",
+    "scientific": "Artykuł naukowy",
+    "titleLabel": "Tytuł",
+    "titlePlaceholder": "Np. Wprowadzenie do struktur danych",
+    "contentLabel": "Treść",
+    "scientificContentLabel": "Komentarz do artykułu naukowego",
+    "contentPlaceholder": "Rozpocznij pisać markdown...",
+    "complexityLabel": "Poziom trudności",
+    "redirectHint": "Po wysłaniu formularza zostaniesz przekierowany do nowo utworzonego artykułu.",
+    "submit": "Utwórz artykuł",
+    "submitting": "Tworzenie...",
+    "typeLabel": "Typ artykułu",
+    "typeRegular": "Zwykły artykuł",
+    "typeRegularHint": "Notatki, wyjaśnienia i materiały do nauki.",
+    "typeScientificHint": "Komentarz do publikacji naukowych wskazanych numerami DOI.",
+    "titleCounter": "{count}/{max}",
+    "markdownHint": "Obsługiwany jest Markdown: nagłówki, listy, kod, linki, tabele i wzory LaTeX.",
+    "complexityHints": {
+      "SIMPLE": "Dla początkujących, bez specjalistycznej wiedzy.",
+      "INTERMEDIATE": "Zakłada znajomość podstaw tematu.",
+      "COMPLEX": "Dla osób, które dobrze znają dziedzinę."
+    },
+    "tipsTitle": "Wskazówki",
+    "tips": {
+      "headings": "## Nagłówek dzieli tekst na sekcje.",
+      "lists": "- punkt albo 1. punkt tworzy listę.",
+      "code": "`kod` w tekście, ``` dla bloku kodu.",
+      "links": "[tekst](https://adres) dodaje link.",
+      "math": "$E = mc^2$ wstawia wzór w tekście, $$...$$ w osobnej linii."
+    },
+    "metadata": {
+      "fetch": "Uzupełnij z DOI",
+      "filled": "Uzupełniono tytuł i treść danymi publikacji. Sprawdź je przed wysłaniem.",
+      "kept": "Uzupełniono puste pola. Pola, które były już wypełnione, zostały bez zmian.",
+      "empty": "Nie znaleziono danych dla tego DOI. Uzupełnij pola samodzielnie.",
+      "authorsHeading": "Autorzy",
+      "abstractHeading": "Streszczenie"
+    },
+    "draft": {
+      "foundTitle": "Masz niezapisany szkic",
+      "foundHint": "Przywróć go albo odrzuć. Do tego czasu autozapis jest wstrzymany.",
+      "restore": "Przywróć szkic",
+      "discard": "Odrzuć",
+      "autosaveHint": "Szkic zapisuje się automatycznie na tym urządzeniu.",
+      "savedAt": "Szkic zapisany o {time} na tym urządzeniu."
+    },
+    "references": {
+      "addLabel": "Dodaj źródło po DOI",
+      "add": "Dodaj",
+      "placeholder": "np. 10.1234/56789 lub link doi.org",
+      "hint": "Możesz wkleić kilka DOI naraz, każde w nowej linii lub oddzielone spacją. Enter dodaje, Shift+Enter przechodzi do nowej linii.",
+      "empty": "Nie dodano jeszcze żadnych źródeł. Artykuł naukowy potrzebuje co najmniej jednego.",
+      "none": "Brak źródeł",
+      "edit": "Edytuj źródła",
+      "loading": "Pobieranie danych publikacji",
+      "notFound": "Nie znaleziono danych tej publikacji. Sprawdź, czy DOI jest poprawne.",
+      "fill": "Uzupełnij z DOI {doi}",
+      "moveUp": "Przesuń wyżej: {doi}",
+      "moveDown": "Przesuń niżej: {doi}",
+      "remove": "Usuń źródło: {doi}"
+    },
+    "pdf": {
+      "label": "Import z PDF",
+      "drop": "Upuść plik PDF tutaj",
+      "dropActive": "Upuść, aby dodać plik",
+      "browse": "albo kliknij, aby wybrać (do 50 MB)",
+      "remove": "Usuń plik {name}",
+      "hint": "Treść artykułu może zostać wygenerowana z pliku PDF. Podaj tytuł i poziom trudności, a resztę przygotuje import.",
+      "selectedHint": "Treść zostanie wygenerowana z PDF. Tekst z edytora i źródła nie zostaną użyte.",
+      "submit": "Utwórz artykuł z PDF",
+      "submitting": "Tworzenie z PDF...",
+      "progress": {
+        "PENDING": "Plik wysłany. Czeka w kolejce na przetworzenie...",
+        "PROCESSING": "Przetwarzanie PDF. To może potrwać kilka minut, nie zamykaj tej strony."
+      },
+      "editorLocked": "Treść powstanie z pliku PDF. Usuń plik, żeby pisać samodzielnie.",
+      "editorLockedTitle": "Edytor jest zablokowany"
+    },
+    "images": {
+      "insert": "Wstaw obraz",
+      "hint": "Wklej lub upuść obraz w edytorze albo użyj przycisku „Wstaw obraz”. PNG, JPG lub GIF, do 10 MB.",
+      "uploading": "{count, plural, one {Wysyłanie obrazu...} few {Wysyłanie # obrazów...} many {Wysyłanie # obrazów...} other {Wysyłanie # obrazu...}}",
+      "defaultAlt": "obraz"
+    }
+  },
+  "edit": {
+    "title": "Edytuj artykuł",
+    "description": "Popraw treść, tytuł lub poziom trudności. Zmiany zobaczą wszyscy czytelnicy.",
+    "submit": "Zapisz zmiany",
+    "submitting": "Zapisywanie...",
+    "redirectHint": "Po zapisaniu wrócisz do artykułu.",
+    "cancel": "Anuluj",
+    "backToArticle": "Wróć do artykułu"
+  },
+  "graph": {
+    "title": "Graf cytowań",
+    "figure": "Rys. 1.",
+    "papers": "{count, plural, one {# praca} few {# prace} many {# prac} other {# pracy}}",
+    "links": "{count, plural, one {# cytowanie} few {# cytowania} many {# cytowań} other {# cytowania}}",
+    "reference": "Źródło",
+    "chooseReference": "Wybierz źródło",
+    "show": "Pokaż graf",
+    "hide": "Ukryj graf",
+    "depth": "Głębokość",
+    "depthHint": "Liczba kroków cytowań od źródła",
+    "layout": "Układ",
+    "layouts": {
+      "concentric": "Promienisty",
+      "breadthfirst": "Drzewo",
+      "cose": "Swobodny"
+    },
+    "zoomIn": "Przybliż",
+    "zoomOut": "Oddal",
+    "fit": "Dopasuj widok",
+    "exportPng": "Pobierz jako PNG",
+    "refresh": "Odśwież dane",
+    "loading": "Wczytywanie grafu…",
+    "legend": {
+      "root": "Źródło",
+      "cited": "Cytowana praca",
+      "missing": "Brak metadanych"
+    },
+    "kind": {
+      "root": "Źródło artykułu",
+      "cited": "Cytowana praca",
+      "missing": "Brak metadanych"
+    },
+    "selectHint": "Kliknij węzeł, aby zobaczyć szczegóły pracy.",
+    "missingDescription": "Nie udało się pobrać tytułu ani autorów tej pracy. Znany jest tylko jej DOI.",
+    "lookingUp": "Pobieranie metadanych…",
+    "depthLimited": "Graf jest za duży — pokazano głębokość {depth}.",
+    "hiddenPapers": "Pokazano najczęściej cytowane prace, pominięto {count, plural, one {# inną} few {# inne} many {# innych} other {# innej}}",
+    "authorsMore": "i {count} innych",
+    "depthBadge": "{depth, plural, =0 {źródło} one {# krok od źródła} few {# kroki od źródła} many {# kroków od źródła} other {# kroku od źródła}}",
+    "copyDoi": "Kopiuj DOI",
+    "copied": "Skopiowano",
+    "expand": "Pokaż jej cytowania",
+    "openSource": "Otwórz",
+    "clearSelection": "Zamknij szczegóły",
+    "empty": "Brak danych grafu dla tego DOI.",
+    "emptyHint": "Ta praca nie ma cytowań z rozpoznawalnym DOI albo nie udało się pobrać jej metadanych.",
+    "loadFailed": "Nie udało się wczytać grafu cytowań.",
+    "expandFailed": "Nie udało się pobrać cytowań tej pracy.",
+    "retry": "Spróbuj ponownie"
+  },
+  "notFound": {
+    "title": "Strona nie znaleziona",
+    "description": "Pod tym adresem nie ma strony. Sprawdź adres albo wróć do listy artykułów."
+  },
+  "error": {
+    "title": "Coś poszło nie tak",
+    "description": "Nie udało się połączyć z serwerem albo wystąpił nieoczekiwany błąd. Spróbuj ponownie za chwilę.",
+    "code": "Kod błędu: {digest}",
+    "retry": "Spróbuj ponownie"
+  },
+  "errors": {
+    "notSignedIn": "Musisz być zalogowany.",
+    "voteRequiresLogin": "Musisz być zalogowany, aby głosować.",
+    "emptyComment": "Komentarz nie może być pusty.",
+    "loadCommentsFailed": "Nie udało się wczytać kolejnych komentarzy.",
+    "addCommentFailed": "Nie udało się dodać komentarza.",
+    "rateCommentFailed": "Nie udało się ocenić komentarza.",
+    "missingTitleOrContent": "Uzupełnij tytuł i treść.",
+    "invalidComplexity": "Nieprawidłowy poziom trudności.",
+    "missingDoi": "Dodaj co najmniej jedno DOI artykułu naukowego.",
+    "invalidDoi": "Nieprawidłowy numer DOI (np. 10.1234/56789).",
+    "createArticleFailed": "Nie udało się utworzyć artykułu.",
+    "sessionExpired": "Sesja wygasła. Zaloguj się ponownie.",
+    "forbidden": "Nie masz uprawnień do tej operacji.",
+    "notFound": "Nie znaleziono zasobu.",
+    "generic": "Wystąpił nieoczekiwany błąd.",
+    "editArticleFailed": "Nie udało się zapisać zmian w artykule.",
+    "deleteArticleFailed": "Nie udało się usunąć artykułu.",
+    "editCommentFailed": "Nie udało się zapisać komentarza.",
+    "deleteCommentFailed": "Nie udało się usunąć komentarza.",
+    "rateArticleFailed": "Nie udało się ocenić artykułu.",
+    "emptyName": "Nazwa nie może być pusta.",
+    "nameTooLong": "Nazwa może mieć najwyżej 200 znaków.",
+    "sameName": "To już jest Twoja nazwa.",
+    "invalidEmail": "Podaj poprawny adres e-mail.",
+    "sameEmail": "To już jest Twój adres e-mail.",
+    "passwordTooShort": "Hasło musi mieć co najmniej 8 znaków.",
+    "passwordsDoNotMatch": "Hasła się różnią.",
+    "changeNameFailed": "Nie udało się zmienić nazwy.",
+    "emailRequestFailed": "Nie udało się wysłać linku. Spróbuj ponownie za chwilę.",
+    "passwordRequestFailed": "Nie udało się wysłać linku do zmiany hasła. Spróbuj ponownie za chwilę.",
+    "emailAlreadyTaken": "Ten adres e-mail jest już zajęty przez inne konto.",
+    "referenceNotFound": "Nie znaleziono jednego ze źródeł w bazach DOI. Sprawdź numery DOI i spróbuj ponownie.",
+    "referenceLookupUnavailable": "Nie udało się połączyć z bazą DOI, więc artykuł nie został zapisany. Spróbuj ponownie za chwilę.",
+    "changeEmailFailed": "Nie udało się zmienić adresu e-mail. Link mógł wygasnąć albo został już użyty.",
+    "changePasswordFailed": "Nie udało się zmienić hasła. Link mógł wygasnąć albo został już użyty.",
+    "invalidActionLink": "Ten link jest nieprawidłowy. Wyślij nowy ze strony konta.",
+    "duplicateDoi": "Te DOI są już na liście źródeł.",
+    "pdfInvalidType": "To nie jest plik PDF.",
+    "pdfEmpty": "Plik jest pusty.",
+    "pdfTooLarge": "Plik jest za duży. Maksymalny rozmiar to 50 MB.",
+    "missingTitle": "Podaj tytuł artykułu.",
+    "pdfSingleFile": "Wybierz jeden plik PDF.",
+    "pdfImportFailed": "Nie udało się utworzyć artykułu z PDF. Spróbuj ponownie albo z innym plikiem.",
+    "pdfImportBusy": "Serwer jest teraz zajęty. Spróbuj ponownie za chwilę.",
+    "pdfImportLost": "Nie znaleziono zadania importu. Sprawdź listę artykułów albo spróbuj ponownie.",
+    "pdfImportStatusFailed": "Nie udało się sprawdzić postępu importu. Artykuł może pojawić się na liście za chwilę.",
+    "imageInvalidType": "Obsługiwane są tylko obrazy PNG, JPG i GIF.",
+    "imageEmpty": "Plik obrazu jest pusty.",
+    "imageTooLarge": "Obraz jest za duży. Maksymalny rozmiar to 10 MB.",
+    "imageUploadFailed": "Nie udało się wysłać obrazu. Spróbuj ponownie.",
+    "imageUploadBusy": "Serwer jest teraz zajęty. Spróbuj wysłać obraz za chwilę.",
+    "imageUploadPending": "Poczekaj, aż wszystkie obrazy zostaną wysłane.",
+    "titleTooLong": "Tytuł może mieć najwyżej 200 znaków."
+  },
+  "references": {
+    "title": "Źródła",
+    "count": "{count, plural, one {# źródło} few {# źródła} many {# źródeł} other {# źródła}}",
+    "authorsMore": "i {count} innych",
+    "copyDoi": "Kopiuj DOI",
+    "copied": "Skopiowano",
+    "showInGraph": "Pokaż w grafie"
+  },
+  "account": {
+    "roles": {
+      "USER": "Użytkownik",
+      "STUDENT": "Student",
+      "PROFESSOR": "Profesor",
+      "ADMIN": "Administrator"
+    },
+    "name": {
+      "title": "Nazwa wyświetlana",
+      "label": "Nazwa",
+      "submit": "Zapisz nazwę",
+      "submitting": "Zapisywanie…",
+      "saved": "Zapisano. Nowa nazwa jest już widoczna."
+    },
+    "email": {
+      "title": "Adres e-mail",
+      "description": "Służy do logowania. Na nowy adres wyślemy link, a zmiana nastąpi dopiero po jego otwarciu.",
+      "current": "Obecny adres",
+      "label": "Nowy adres e-mail",
+      "submit": "Wyślij link",
+      "submitting": "Wysyłanie…",
+      "sent": "Wysłaliśmy link na {email}. Otwórz go w ciągu 15 minut, żeby potwierdzić zmianę.",
+      "useAnother": "Użyj innego adresu"
+    },
+    "password": {
+      "title": "Hasło",
+      "description": "Wyślemy Ci e-mailem link, pod którym ustawisz nowe hasło.",
+      "submit": "Wyślij link do zmiany hasła",
+      "submitting": "Wysyłanie…",
+      "sent": "Sprawdź skrzynkę {email}. Link jest ważny przez 15 minut."
+    },
+    "signOut": {
+      "submit": "Wyloguj się",
+      "submitting": "Wylogowywanie…"
+    }
+  },
+  "accountAction": {
+    "linkHint": "Link jest jednorazowy i ważny przez 15 minut od wysłania.",
+    "goToAccount": "Przejdź do konta",
+    "goToSignIn": "Przejdź do logowania",
+    "email": {
+      "title": "Potwierdź nowy adres e-mail",
+      "description": "Potwierdź, aby od teraz logować się nowym adresem.",
+      "submit": "Zmień adres e-mail",
+      "submitting": "Zmienianie…",
+      "done": "Adres e-mail został zmieniony. Od teraz logujesz się nim."
+    },
+    "password": {
+      "title": "Ustaw nowe hasło",
+      "description": "Hasło musi mieć co najmniej 8 znaków.",
+      "label": "Nowe hasło",
+      "confirmLabel": "Powtórz nowe hasło",
+      "submit": "Zmień hasło",
+      "submitting": "Zmienianie…",
+      "done": "Hasło zostało zmienione. Zaloguj się nowym hasłem."
+    }
+  },
+  "toasts": {
+    "articleCreated": "Artykuł został opublikowany.",
+    "articleImported": "Artykuł został utworzony z PDF. Sprawdź wygenerowaną treść.",
+    "articleSaved": "Zapisano zmiany w artykule.",
+    "articleDeleted": "Artykuł został usunięty.",
+    "commentAdded": "Dodano komentarz.",
+    "replyAdded": "Dodano odpowiedź.",
+    "commentSaved": "Zapisano komentarz.",
+    "commentDeleted": "Usunięto komentarz.",
+    "voteSaved": "Dziękujemy, głos został zapisany.",
+    "voteRemoved": "Głos został wycofany."
+  }
+}

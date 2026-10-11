@@ -1,36 +1,29 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useMounted } from "@/hooks/use-mounted";
 
 export default function ThemeToggle() {
+  const t = useTranslations("theme");
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const frame = globalThis.requestAnimationFrame(() => {
-      setMounted(true);
-    });
-
-    return () => globalThis.cancelAnimationFrame(frame);
-  }, []);
-
+  const mounted = useMounted();
   const isDark = mounted && resolvedTheme === "dark";
 
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="ghost"
       size="icon-sm"
-      className="rounded-full border-border/80 bg-background/95 text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground"
+      className="text-muted-foreground hover:text-foreground"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label={isDark ? "Przełącz na jasny motyw" : "Przełącz na ciemny motyw"}
-      title={isDark ? "Jasny motyw" : "Ciemny motyw"}
+      aria-label={isDark ? t("toLight") : t("toDark")}
+      title={isDark ? t("light") : t("dark")}
     >
-      {isDark ? <Sun className="size-4 text-amber-500" /> : <Moon className="size-4 text-sky-600" />}
+      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
   );
 }

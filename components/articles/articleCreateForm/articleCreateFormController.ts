@@ -1,133 +1,256 @@
 import type { Dispatch, SetStateAction } from "react";
 import type React from "react";
-import type { ApolloClient } from "@apollo/client";
-import { gql } from "@apollo/client";
-import getBrowserClient from "@/lib/apolloBrowser";
 
-export type CreatedArticle = {
+import { createArticleAction, editArticleAction } from "@/app/actions/articles";
+import { startPdfImportAction } from "@/app/actions/pdfImport";
+import { type GraphNode, normalizeDoi } from "@/components/articles/articleGraph/articleGraphController";
+import { COMPLEXITIES, TITLE_MAX_LENGTH } from "@/lib/schemas";
+import type { ArticleComplexity } from "@/types/articles";
+import type { ErrorKey } from "@/types/errors";
+
+export { normalizeDoi };
+
+export type EditableArticle = {
     id: string;
     title: string;
+    content: string;
+    complexity: ArticleComplexity;
+    references: string[];
 };
 
 type CreateHandleArticleSubmitParams = {
-    client?: ApolloClient;
-    isScientific?: boolean;
+    editedArticle?: EditableArticle;
+    scientific: boolean;
     title: string;
     content: string;
-    subjectId?: number;
-    tags?: Array<string>;
-    references?: Array<string>;
-    complexity: string;
+    references: string[];
+    pendingDoiInput: string;
+    complexity: ArticleComplexity;
+    uploadedImages: string[];
+    pdfFile?: File | null;
     isSubmitting: boolean;
     setIsSubmitting: Dispatch<SetStateAction<boolean>>;
-    setError: Dispatch<SetStateAction<string | null>>;
-    setSuccess: Dispatch<SetStateAction<string | null>>;
-    router: ReturnType<typeof import("next/navigation").useRouter>;
+    setError: Dispatch<SetStateAction<ErrorKey | null>>;
+    onSubmitStart?: () => void;
+    onPdfImportStarted?: (jobId: string) => void;
 };
+
+const startPdfImport = async ({
+    pdfFile,
+    title,
+    complexity,
+    setIsSubmitting,
+    setError,
+    onSubmitStart,
+    onPdfImportStarted,
+}: CreateHandleArticleSubmitParams & { pdfFile: File }) => {
+    if (!title.trim()) {
+        setError("missingTitle");
+        return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+        const formData = new FormData();
+        formData.append("pdf", pdfFile);
+        formData.append("title", title.trim());
+        formData.append("complexity", complexity);
+        const result = await startPdfImportAction(formData);
+        if (!result) return;
+        if (!result.ok) {
+            setError(result.error);
+            setIsSubmitting(false);
+            return;
+        }
+        onSubmitStart?.();
+        onPdfImportStarted?.(result.data.jobId);
+    } catch {
+        setError("pdfImportFailed");
+        setIsSubmitting(false);
+    }
+};
+
+const DOI_PATTERN = /^10\.\d{4,9}\/\S+$/;
+
+export const validateDoi = (doi: string): ErrorKey | null => {
+    const normalizedDoi = normalizeDoi(doi);
+    if (!normalizedDoi) {
+        return "missingDoi";
+    }
+    return DOI_PATTERN.test(normalizedDoi) ? null : "invalidDoi";
+};
+
+export const isSameDoi = (a: string, b: string) => normalizeDoi(a).toLowerCase() === normalizeDoi(b).toLowerCase();
+
+export type AddReferencesResult = { references: string[]; error: ErrorKey | null };
+
+export const addReferences = (references: string[], input: string): AddReferencesResult => {
+    const tokens = input.split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) return { references, error: "missingDoi" };
+    if (tokens.some((token) => validateDoi(token))) return { references, error: "invalidDoi" };
+
+    const next = [...references];
+    for (const doi of tokens.map(normalizeDoi)) {
+        if (!next.some((existing) => isSameDoi(existing, doi))) next.push(doi);
+    }
+    return next.length === references.length ? { references, error: "duplicateDoi" } : { references: next, error: null };
+};
+
+export const resolveSubmittedReferences = (references: string[], pendingInput: string): AddReferencesResult => {
+    if (!pendingInput.trim()) return { references, error: null };
+    const result = addReferences(references, pendingInput);
+    return result.error === "duplicateDoi" ? { references, error: null } : result;
+};
+
+export const moveReference = (references: string[], index: number, offset: number): string[] => {
+    const target = index + offset;
+    if (target < 0 || target >= references.length) return references;
+    const next = [...references];
+    [next[index], next[target]] = [next[target], next[index]];
+    return next;
+};
+
+export const removeReference = (references: string[], index: number): string[] =>
+    references.filter((_, position) => position !== index);
+
+export const areReferencesEqual = (a: string[], b: string[]) =>
+    a.length === b.length && a.every((doi, index) => isSameDoi(doi, b[index]));
 
 export const validateArticleFormInputs = (
     title: string,
     content: string,
-): string | null => {
-    const trimmedTitle = title.trim();
-    const trimmedContent = content.trim();
-
-    if (!trimmedTitle || !trimmedContent) {
-        return "Uzupełnij tytuł i treść.";
+    scientific = false,
+    references: string[] = [],
+): ErrorKey | null => {
+    if (!title.trim() || !content.trim()) {
+        return "missingTitleOrContent";
     }
 
-    return null;
+    return scientific && references.length === 0 ? "missingDoi" : null;
 };
 
-export const getComplexityOptions = (): Array<{ value: string; label: string }> => [
-    { value: "SIMPLE", label: "Proste" },
-    { value: "INTERMEDIATE", label: "Średnie" },
-    { value: "COMPLEX", label: "Zaawansowane" },
-];
+export { TITLE_MAX_LENGTH };
 
-export const getFormSubmitLabel = (isSubmitting: boolean): string => {
-    return isSubmitting ? "Tworzenie..." : "Utwórz artykuł";
+export const COMPLEXITY_OPTIONS: ArticleComplexity[] = [...COMPLEXITIES];
+
+export const getEditedReferences = (scientific: boolean, references: string[], initialReferences: string[]): string[] | null => {
+    const next = scientific ? references : [];
+    return areReferencesEqual(next, initialReferences) ? null : next;
+};
+
+const submitArticle = async ({
+    editedArticle,
+    scientific,
+    title,
+    content,
+    references,
+    pendingDoiInput,
+    complexity,
+    uploadedImages,
+    setIsSubmitting,
+    setError,
+    onSubmitStart,
+}: CreateHandleArticleSubmitParams) => {
+    const submitted = scientific
+        ? resolveSubmittedReferences(references, pendingDoiInput)
+        : { references: [], error: null };
+    const validationError = submitted.error ?? validateArticleFormInputs(title, content, scientific, submitted.references);
+    if (validationError) {
+        setError(validationError);
+        return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    onSubmitStart?.();
+
+    try {
+        const result = editedArticle
+            ? await editArticleAction(editedArticle.id, {
+                title,
+                content,
+                complexity,
+                references: getEditedReferences(scientific, submitted.references, editedArticle.references),
+                uploadedImages,
+            })
+            : await createArticleAction({
+                title,
+                content,
+                complexity,
+                references: submitted.references,
+                uploadedImages,
+            });
+
+        if (result && !result.ok) {
+            setError(result.error);
+            setIsSubmitting(false);
+        }
+    } catch {
+        setError(editedArticle ? "editArticleFailed" : "createArticleFailed");
+        setIsSubmitting(false);
+    }
 };
 
 export const createHandleArticleSubmit =
-    ({
-        title,
-        content,
-        references = [],
-        complexity,
-        isSubmitting,
-        setIsSubmitting,
-        setError,
-        setSuccess,
-        router,
-    }: CreateHandleArticleSubmitParams) =>
+    (params: CreateHandleArticleSubmitParams) =>
         async (event: React.SyntheticEvent<HTMLFormElement>) => {
             event.preventDefault();
-
-            const validationError = validateArticleFormInputs(title, content);
-            if (validationError) {
-                setError(validationError);
+            if (params.isSubmitting) return;
+            if (params.pdfFile && !params.editedArticle) {
+                await startPdfImport({ ...params, pdfFile: params.pdfFile });
                 return;
             }
+            await submitArticle(params);
+        };
 
-            if (isSubmitting) {
-                return;
-            }
+export type DoiMetadata = Pick<GraphNode, "title" | "authors" | "description">;
 
-            setIsSubmitting(true);
-            setError(null);
-            setSuccess(null);
+export type DoiMetadataLabels = { authors: string; abstract: string };
 
-            try {
-                const ADD_ARTICLE = gql`
-                    mutation AddArticle(
-                        $title: String!
-                        $content: String!
-                        $complexity: String!
-                        $references: [String!]
-                    ) {
-                        addArticle(
-                            title: $title
-                            content: $content
-                            complexity: $complexity
-                            references: $references
-                        ) {
-                            id
-                            title
-                        }
-                    }
-                `;
+export type DoiMetadataMessage = "filled" | "kept" | "empty";
 
-                const variables = {
-                    title: title.trim(),
-                    content: content.trim(),
-                    complexity,
-                    references,
-                };
+export const getMetadataTitle = (metadata: DoiMetadata | null): string =>
+    (metadata?.title ?? "").trim().slice(0, TITLE_MAX_LENGTH);
 
-                const apolloClient = getBrowserClient();
+export const buildMetadataContent = (metadata: DoiMetadata | null, labels: DoiMetadataLabels): string => {
+    const authors = (metadata?.authors ?? []).map((author) => author.trim()).filter(Boolean);
+    const abstract = metadata?.description?.trim();
+    return [
+        authors.length > 0 ? `**${labels.authors}:** ${authors.join(", ")}` : "",
+        abstract ? `## ${labels.abstract}\n\n${abstract}` : "",
+    ]
+        .filter(Boolean)
+        .join("\n\n");
+};
 
-                const result = await apolloClient.mutate<{ addArticle: CreatedArticle }>({
-                    mutation: ADD_ARTICLE,
-                    variables,
-                });
+export const fillIfEmpty = (current: string, fetched: string): string => (current.trim() || !fetched ? current : fetched);
 
-                const created = result.data?.addArticle;
+export const getDoiMetadataMessage = (
+    current: { title: string; content: string },
+    fetched: { title: string; content: string },
+): DoiMetadataMessage => {
+    if (!fetched.title && !fetched.content) return "empty";
+    const keptTitle = Boolean(fetched.title && current.title.trim());
+    const keptContent = Boolean(fetched.content && current.content.trim());
+    return keptTitle || keptContent ? "kept" : "filled";
+};
 
-                if (!created) {
-                    throw new Error("Nie udało się utworzyć artykułu.");
-                }
+type CreateHandleFillFromMetadataParams = {
+    title: string;
+    content: string;
+    labels: DoiMetadataLabels;
+    setTitle: Dispatch<SetStateAction<string>>;
+    setContent: Dispatch<SetStateAction<string>>;
+    setMessage: Dispatch<SetStateAction<DoiMetadataMessage | null>>;
+};
 
-                setSuccess("Artykuł został utworzony.");
-                router.push(`/articles/${created.id}`);
-                router.refresh();
-            } catch (submitError) {
-                setError(
-                    submitError instanceof Error
-                        ? submitError.message
-                        : "Nie udało się utworzyć artykułu.",
-                );
-            } finally {
-                setIsSubmitting(false);
-            }
+export const createHandleFillFromMetadata =
+    ({ title, content, labels, setTitle, setContent, setMessage }: CreateHandleFillFromMetadataParams) =>
+        (metadata: DoiMetadata | null) => {
+            const fetched = { title: getMetadataTitle(metadata), content: buildMetadataContent(metadata, labels) };
+            setTitle((current) => fillIfEmpty(current, fetched.title));
+            setContent((current) => fillIfEmpty(current, fetched.content));
+            setMessage(getDoiMetadataMessage({ title, content }, fetched));
         };

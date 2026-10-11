@@ -1,13 +1,14 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { renderWithIntl } from "@/test/renderWithIntl";
 
 import LoginCard from "./loginCard";
 
 const replace = vi.fn();
 const refresh = vi.fn();
 const signIn = vi.fn();
-const getSession = vi.fn();
 
 vi.mock("next/navigation", () => ({
     useRouter: () => ({ replace, refresh }),
@@ -15,7 +16,6 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("next-auth/react", () => ({
     signIn: (...args: unknown[]) => signIn(...args),
-    getSession: (...args: unknown[]) => getSession(...args),
 }));
 
 afterEach(() => {
@@ -27,7 +27,7 @@ describe("LoginCard", () => {
     it("switches between login and sign-up modes", async () => {
         const user = userEvent.setup();
 
-        render(<LoginCard />);
+        renderWithIntl(<LoginCard />);
 
         expect(screen.queryByLabelText("Imię")).not.toBeInTheDocument();
 
@@ -35,7 +35,11 @@ describe("LoginCard", () => {
 
         expect(screen.getByLabelText("Imię")).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "Zarejestruj się" })).toBeInTheDocument();
-        expect(screen.getByText("Utwórz konto, podając imię, e-mail i hasło.")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Zarejestruj się" })).toHaveAttribute("type", "submit");
+
+        await user.click(screen.getByRole("button", { name: "Zaloguj się" }));
+
+        expect(screen.queryByLabelText("Imię")).not.toBeInTheDocument();
     });
 
     it("submits credentials and redirects on successful login", async () => {
@@ -43,11 +47,11 @@ describe("LoginCard", () => {
 
         signIn.mockResolvedValue({ ok: true });
 
-        render(<LoginCard />);
+        renderWithIntl(<LoginCard />);
 
         await user.type(screen.getByLabelText("E-mail"), "student@uczelnia.edu");
         await user.type(screen.getByLabelText("Hasło"), "secret123");
-        const submitButton = screen.getAllByRole("button", { name: "Zaloguj się" })[1];
+        const submitButton = screen.getByRole("button", { name: "Zaloguj się" });
 
         await user.click(submitButton);
 
@@ -68,13 +72,44 @@ describe("LoginCard", () => {
     it("shows validation errors when required fields are missing", async () => {
         const user = userEvent.setup();
 
-        render(<LoginCard />);
+        renderWithIntl(<LoginCard />);
 
-        const submitButton = screen.getAllByRole("button", { name: "Zaloguj się" })[1];
+        const submitButton = screen.getByRole("button", { name: "Zaloguj się" });
 
         await user.click(submitButton);
 
         expect(screen.getByText("Wpisz e-mail i hasło.")).toBeInTheDocument();
         expect(signIn).not.toHaveBeenCalled();
+    });
+
+    it("shows a specific message when the e-mail is already registered", async () => {
+        const user = userEvent.setup();
+        signIn.mockResolvedValue({ ok: false, error: "EmailTaken" });
+
+        renderWithIntl(<LoginCard />);
+
+        await user.click(screen.getByRole("button", { name: "Zarejestruj się" }));
+        await user.type(screen.getByLabelText("Imię"), "Ala");
+        await user.type(screen.getByLabelText("E-mail"), "ala@uczelnia.edu");
+        await user.type(screen.getByLabelText("Hasło"), "secret123");
+        await user.click(screen.getByRole("button", { name: "Zarejestruj się" }));
+
+        expect(signIn).toHaveBeenCalledWith("credentials", expect.objectContaining({ mode: "register", name: "Ala" }));
+        expect(await screen.findByRole("alert")).toHaveTextContent("Konto z tym adresem e-mail już istnieje.");
+        expect(replace).not.toHaveBeenCalled();
+    });
+
+    it("does not redirect when login fails", async () => {
+        const user = userEvent.setup();
+        signIn.mockResolvedValue({ ok: false, error: "CredentialsSignin" });
+
+        renderWithIntl(<LoginCard />);
+
+        await user.type(screen.getByLabelText("E-mail"), "student@uczelnia.edu");
+        await user.type(screen.getByLabelText("Hasło"), "wrong");
+        await user.click(screen.getByRole("button", { name: "Zaloguj się" }));
+
+        expect(await screen.findByRole("alert")).toHaveTextContent("Nieprawidłowy e-mail lub hasło.");
+        expect(replace).not.toHaveBeenCalled();
     });
 });

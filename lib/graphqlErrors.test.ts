@@ -1,0 +1,69 @@
+import { CombinedGraphQLErrors, ServerError } from "@apollo/client/errors";
+import { describe, expect, it } from "vitest";
+
+import { isAuthRejected, isEmailTakenError, isNotFoundError, toErrorKey, toReferenceErrorKey } from "./graphqlErrors";
+
+const serverError = (status: number) =>
+    new ServerError("Response not successful", {
+        response: new Response("", { status }),
+        bodyText: "",
+    });
+
+const graphqlError = (classification: string) =>
+    new CombinedGraphQLErrors({ errors: [{ message: "x", extensions: { classification } }] });
+
+describe("isAuthRejected", () => {
+    it.each([401, 403])("treats HTTP %i as a rejected token", (status) => {
+        expect(isAuthRejected(serverError(status))).toBe(true);
+    });
+
+    it("treats an UNAUTHORIZED GraphQL error as a rejected token", () => {
+        expect(isAuthRejected(graphqlError("UNAUTHORIZED"))).toBe(true);
+    });
+
+    it.each([
+        ["HTTP 500", serverError(500)],
+        ["FORBIDDEN (resource permission, not the session)", graphqlError("FORBIDDEN")],
+        ["NOT_FOUND", graphqlError("NOT_FOUND")],
+        ["a plain Error", new Error("network")],
+    ])("does not treat %s as a rejected token", (_label, error) => {
+        expect(isAuthRejected(error)).toBe(false);
+    });
+});
+
+describe("toErrorKey", () => {
+    it("maps backend errors to translation keys", () => {
+        expect(toErrorKey(serverError(403), "addCommentFailed")).toBe("sessionExpired");
+        expect(toErrorKey(graphqlError("FORBIDDEN"), "addCommentFailed")).toBe("forbidden");
+        expect(toErrorKey(graphqlError("NOT_FOUND"), "addCommentFailed")).toBe("notFound");
+        expect(toErrorKey(new Error("boom"), "addCommentFailed")).toBe("addCommentFailed");
+    });
+});
+
+describe("isNotFoundError", () => {
+    it("accepts NOT_FOUND and BAD_REQUEST only", () => {
+        expect(isNotFoundError(graphqlError("NOT_FOUND"))).toBe(true);
+        expect(isNotFoundError(graphqlError("BAD_REQUEST"))).toBe(true);
+        expect(isNotFoundError(graphqlError("INTERNAL_ERROR"))).toBe(false);
+        expect(isNotFoundError(serverError(404))).toBe(false);
+    });
+});
+
+describe("backend message errors", () => {
+    const withMessage = (message: string, classification = "BAD_REQUEST") =>
+        new CombinedGraphQLErrors({ errors: [{ message, extensions: { classification } }] });
+
+    it("tells a missing DOI from unreachable DOI services", () => {
+        expect(toReferenceErrorKey(withMessage("DOI not found: 10.1000/x"))).toBe("referenceNotFound");
+        expect(toReferenceErrorKey(withMessage("Invalid DOI: abc"))).toBe("referenceNotFound");
+        expect(
+            toReferenceErrorKey(withMessage("Could not reach the DOI services for 10.1000/x, try again later", "INTERNAL_ERROR")),
+        ).toBe("referenceLookupUnavailable");
+        expect(toReferenceErrorKey(withMessage("Title cannot be blank."))).toBeNull();
+    });
+
+    it("recognizes an e-mail address that is already taken", () => {
+        expect(isEmailTakenError(withMessage("This email address is already taken."))).toBe(true);
+        expect(isEmailTakenError(withMessage("Request has expired"))).toBe(false);
+    });
+});

@@ -1,0 +1,486 @@
+{
+  "metadata": {
+    "description": "Educational and scientific articles with DOI references and a citation graph."
+  },
+  "common": {
+    "brand": "Compendia",
+    "backToArticles": "Back to articles",
+    "backToHome": "Back to home page",
+    "goToArticles": "Go to articles",
+    "createArticle": "Create article",
+    "authorBy": "By {name}",
+    "unknownAuthor": "Unknown author",
+    "close": "Close",
+    "loading": "Loading…"
+  },
+  "header": {
+    "allArticles": "All articles",
+    "createArticle": "Create article",
+    "users": "Users",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "navigation": "Navigation",
+    "account": "Your account",
+    "accountOf": "Account: {name}"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Find authors by name and see their articles.",
+    "searchLabel": "Search users",
+    "placeholder": "Name",
+    "submit": "Search",
+    "noResults": "No users with that name.",
+    "empty": "Nobody has published an article yet.",
+    "articleCount": "{count, plural, =0 {No articles} one {# article} other {# articles}}",
+    "articlesHeading": "Articles",
+    "noArticles": "This user hasn't published any articles yet.",
+    "accountSettings": "Account settings"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Switch language to: {language}",
+    "pl": "Polski",
+    "en": "English"
+  },
+  "theme": {
+    "toLight": "Switch to light theme",
+    "toDark": "Switch to dark theme",
+    "light": "Light theme",
+    "dark": "Dark theme"
+  },
+  "footer": {
+    "tagline": "Educational and scientific articles for students and lecturers."
+  },
+  "landing": {
+    "title": "Articles for learning, with their sources in plain view.",
+    "subtitle": "Compendia is where students and lecturers publish notes, explanations and commentary on scientific papers. Cite sources by DOI, and Compendia shows what they cite in turn.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "recent": "Recently published",
+    "recentHint": "Sign in to read the full articles."
+  },
+  "login": {
+    "modes": {
+      "login": "Sign in",
+      "register": "Sign up"
+    },
+    "name": "Name",
+    "email": "E-mail",
+    "emailPlaceholder": "student@university.edu",
+    "password": "Password",
+    "modalTitle": "Sign in to Compendia",
+    "modalDescription": "Sign in to continue.",
+    "switch": {
+      "login": "Already have an account?",
+      "register": "No account yet?"
+    },
+    "errors": {
+      "missingFieldsLogin": "Enter your e-mail and password.",
+      "missingFieldsRegister": "Enter your name, e-mail and password.",
+      "invalidEmail": "Enter a valid e-mail address.",
+      "passwordTooShort": "Password must be at least {min} characters long.",
+      "registerFailed": "Sign-up failed.",
+      "invalidCredentials": "Invalid e-mail or password.",
+      "emailTaken": "An account with this e-mail already exists.",
+      "backendUnavailable": "The server is unavailable. Please try again shortly.",
+      "loginFailed": "Sign-in failed. Please try again."
+    }
+  },
+  "articles": {
+    "empty": "No articles to display.",
+    "titles": {
+      "newest": "Newest articles",
+      "top": "Top rated",
+      "mostRated": "Most rated"
+    },
+    "descriptions": {
+      "newest": "Recently published articles, newest first.",
+      "top": "The articles readers rated best: most positive votes after subtracting negative ones.",
+      "mostRated": "The articles readers have the most to say about: the most votes cast."
+    },
+    "sortLabel": "Sort",
+    "sorts": {
+      "newest": "Newest",
+      "top": "Top",
+      "mostRated": "Most votes"
+    },
+    "levelLabel": "Level",
+    "allLevels": "All",
+    "emptyFiltered": "No articles at this level.",
+    "emptyRated": "No article matching these filters has been rated yet.",
+    "ratingSummary": "Ratings: {positive} positive, {negative} negative",
+    "commentCount": "{count, plural, =0 {No comments} one {# comment} other {# comments}}"
+  },
+  "archive": {
+    "title": "All articles",
+    "description": "Every article on the platform, newest first.",
+    "pageOf": "Page {page} of {total}",
+    "empty": "No articles to display",
+    "previous": "Previous",
+    "next": "Next",
+    "morePages": "More pages",
+    "pagination": "Pagination"
+  },
+  "article": {
+    "notFoundTitle": "Article not found",
+    "notFoundDescription": "The article you are looking for does not exist or has been removed. Check the URL or go to the article list.",
+    "level": "Level: {level}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete this article?",
+    "deleteDescription": "The article and its comments will be deleted permanently. This can't be undone.",
+    "deleteConfirm": "Delete article",
+    "deleting": "Deleting…",
+    "cancel": "Cancel",
+    "ratePrompt": "Was this article helpful?",
+    "thanksForRating": "Thanks for rating.",
+    "upvote": "Rate positively ({count})",
+    "downvote": "Rate negatively ({count})",
+    "removeVote": "Click again to remove your vote",
+    "contents": "Contents",
+    "cite": {
+      "title": "Cite this article",
+      "copy": "Copy {format} citation",
+      "copied": "Copied"
+    }
+  },
+  "complexity": {
+    "SIMPLE": "Simple",
+    "INTERMEDIATE": "Intermediate",
+    "COMPLEX": "Advanced"
+  },
+  "comments": {
+    "title": "Comments",
+    "count": "{count, plural, =0 {Be the first to comment on this article.} one {# comment} other {# comments}}",
+    "checkingSession": "Checking session...",
+    "mustSignIn": "You need to be signed in to comment.",
+    "placeholder": "Write a comment...",
+    "placeholderSignedOut": "Sign in to write a comment",
+    "submit": "Add comment",
+    "submitting": "Publishing...",
+    "replyPlaceholder": "Write a reply...",
+    "submitReply": "Add reply",
+    "reply": "Reply",
+    "cancel": "Cancel",
+    "edited": "edited",
+    "empty": "No comments yet.",
+    "shownOf": "Showing {shown} of {total} comments.",
+    "loadMore": "Show more comments",
+    "loadingMore": "Loading…",
+    "hideReplies": "Hide replies",
+    "noReplies": "No replies",
+    "showReplies": "{count, plural, one {Show # reply} other {Show # replies}}",
+    "upvote": "Upvote ({count})",
+    "downvote": "Downvote ({count})",
+    "removeVote": "Click again to remove your vote",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editLabel": "Edit comment",
+    "save": "Save",
+    "saving": "Saving…",
+    "deleteTitle": "Delete this comment?",
+    "deleteDescription": "{replies, plural, =0 {The comment will be deleted permanently.} one {The comment and # reply will be deleted permanently.} other {The comment and # replies will be deleted permanently.}}",
+    "deleteConfirm": "Delete comment",
+    "deleting": "Deleting…"
+  },
+  "search": {
+    "openLabel": "Open article search",
+    "buttonLabel": "Search article titles and content",
+    "example": "e.g. SQL optimization, process scheduling, linked lists",
+    "title": "Article search",
+    "description": "Start typing to search the titles and content of all articles.",
+    "placeholder": "Search articles...",
+    "searching": "Searching…",
+    "results": "{count, plural, =0 {No results} one {# result} other {# results}}",
+    "noResults": "No articles found for this query.",
+    "failed": "Search failed. Please try again."
+  },
+  "create": {
+    "title": "Create a new article",
+    "description": "Notes, explanations and study materials, or commentary on a scientific paper identified by its DOI.",
+    "scientific": "Scientific article",
+    "titleLabel": "Title",
+    "titlePlaceholder": "E.g. Introduction to data structures",
+    "contentLabel": "Content",
+    "scientificContentLabel": "Commentary on the scientific article",
+    "contentPlaceholder": "Start writing markdown...",
+    "complexityLabel": "Difficulty",
+    "redirectHint": "After submitting you will be redirected to the new article.",
+    "submit": "Create article",
+    "submitting": "Creating...",
+    "typeLabel": "Article type",
+    "typeRegular": "Regular article",
+    "typeRegularHint": "Notes, explanations and study materials.",
+    "typeScientificHint": "Commentary on scientific publications identified by their DOIs.",
+    "titleCounter": "{count}/{max}",
+    "markdownHint": "Markdown is supported: headings, lists, code, links, tables and LaTeX formulas.",
+    "complexityHints": {
+      "SIMPLE": "For beginners, no specialist knowledge needed.",
+      "INTERMEDIATE": "Assumes the basics of the topic.",
+      "COMPLEX": "For readers who know the field well."
+    },
+    "tipsTitle": "Tips",
+    "tips": {
+      "headings": "## Heading splits the text into sections.",
+      "lists": "- item or 1. item makes a list.",
+      "code": "`code` inline, ``` for a code block.",
+      "links": "[text](https://address) adds a link.",
+      "math": "$E = mc^2$ adds an inline formula, $$...$$ a formula on its own line."
+    },
+    "metadata": {
+      "fetch": "Fill in from DOI",
+      "filled": "Filled in the title and content from the publication. Check them before submitting.",
+      "kept": "Filled in the empty fields. Fields that were already filled in were left unchanged.",
+      "empty": "No details found for this DOI. Fill in the fields yourself.",
+      "authorsHeading": "Authors",
+      "abstractHeading": "Abstract"
+    },
+    "draft": {
+      "foundTitle": "You have an unsaved draft",
+      "foundHint": "Restore or discard it. Autosave is paused until you do.",
+      "restore": "Restore draft",
+      "discard": "Discard",
+      "autosaveHint": "Your draft is saved automatically on this device.",
+      "savedAt": "Draft saved at {time} on this device."
+    },
+    "references": {
+      "addLabel": "Add a reference by DOI",
+      "add": "Add",
+      "placeholder": "e.g. 10.1234/56789 or a doi.org link",
+      "hint": "You can paste several DOIs at once, one per line or separated by spaces. Enter adds them, Shift+Enter starts a new line.",
+      "empty": "No references yet. A scientific article needs at least one.",
+      "none": "No references",
+      "edit": "Edit references",
+      "loading": "Loading publication details",
+      "notFound": "No details found for this publication. Check that the DOI is correct.",
+      "fill": "Fill in from DOI {doi}",
+      "moveUp": "Move up: {doi}",
+      "moveDown": "Move down: {doi}",
+      "remove": "Remove reference: {doi}"
+    },
+    "pdf": {
+      "label": "Import from PDF",
+      "drop": "Drop a PDF file here",
+      "dropActive": "Drop to add the file",
+      "browse": "or click to choose one (up to 50 MB)",
+      "remove": "Remove file {name}",
+      "hint": "The article content can be generated from a PDF. Enter a title and difficulty, and the import does the rest.",
+      "selectedHint": "The content will be generated from the PDF. The editor text and references won't be used.",
+      "submit": "Create article from PDF",
+      "submitting": "Creating from PDF...",
+      "progress": {
+        "PENDING": "File sent. Waiting in the queue...",
+        "PROCESSING": "Processing the PDF. This can take a few minutes, don't close this page."
+      },
+      "editorLocked": "The content will come from the PDF. Remove the file to write it yourself.",
+      "editorLockedTitle": "The editor is locked"
+    },
+    "images": {
+      "insert": "Insert image",
+      "hint": "Paste or drop an image into the editor, or use \"Insert image\". PNG, JPG or GIF, up to 10 MB.",
+      "uploading": "{count, plural, one {Uploading image...} other {Uploading # images...}}",
+      "defaultAlt": "image"
+    }
+  },
+  "edit": {
+    "title": "Edit article",
+    "description": "Fix the content, title or difficulty. Every reader will see the changes.",
+    "submit": "Save changes",
+    "submitting": "Saving...",
+    "redirectHint": "After saving you'll return to the article.",
+    "cancel": "Cancel",
+    "backToArticle": "Back to the article"
+  },
+  "graph": {
+    "title": "Citation graph",
+    "figure": "Fig. 1.",
+    "papers": "{count, plural, one {# paper} other {# papers}}",
+    "links": "{count, plural, one {# citation} other {# citations}}",
+    "reference": "Reference",
+    "chooseReference": "Choose a reference",
+    "show": "Show graph",
+    "hide": "Hide graph",
+    "depth": "Depth",
+    "depthHint": "Number of citation steps from the reference",
+    "layout": "Layout",
+    "layouts": {
+      "concentric": "Radial",
+      "breadthfirst": "Tree",
+      "cose": "Free"
+    },
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit to view",
+    "exportPng": "Download as PNG",
+    "refresh": "Refresh data",
+    "loading": "Loading graph…",
+    "legend": {
+      "root": "Reference",
+      "cited": "Cited paper",
+      "missing": "No metadata"
+    },
+    "kind": {
+      "root": "Article's reference",
+      "cited": "Cited paper",
+      "missing": "No metadata"
+    },
+    "selectHint": "Click a node to see the paper's details.",
+    "missingDescription": "The title and authors of this paper could not be retrieved. Only its DOI is known.",
+    "lookingUp": "Fetching metadata…",
+    "depthLimited": "The graph is too large — showing depth {depth}.",
+    "hiddenPapers": "Showing the most-cited papers, {count, plural, one {# other hidden} other {# others hidden}}",
+    "authorsMore": "and {count} more",
+    "depthBadge": "{depth, plural, =0 {reference} one {# step from the reference} other {# steps from the reference}}",
+    "copyDoi": "Copy DOI",
+    "copied": "Copied",
+    "expand": "Show its citations",
+    "openSource": "Open",
+    "clearSelection": "Close details",
+    "empty": "No graph data for this DOI.",
+    "emptyHint": "This paper has no citations with a recognizable DOI, or its metadata could not be retrieved.",
+    "loadFailed": "Could not load the citation graph.",
+    "expandFailed": "Could not load this paper's citations.",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "There is no page at this address. Check the URL or go back to the article list."
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "We could not reach the server or an unexpected error occurred. Please try again shortly.",
+    "code": "Error code: {digest}",
+    "retry": "Try again"
+  },
+  "errors": {
+    "notSignedIn": "You need to be signed in.",
+    "voteRequiresLogin": "You need to be signed in to vote.",
+    "emptyComment": "A comment cannot be empty.",
+    "loadCommentsFailed": "Couldn't load more comments.",
+    "addCommentFailed": "Could not add the comment.",
+    "rateCommentFailed": "Could not rate the comment.",
+    "missingTitleOrContent": "Fill in the title and content.",
+    "invalidComplexity": "Invalid difficulty level.",
+    "missingDoi": "Add at least one DOI for the scientific article.",
+    "invalidDoi": "Invalid DOI (e.g. 10.1234/56789).",
+    "createArticleFailed": "Could not create the article.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "forbidden": "You are not allowed to do this.",
+    "notFound": "Resource not found.",
+    "generic": "An unexpected error occurred.",
+    "editArticleFailed": "Couldn't save the article.",
+    "deleteArticleFailed": "Couldn't delete the article.",
+    "editCommentFailed": "Couldn't save the comment.",
+    "deleteCommentFailed": "Couldn't delete the comment.",
+    "rateArticleFailed": "Couldn't rate the article.",
+    "emptyName": "The name can't be empty.",
+    "nameTooLong": "The name can be at most 200 characters long.",
+    "sameName": "That's already your name.",
+    "invalidEmail": "Enter a valid e-mail address.",
+    "sameEmail": "That's already your e-mail address.",
+    "passwordTooShort": "The password must be at least 8 characters long.",
+    "passwordsDoNotMatch": "The passwords don't match.",
+    "changeNameFailed": "Couldn't change the name.",
+    "emailRequestFailed": "Couldn't send the link. Please try again shortly.",
+    "passwordRequestFailed": "Couldn't send the password link. Please try again shortly.",
+    "emailAlreadyTaken": "This e-mail address already belongs to another account.",
+    "referenceNotFound": "One of the references wasn't found in the DOI databases. Check the DOIs and try again.",
+    "referenceLookupUnavailable": "Couldn't reach the DOI database, so the article wasn't saved. Try again in a moment.",
+    "changeEmailFailed": "Couldn't change the e-mail address. The link may have expired or already been used.",
+    "changePasswordFailed": "Couldn't change the password. The link may have expired or already been used.",
+    "invalidActionLink": "This link isn't valid. Send a new one from your account page.",
+    "duplicateDoi": "These DOIs are already in the references.",
+    "pdfInvalidType": "This isn't a PDF file.",
+    "pdfEmpty": "The file is empty.",
+    "pdfTooLarge": "The file is too large. The maximum size is 50 MB.",
+    "missingTitle": "Enter a title for the article.",
+    "pdfSingleFile": "Choose a single PDF file.",
+    "pdfImportFailed": "Couldn't create an article from the PDF. Try again or use another file.",
+    "pdfImportBusy": "The server is busy right now. Try again in a moment.",
+    "pdfImportLost": "The import job wasn't found. Check the article list or try again.",
+    "pdfImportStatusFailed": "Couldn't check the import progress. The article may appear in the list shortly.",
+    "imageInvalidType": "Only PNG, JPG and GIF images are supported.",
+    "imageEmpty": "The image file is empty.",
+    "imageTooLarge": "The image is too large. The maximum size is 10 MB.",
+    "imageUploadFailed": "Couldn't upload the image. Please try again.",
+    "imageUploadBusy": "The server is busy right now. Try uploading the image again in a moment.",
+    "imageUploadPending": "Wait until all images have finished uploading.",
+    "titleTooLong": "The title can be at most 200 characters long."
+  },
+  "references": {
+    "title": "References",
+    "count": "{count, plural, one {# reference} other {# references}}",
+    "authorsMore": "and {count} more",
+    "copyDoi": "Copy DOI",
+    "copied": "Copied",
+    "showInGraph": "Show in graph"
+  },
+  "account": {
+    "roles": {
+      "USER": "Member",
+      "STUDENT": "Student",
+      "PROFESSOR": "Professor",
+      "ADMIN": "Administrator"
+    },
+    "name": {
+      "title": "Display name",
+      "label": "Name",
+      "submit": "Save name",
+      "submitting": "Saving…",
+      "saved": "Saved. Your new name is already visible."
+    },
+    "email": {
+      "title": "E-mail address",
+      "description": "You sign in with it. We'll send a link to the new address, and the change happens only after you open it.",
+      "current": "Current address",
+      "label": "New e-mail address",
+      "submit": "Send link",
+      "submitting": "Sending…",
+      "sent": "We sent a link to {email}. Open it within 15 minutes to confirm the change.",
+      "useAnother": "Use a different address"
+    },
+    "password": {
+      "title": "Password",
+      "description": "We'll e-mail you a link where you can set a new password.",
+      "submit": "Send password link",
+      "submitting": "Sending…",
+      "sent": "Check the inbox of {email}. The link is valid for 15 minutes."
+    },
+    "signOut": {
+      "submit": "Sign out",
+      "submitting": "Signing out…"
+    }
+  },
+  "accountAction": {
+    "linkHint": "The link works once and is valid for 15 minutes after it was sent.",
+    "goToAccount": "Go to your account",
+    "goToSignIn": "Go to sign in",
+    "email": {
+      "title": "Confirm your new e-mail address",
+      "description": "Confirm to sign in with the new address from now on.",
+      "submit": "Change e-mail address",
+      "submitting": "Changing…",
+      "done": "Your e-mail address has been changed. Use it to sign in from now on."
+    },
+    "password": {
+      "title": "Set a new password",
+      "description": "The password must be at least 8 characters long.",
+      "label": "New password",
+      "confirmLabel": "Repeat the new password",
+      "submit": "Change password",
+      "submitting": "Changing…",
+      "done": "Your password has been changed. Sign in with the new password."
+    }
+  },
+  "toasts": {
+    "articleCreated": "The article has been published.",
+    "articleImported": "The article was created from the PDF. Check the generated content.",
+    "articleSaved": "Changes to the article saved.",
+    "articleDeleted": "The article has been deleted.",
+    "commentAdded": "Comment added.",
+    "replyAdded": "Reply added.",
+    "commentSaved": "Comment saved.",
+    "commentDeleted": "Comment deleted.",
+    "voteSaved": "Thanks, your vote has been saved.",
+    "voteRemoved": "Your vote has been removed."
+  }
+}

@@ -1,8 +1,13 @@
 import type { Dispatch, SetStateAction } from "react";
-import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
-type AuthMode = "login" | "signin";
+import type { AuthMode } from "@/lib/auth";
+import { MIN_PASSWORD_LENGTH } from "@/lib/schemas";
+import type { LoginErrorKey } from "@/types/errors";
+
+export type { AuthMode } from "@/lib/auth";
+
+type Router = { replace: (href: string) => void; refresh: () => void };
 
 type CreateHandleCredentialsSignInParams = {
     mode: AuthMode;
@@ -10,43 +15,42 @@ type CreateHandleCredentialsSignInParams = {
     password: string;
     name: string;
     isLoading: boolean;
-    setError: Dispatch<SetStateAction<string | null>>;
+    setError: Dispatch<SetStateAction<LoginError | null>>;
     setIsLoading: Dispatch<SetStateAction<boolean>>;
-    router: ReturnType<typeof useRouter>;
+    router: Router;
 };
 
-export const validateCredentials = (email: string, password: string, name: string, mode: AuthMode): string | null => {
-    if (!email || !password || (mode === "signin" && !name.trim())) {
-        return mode === "signin" ? "Wpisz imię, e-mail i hasło." : "Wpisz e-mail i hasło.";
+export type LoginError = { key: LoginErrorKey; values?: Record<string, number> };
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export const validateCredentials = (email: string, password: string, name: string, mode: AuthMode): LoginError | null => {
+    if (!email.trim() || !password || (mode === "register" && !name.trim())) {
+        return { key: mode === "register" ? "missingFieldsRegister" : "missingFieldsLogin" };
+    }
+
+    if (!EMAIL_PATTERN.test(email.trim())) {
+        return { key: "invalidEmail" };
+    }
+
+    if (mode === "register" && password.length < MIN_PASSWORD_LENGTH) {
+        return { key: "passwordTooShort", values: { min: MIN_PASSWORD_LENGTH } };
     }
 
     return null;
 };
 
-export const getActionLabel = (mode: AuthMode): string => {
-    return mode === "login" ? "Zaloguj się" : "Zarejestruj się";
-};
-
-export const getDescriptionLabel = (mode: AuthMode): string => {
-    return mode === "login"
-        ? "Wpisz e-mail i hasło, aby kontynuować."
-        : "Utwórz konto, podając imię, e-mail i hasło.";
-};
-
-export const getErrorMessage = (mode: AuthMode, error: string | null): string => {
-    if (!error) return "";
-
-    if (error === "CredentialsSignin") {
-        return mode === "signin"
-            ? "Rejestracja nie powiodła się. Spróbuj innego e-maila albo sprawdź logi backendu."
-            : "Nieprawidłowy e-mail lub hasło.";
+export const getLoginErrorKey = (mode: AuthMode, code: string): LoginErrorKey => {
+    switch (code) {
+        case "CredentialsSignin":
+            return mode === "register" ? "registerFailed" : "invalidCredentials";
+        case "EmailTaken":
+            return "emailTaken";
+        case "BackendUnavailable":
+            return "backendUnavailable";
+        default:
+            return "loginFailed";
     }
-
-    if (error === "NetworkError" || error.includes("Żądanie")) {
-        return "Żądanie nie powiodło się. Sprawdź adres backendu i status serwera.";
-    }
-
-    return error;
 };
 
 export const createHandleCredentialsSignIn =
@@ -80,33 +84,21 @@ export const createHandleCredentialsSignIn =
                 const response = await signIn("credentials", {
                     mode,
                     name: name.trim(),
-                    email,
+                    email: email.trim(),
                     password,
                     callbackUrl: "/articles",
                     redirect: false,
                 });
 
-                if (response?.ok || response?.url) {
+                if (response?.ok && !response.error) {
                     router.replace("/articles");
                     router.refresh();
                     return;
                 }
 
-                const session = await getSession();
-                if (session) {
-                    router.replace("/articles");
-                    router.refresh();
-                    return;
-                }
-
-                if (response?.error === "CredentialsSignin") {
-                    setError(getErrorMessage(mode, response.error));
-                } else {
-                    setError(response?.error ?? "Nieprawidłowy e-mail lub hasło.");
-                }
-            } catch (err) {
-                const errMsg = err instanceof Error ? err.message : "Żądanie nie powiodło się";
-                setError(errMsg + ". Sprawdź adres backendu i status serwera.");
+                setError({ key: getLoginErrorKey(mode, response?.error ?? "CredentialsSignin") });
+            } catch {
+                setError({ key: "backendUnavailable" });
             } finally {
                 setIsLoading(false);
             }

@@ -1,24 +1,25 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+
 import LoginCard from "@/components/loginCard/loginCard";
 
 export default function LoginPage() {
+  const t = useTranslations("common");
+
   return (
-    <main className="compendia-surface min-h-screen overflow-x-clip px-6 py-10 text-foreground sm:px-8 sm:py-14">
-      <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
-      <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />
+    <div className="container-page py-8 sm:py-14">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden />
+        {t("backToHome")}
+      </Link>
 
-      <div className="mx-auto flex w-full max-w-6xl justify-between">
-        <Link
-          href="/"
-          className="rounded-full border border-border/70 bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-foreground backdrop-blur transition-colors hover:bg-accent"
-        >
-          Wróć na stronę główną
-        </Link>
-      </div>
-
-      <div className="mx-auto mt-10 flex w-full max-w-6xl items-center justify-center">
+      <div className="mt-10 flex items-center justify-center">
         <LoginCard />
       </div>
-    </main>
+    </div>
   );
 }

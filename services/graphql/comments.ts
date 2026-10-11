@@ -1,9 +1,9 @@
-import { gql } from "@apollo/client";
+import { graphql } from "./generated";
 
-import getBrowserClient from "@/lib/apolloBrowser";
-import { CommentItem } from "@/types/comments";
+import type { AddCommentMutation } from "./generated/graphql";
+import type { CommentItem } from "@/types/comments";
 
-const addCommentMutation = gql`
+export const ADD_COMMENT_MUTATION = graphql(`
     mutation AddComment($articleId: ID!, $content: String!, $parentCommentId: Int) {
         addComment(articleId: $articleId, content: $content, parentCommentId: $parentCommentId) {
             id
@@ -18,36 +18,69 @@ const addCommentMutation = gql`
                 positive
                 negative
             }
+            myVote
             parentComment {
                 id
             }
         }
     }
-`;
+`);
 
-const upvoteCommentMutation = gql`
+export const ARTICLE_COMMENTS_QUERY = graphql(`
+    query ArticleComments($articleId: String!, $page: Int!, $size: Int!) {
+        comments(articleId: $articleId, page: $page, size: $size, sortBy: "datePosted", ascending: false) {
+            content {
+                id
+                content
+                datePosted
+                editedAt
+                user {
+                    id
+                    name
+                }
+                rating {
+                    positive
+                    negative
+                }
+                myVote
+                parentComment {
+                    id
+                }
+            }
+            totalElements
+        }
+    }
+`);
+
+export const EDIT_COMMENT_MUTATION = graphql(`
+    mutation EditComment($commentId: Int!, $newContent: String!) {
+        editComment(commentId: $commentId, newContent: $newContent) {
+            id
+            content
+            editedAt
+        }
+    }
+`);
+
+export const DELETE_COMMENT_MUTATION = graphql(`
+    mutation DeleteComment($commentId: Int!) {
+        deleteComment(commentId: $commentId)
+    }
+`);
+
+export const RATE_COMMENT_MUTATION = graphql(`
     mutation RateComment($commentId: Int!, $positive: Boolean!) {
         rateComment(commentId: $commentId, positive: $positive)
     }
-`;
+`);
 
-export async function rateComment(commentId: string, positive: boolean) {
-    const client = getBrowserClient();
-    const res = await client.mutate<{ rateComment: boolean }>({
-        mutation: upvoteCommentMutation,
-        variables: { commentId: Number.parseInt(commentId), positive },
-    });
-
-    if (res.error || res.data?.rateComment === undefined) {
-        throw new Error(res.error?.message ?? "Failed to rate comment");
+export const UNRATE_COMMENT_MUTATION = graphql(`
+    mutation UnrateComment($commentId: Int!) {
+        unrateComment(commentId: $commentId)
     }
-}
+`);
 
-export type GraphqlCommentItem = Omit<CommentItem, "parentCommentId" | "replies"> & {
-    parentComment?: {
-        id: string;
-    } | null;
-};
+export type GraphqlCommentItem = AddCommentMutation["addComment"];
 
 export const mapGraphqlCommentToCommentItem = (comment: GraphqlCommentItem): CommentItem => ({
     id: comment.id,
@@ -56,24 +89,6 @@ export const mapGraphqlCommentToCommentItem = (comment: GraphqlCommentItem): Com
     editedAt: comment.editedAt,
     user: comment.user,
     rating: comment.rating,
+    myVote: comment.myVote,
     parentCommentId: comment.parentComment?.id ?? null,
 });
-
-export async function addComment(articleId: string, trimmedContent: string, parentCommentId: string | null = null) {
-    const client = getBrowserClient();
-    const res = await client.mutate<{ addComment: GraphqlCommentItem }>({
-        mutation: addCommentMutation,
-        variables: {
-            articleId,
-            content: trimmedContent,
-            parentCommentId: parentCommentId ? Number.parseInt(parentCommentId) : null,
-        },
-    });
-
-    const addedComment = res.data?.addComment;
-    if (res.error || !addedComment) {
-        throw new Error(res.error?.message ?? "Failed to add comment");
-    }
-
-    return mapGraphqlCommentToCommentItem(addedComment);
-}

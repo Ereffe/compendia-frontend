@@ -65,35 +65,38 @@ function PaginationLink({
   );
 }
 
+// Local change: `label` lets callers pass translated text (see app/all-articles).
 function PaginationPrevious({
   className,
+  label = "Previous",
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink> & { label?: string }) {
   return (
     <PaginationLink
-      aria-label="Idz do poprzedniej strony"
+      aria-label={label}
       size="default"
       className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
       {...props}
     >
       <ChevronLeftIcon />
-      <span className="hidden sm:block">Poprzednia</span>
+      <span className="hidden sm:block">{label}</span>
     </PaginationLink>
   );
 }
 
 function PaginationNext({
   className,
+  label = "Next",
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink> & { label?: string }) {
   return (
     <PaginationLink
-      aria-label="Idz do następnej strony"
+      aria-label={label}
       size="default"
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
       {...props}
     >
-      <span className="hidden sm:block">Następna</span>
+      <span className="hidden sm:block">{label}</span>
       <ChevronRightIcon />
     </PaginationLink>
   );
@@ -101,8 +104,9 @@ function PaginationNext({
 
 function PaginationEllipsis({
   className,
+  label = "More pages",
   ...props
-}: React.ComponentProps<"span">) {
+}: React.ComponentProps<"span"> & { label?: string }) {
   return (
     <span
       aria-hidden
@@ -111,7 +115,7 @@ function PaginationEllipsis({
       {...props}
     >
       <MoreHorizontalIcon className="size-4" />
-      <span className="sr-only">Więcej stron</span>
+      <span className="sr-only">{label}</span>
     </span>
   );
 }

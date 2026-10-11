@@ -1,8 +1,9 @@
-import NextAuth from "next-auth";
+import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
+  // Tokens are intentionally absent: they never leave the server.
   interface Session {
-    accessToken?: string;
+    user?: DefaultSession["user"] & { id?: string };
     error?: string;
   }
 

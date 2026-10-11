@@ -1,11 +1,29 @@
 import type { NextAuthOptions } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { serverBackendUrl } from "@/lib/config";
 
 const refreshTokenGraceMs = 5_000;
+const fallbackAccessTokenLifetimeMs = 14 * 60 * 1000;
+const sharedRefreshMs = 10_000;
 
-const parseTokenExpiryMs = (token: string): number | null => {
+export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+
+type TokenResponse = {
+  accessToken?: string;
+  refreshToken?: string;
+};
+
+type CurrentUser = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export type AuthMode = "login" | "register";
+
+export const parseTokenExpiryMs = (token: string): number | null => {
   try {
     const [, payloadSegment] = token.split(".");
     if (!payloadSegment) return null;
@@ -20,17 +38,24 @@ const parseTokenExpiryMs = (token: string): number | null => {
   }
 };
 
-const refreshAccessToken = async (refreshToken: string) => {
-  const response = await fetch(`${backendBaseUrl}/auth/refresh?t=${encodeURIComponent(refreshToken)}`);
+const getAccessTokenExpiry = (accessToken: string) =>
+  parseTokenExpiryMs(accessToken) ?? Date.now() + fallbackAccessTokenLifetimeMs;
+
+type RefreshedTokens = { accessToken: string; refreshToken: string; accessTokenExpires: number };
+
+const requestTokenRefresh = async (refreshToken: string): Promise<RefreshedTokens> => {
+  const response = await fetch(`${serverBackendUrl}/auth/refresh`, {
+    method: "POST",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
 
   if (!response.ok) {
     throw new Error("Refresh token request failed");
   }
 
-  const data = (await response.json()) as {
-    accessToken?: string;
-    refreshToken?: string;
-  };
+  const data = (await response.json()) as TokenResponse;
 
   if (!data.accessToken || !data.refreshToken) {
     throw new Error("Refresh token response missing tokens");
@@ -39,13 +64,90 @@ const refreshAccessToken = async (refreshToken: string) => {
   return {
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
-    accessTokenExpires: parseTokenExpiryMs(data.accessToken) ?? Date.now() + 14 * 60 * 1000,
+    accessTokenExpires: getAccessTokenExpiry(data.accessToken),
   };
+};
+
+const pendingRefreshes = new Map<string, Promise<RefreshedTokens>>();
+
+// A page load sends several requests at once; they share one refresh instead of each rotating the token.
+const refreshAccessToken = (refreshToken: string): Promise<RefreshedTokens> => {
+  const pending = pendingRefreshes.get(refreshToken);
+  if (pending) return pending;
+
+  const refresh = requestTokenRefresh(refreshToken);
+  pendingRefreshes.set(refreshToken, refresh);
+  refresh.then(
+    () => setTimeout(() => pendingRefreshes.delete(refreshToken), sharedRefreshMs),
+    () => pendingRefreshes.delete(refreshToken),
+  );
+  return refresh;
+};
+
+const revokeRefreshToken = async (refreshToken: string) => {
+  try {
+    await fetch(`${serverBackendUrl}/auth/logout`, {
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+  } catch (error) {
+    console.error("Revoking the refresh token failed:", error);
+  }
+};
+
+const fetchCurrentUser = async (accessToken: string): Promise<CurrentUser | null> => {
+  try {
+    const response = await fetch(`${serverBackendUrl}/graphql`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ query: "query CurrentUser { getCurrentUser { id name email } }" }),
+    });
+
+    if (!response.ok) return null;
+
+    const body = (await response.json()) as { data?: { getCurrentUser?: CurrentUser | null } };
+    return body.data?.getCurrentUser ?? null;
+  } catch {
+    return null;
+  }
+};
+
+export const isAccessTokenFresh = (token: JWT, marginMs: number): boolean =>
+  Boolean(token.accessToken && token.accessTokenExpires && Date.now() < token.accessTokenExpires - marginMs);
+
+export const withFreshAccessToken = async (token: JWT, marginMs = refreshTokenGraceMs): Promise<JWT> => {
+  if (isAccessTokenFresh(token, marginMs)) {
+    return token;
+  }
+
+  if (!token.refreshToken) {
+    token.error = "RefreshAccessTokenError";
+    return token;
+  }
+
+  try {
+    const refreshedToken = await refreshAccessToken(token.refreshToken);
+    token.accessToken = refreshedToken.accessToken;
+    token.refreshToken = refreshedToken.refreshToken;
+    token.accessTokenExpires = refreshedToken.accessTokenExpires;
+    token.error = undefined;
+  } catch {
+    token.error = "RefreshAccessTokenError";
+  }
+
+  return token;
 };
 
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
+    maxAge: SESSION_MAX_AGE_SECONDS,
   },
   providers: [
     CredentialsProvider({
@@ -57,57 +159,57 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const mode = credentials?.mode === "signin" ? "signin" : "login";
+        const mode: AuthMode = credentials?.mode === "register" ? "register" : "login";
         const name = credentials?.name?.trim();
         const email = credentials?.email?.trim();
         const password = credentials?.password;
 
-        if (!email || !password) {
+        if (!email || !password || (mode === "register" && !name)) {
           return null;
         }
 
+        let response: Response;
         try {
-          const endpoint = mode === "signin" ? "/auth/register" : "/auth/login";
-          const payload = mode === "signin"
-            ? { name: name || email, email, password }
-            : { email, password };
-
-          const response = await fetch(`${backendBaseUrl}${endpoint}`, {
+          response = await fetch(`${serverBackendUrl}/auth/${mode}`, {
             method: "POST",
+            cache: "no-store",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(mode === "register" ? { name, email, password } : { email, password }),
           });
-
-          if (!response.ok) {
-            return null;
-          }
-
-          const data = (await response.json()) as {
-            accessToken?: string;
-            refreshToken?: string;
-          };
-
-          if (!data.accessToken || !data.refreshToken) {
-            return null;
-          }
-
-          return {
-            id: email,
-            email,
-            name: email,
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
-            accessTokenExpires: parseTokenExpiryMs(data.accessToken) ?? Date.now() + 14 * 60 * 1000,
-          };
         } catch {
+          // Thrown messages are returned to the client as `signIn(...).error`.
+          throw new Error("BackendUnavailable");
+        }
+
+        if (!response.ok) {
+          if (mode === "register" && response.status === 409) {
+            throw new Error("EmailTaken");
+          }
           return null;
         }
+
+        const data = (await response.json()) as TokenResponse;
+        if (!data.accessToken || !data.refreshToken) {
+          return null;
+        }
+
+        const currentUser = await fetchCurrentUser(data.accessToken);
+
+        return {
+          id: currentUser?.id ?? email,
+          email: currentUser?.email ?? email,
+          name: currentUser?.name ?? name ?? email,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          accessTokenExpires: getAccessTokenExpiry(data.accessToken),
+        };
       },
     }),
-  ], callbacks: {
-    async jwt({ token, user }) {
+  ],
+  callbacks: {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
@@ -115,34 +217,30 @@ export const authOptions: NextAuthOptions = {
         token.error = undefined;
       }
 
-      const expiresAt = token.accessTokenExpires;
+      const freshToken = await withFreshAccessToken(token);
 
-      if (token.accessToken && expiresAt && Date.now() < expiresAt - refreshTokenGraceMs) {
-        return token;
+      if (trigger === "update" && freshToken.accessToken && !freshToken.error) {
+        const currentUser = await fetchCurrentUser(freshToken.accessToken);
+        if (currentUser) {
+          freshToken.name = currentUser.name;
+          freshToken.email = currentUser.email;
+        }
       }
 
-      if (!token.refreshToken) {
-        token.error = "RefreshAccessTokenError";
-        return token;
-      }
-
-      try {
-        const refreshedToken = await refreshAccessToken(token.refreshToken);
-        token.accessToken = refreshedToken.accessToken;
-        token.refreshToken = refreshedToken.refreshToken;
-        token.accessTokenExpires = refreshedToken.accessTokenExpires;
-        token.error = undefined;
-      } catch {
-        token.error = "RefreshAccessTokenError";
-      }
-
-      return token;
+      return freshToken;
     },
 
     async session({ session, token }) {
-      session.accessToken = token.accessToken;
       session.error = token.error;
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
       return session;
+    },
+  },
+  events: {
+    async signOut({ token }) {
+      if (token?.refreshToken) await revokeRefreshToken(token.refreshToken);
     },
   },
   pages: {
