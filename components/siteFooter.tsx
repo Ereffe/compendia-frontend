@@ -4,13 +4,14 @@ export default function SiteFooter({ className = "" }: Readonly<{ className?: st
   const t = useTranslations("footer");
 
   return (
-    <footer className={`container-page pb-8 pt-8 sm:pb-10 ${className}`}>
-      <div className="rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-sm text-muted-foreground backdrop-blur">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
-          <p className="font-semibold tracking-[0.18em] text-foreground">COMPENDIA</p>
-          <p>{t("tagline")}</p>
-          <p>© {new Date().getFullYear()} Compendia</p>
-        </div>
+    <footer className={`mt-12 border-t border-border ${className}`}>
+      <div className="container-page flex flex-col gap-2 py-6 text-sm text-muted-foreground sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+        <p>
+          <span className="font-serif text-base text-foreground">Compendia</span>
+          <span aria-hidden> · </span>
+          {t("tagline")}
+        </p>
+        <p className="tabular-nums">© {new Date().getFullYear()}</p>
       </div>
     </footer>
   );

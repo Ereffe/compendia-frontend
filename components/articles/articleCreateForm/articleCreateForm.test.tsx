@@ -122,6 +122,7 @@ describe("ArticleCreateForm", () => {
             content: "Treść artykułu",
             complexity: "INTERMEDIATE",
             references: [],
+            uploadedImages: [],
         });
         expect(screen.getByRole("button", { name: /Tworzenie/ })).toBeDisabled();
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -404,12 +405,13 @@ describe("ArticleCreateForm in edit mode", () => {
             content: "Stara treść",
             complexity: "COMPLEX",
             references: null,
+            uploadedImages: [],
         });
         expect(createArticleAction).not.toHaveBeenCalled();
         expect(screen.getByRole("button", { name: /Zapisywanie/ })).toBeDisabled();
     });
 
-    it("keeps a scientific article scientific and only sends changed references", async () => {
+    it("only sends changed references and lets the author remove all of them", async () => {
         const user = userEvent.setup();
         editArticleAction.mockResolvedValue({ ok: false, error: "forbidden" });
         fetchDoiRecord.mockResolvedValue(notFoundRecord);
@@ -417,9 +419,6 @@ describe("ArticleCreateForm in edit mode", () => {
         renderWithIntl(<ArticleCreateForm article={{ ...regularArticle, references: ["10.5194/acp-18-1-2018"] }} />);
 
         expect(screen.getByRole("radio", { name: /Artykuł naukowy/ })).toBeChecked();
-        expect(screen.getByRole("radio", { name: /Zwykły artykuł/ })).toBeDisabled();
-        expect(screen.getByRole("button", { name: "Usuń źródło: 10.5194/acp-18-1-2018" })).toBeDisabled();
-        expect(screen.getByText(/musi mieć co najmniej jedno źródło/)).toBeInTheDocument();
 
         await user.click(screen.getByRole("button", { name: "Zapisz zmiany" }));
         expect(editArticleAction).toHaveBeenLastCalledWith("abc123", expect.objectContaining({ references: null }));
@@ -432,6 +431,10 @@ describe("ArticleCreateForm in edit mode", () => {
             "abc123",
             expect.objectContaining({ references: ["10.5194/gmd-10-1403-2017"] }),
         );
+
+        await user.click(screen.getByRole("radio", { name: /Zwykły artykuł/ }));
+        await user.click(screen.getByRole("button", { name: "Zapisz zmiany" }));
+        expect(editArticleAction).toHaveBeenLastCalledWith("abc123", expect.objectContaining({ references: [] }));
     });
 });
 
@@ -462,7 +465,7 @@ describe("ArticleCreateForm images", () => {
 
         await user.click(screen.getByRole("button", { name: "Utwórz artykuł" }));
         expect(createArticleAction).toHaveBeenCalledWith(
-            expect.objectContaining({ content: `Wstęp![wykres](/api/v1/articles/assets/${ASSET_ID})` }),
+            expect.objectContaining({ content: `Wstęp![wykres](/api/v1/articles/assets/${ASSET_ID})`, uploadedImages: [ASSET_ID] }),
         );
     });
 
@@ -587,7 +590,7 @@ describe("articleCreateFormController", () => {
             "10.1000/b",
             "10.1000/a",
         ]);
-        expect(getEditedReferences(true, [], ["10.1000/a"])).toBeNull();
+        expect(getEditedReferences(false, [], ["10.1000/a"])).toEqual([]);
     });
 
     it("adds pasted DOIs, skipping duplicates and rejecting invalid input", () => {

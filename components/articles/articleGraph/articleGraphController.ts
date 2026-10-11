@@ -57,7 +57,6 @@ const isTrailingJunk = (doi: string) => {
     return TRAILING_JUNK.includes(last) || (last === ")" && countOf(doi, ")") > countOf(doi, "("));
 };
 
-// The backend cuts reference DOIs out of citation text, keeping slashes and punctuation around them (backend issue 2).
 export const normalizeDoi = (raw: string): string => {
     let doi = raw.trim().replace(DOI_PREFIX, "").trim();
     let start = 0;
@@ -258,4 +257,66 @@ export const getGraphStats = (elements: CytoscapeElement[]): GraphStats => {
         }
     }
     return { papers, links, missing, maxDepth };
+};
+
+const RING_NODE_SPACING = 22;
+const MIN_RING_GAP = 90;
+const ORDERING_SWEEPS = 3;
+
+const circularMean = (angles: number[]): number | null => {
+    const x = angles.reduce((sum, angle) => sum + Math.cos(angle), 0);
+    const y = angles.reduce((sum, angle) => sum + Math.sin(angle), 0);
+    return Math.hypot(x, y) < 1e-9 ? null : Math.atan2(y, x);
+};
+
+// Rings by depth; each ring is ordered by the mean angle of its neighbours on the adjacent ring so edges stay short.
+export const radialPositions = (elements: CytoscapeElement[]): Map<string, { x: number; y: number }> => {
+    const rings = new Map<number, string[]>();
+    const depthOf = new Map<string, number>();
+    const neighbours = new Map<string, string[]>();
+    for (const element of elements) {
+        if ("source" in element.data) {
+            const { source, target } = element.data;
+            neighbours.set(source, [...(neighbours.get(source) ?? []), target]);
+            neighbours.set(target, [...(neighbours.get(target) ?? []), source]);
+        } else {
+            depthOf.set(element.data.id, element.data.depth);
+            rings.set(element.data.depth, [...(rings.get(element.data.depth) ?? []), element.data.id]);
+        }
+    }
+
+    const depths = [...rings.keys()].filter((depth) => depth > 0).sort((a, b) => a - b);
+    const angle = new Map<string, number>();
+    for (const depth of depths) {
+        rings.get(depth)!.forEach((id, i, ring) => angle.set(id, (2 * Math.PI * i) / ring.length - Math.PI / 2));
+    }
+
+    const reorder = (depth: number, towards: number) => {
+        const ring = rings.get(depth)!;
+        const step = (2 * Math.PI) / ring.length;
+        const wanted = new Map(
+            ring.map((id) => {
+                const near = (neighbours.get(id) ?? []).filter((other) => depthOf.get(other) === towards);
+                return [id, circularMean(near.map((other) => angle.get(other) ?? -Math.PI / 2)) ?? angle.get(id)!];
+            }),
+        );
+        ring.sort((a, b) => wanted.get(a)! - wanted.get(b)!);
+        const offset = circularMean(ring.map((id, i) => wanted.get(id)! - i * step)) ?? 0;
+        ring.forEach((id, i) => angle.set(id, offset + i * step));
+    };
+
+    for (let sweep = 0; sweep < ORDERING_SWEEPS; sweep++) {
+        const order = sweep % 2 === 0 ? depths.slice(1) : depths.slice(0, -1).reverse();
+        for (const depth of order) reorder(depth, sweep % 2 === 0 ? depth - 1 : depth + 1);
+    }
+
+    const gap = Math.max(MIN_RING_GAP, ...depths.map((depth) => (rings.get(depth)!.length * RING_NODE_SPACING) / (2 * Math.PI * depth)));
+    const positions = new Map<string, { x: number; y: number }>();
+    for (const id of rings.get(0) ?? []) positions.set(id, { x: 0, y: 0 });
+    for (const depth of depths) {
+        for (const id of rings.get(depth)!) {
+            positions.set(id, { x: Math.cos(angle.get(id)!) * gap * depth, y: Math.sin(angle.get(id)!) * gap * depth });
+        }
+    }
+    return positions;
 };

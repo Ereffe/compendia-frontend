@@ -31,6 +31,7 @@ export const createArticleSchema = z.object({
     content: requiredString("missingTitleOrContent"),
     complexity: complexitySchema,
     references: doiListSchema,
+    uploadedImages: z.array(z.uuid()).max(500),
 });
 
 export const editArticleSchema = createArticleSchema.extend({ references: doiListSchema.nullable() });
@@ -77,6 +78,8 @@ export const pdfImportSchema = z.object({
 });
 
 export const imageUploadSchema = z.object({ image: fileSchema("imageInvalidType", validateImageFile) });
+
+export const userIdSchema = z.uuid(err("notFound"));
 
 export const jobIdSchema = z.uuid(err("pdfImportLost"));
 

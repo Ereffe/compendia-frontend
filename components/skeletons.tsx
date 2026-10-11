@@ -4,11 +4,10 @@ import { Skeleton as BaseSkeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export function Skeleton({ className, ...props }: React.ComponentProps<typeof BaseSkeleton>) {
-    return <BaseSkeleton className={cn("bg-foreground/8 dark:bg-foreground/12", className)} {...props} />;
+    return <BaseSkeleton className={cn("bg-muted", className)} {...props} />;
 }
 
 
-const card = "rounded-2xl border border-border/70 bg-card/80 backdrop-blur";
 const readingColumn = "mx-auto w-full max-w-[40rem]";
 
 export function LoadingRegion({ label, className, children }: Readonly<{ label: string; className?: string; children: ReactNode }>) {
@@ -47,7 +46,7 @@ export function PageHeadingSkeleton({ withMeta = false }: Readonly<{ withMeta?: 
 
 export function ArticleCardSkeleton() {
     return (
-        <div className="flex flex-col rounded-xl border border-border bg-card p-5">
+        <div className="flex flex-col rounded-sm border border-border bg-card p-5">
             <Skeleton className="h-3 w-32" />
             <Skeleton className="mt-4 h-5 w-full" />
             <Skeleton className="mt-2 h-5 w-3/5" />
@@ -62,11 +61,11 @@ export function ArticleCardSkeleton() {
 
 export function ArticleFiltersSkeleton() {
     return (
-        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-4">
-            {["w-72", "w-80"].map((width) => (
-                <div key={width} className="space-y-2">
-                    <Skeleton className="h-3 w-20" />
-                    <Skeleton className={cn("h-10 max-w-full rounded-full", width)} />
+        <div className="flex flex-col gap-3">
+            {["w-64", "w-80"].map((width) => (
+                <div key={width} className="flex items-center gap-4">
+                    <Skeleton className="h-3.5 w-16" />
+                    <Skeleton className={cn("h-3.5 max-w-full", width)} />
                 </div>
             ))}
         </div>
@@ -74,23 +73,14 @@ export function ArticleFiltersSkeleton() {
 }
 
 export function SearchBarSkeleton() {
-    return (
-        <div className={cn(card, "flex items-center gap-3 px-5 py-5")}>
-            <Skeleton className="size-10 shrink-0 rounded-xl" />
-            <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-56" />
-                <Skeleton className="h-3 w-full max-w-md" />
-            </div>
-        </div>
-    );
+    return <Skeleton className="h-10 w-full rounded-md" />;
 }
 
 export function SearchResultSkeleton() {
     return (
-        <div className="rounded-xl border border-border bg-card p-4">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="mt-3 h-4 w-3/4" />
-            <Skeleton className="mt-3 h-3 w-28" />
+        <div className="border-b border-border py-3.5">
+            <Skeleton className="h-4.5 w-3/4" />
+            <Skeleton className="mt-2 h-3 w-40" />
         </div>
     );
 }
@@ -179,8 +169,8 @@ export function GraphCardSkeleton() {
             </div>
             <div className="mt-6 overflow-hidden rounded-md border border-border">
                 <div className="flex flex-wrap gap-4 border-b border-border px-4 py-3 sm:px-6">
-                    <Skeleton className="h-8 w-44 rounded-md" />
-                    <Skeleton className="h-8 w-60 rounded-md" />
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-4 w-56" />
                 </div>
                 <div className="grid lg:grid-cols-[minmax(0,1fr)_18rem]">
                     <div className="h-80 sm:h-115">
@@ -242,44 +232,35 @@ export function EditorSkeleton({ className }: Readonly<{ className?: string }>) 
 
 export function CreateFormSkeleton() {
     return (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
-            <div className="sheet overflow-hidden">
-                <div className="px-5 pt-5 sm:px-8 sm:pt-7">
-                    <Skeleton className="h-4 w-14" />
-                    <div className="border-b border-border pb-4 pt-3">
-                        <Skeleton className="h-9 w-3/4" />
-                    </div>
-                </div>
-                <div className="px-5 pb-2 pt-6 sm:px-8">
-                    <Skeleton className="h-4 w-16" />
-                </div>
-                <div className="px-5 sm:px-8">
-                    <div className="overflow-hidden rounded-md border border-border">
-                        <EditorSkeleton className="h-75 md:h-125" />
-                    </div>
-                </div>
-                <div className="px-5 py-4 sm:px-8">
-                    <Skeleton className="h-3.5 w-80 max-w-full" />
-                </div>
-            </div>
-            <div className="sheet divide-y divide-border">
-                {[2, 3].map((rows) => (
-                    <div key={rows} className="space-y-3 p-5">
-                        <Skeleton className="h-4 w-28" />
-                        <div className="divide-y divide-border rounded-md border border-border">
-                            {Array.from({ length: rows }, (_, i) => (
-                                <div key={i} className="space-y-1.5 px-3 py-2.5">
-                                    <Skeleton className="h-3.5 w-24" />
-                                    <Skeleton className="h-3 w-4/5" />
-                                </div>
-                            ))}
-                        </div>
+        <div className="sheet overflow-hidden">
+            <div className="grid gap-4 border-b border-border px-5 py-5 sm:px-10">
+                {["w-56", "w-72"].map((width) => (
+                    <div key={width} className="flex items-center gap-6">
+                        <Skeleton className="h-3.5 w-24" />
+                        <Skeleton className={cn("h-3.5 max-w-full", width)} />
                     </div>
                 ))}
-                <div className="space-y-3 p-5">
-                    <Skeleton className="h-10 w-full rounded-md" />
-                    <Skeleton className="h-3 w-3/4" />
+            </div>
+            <div className="px-5 pt-8 sm:px-10">
+                <Skeleton className="h-4 w-14" />
+                <div className="border-b border-border pb-4 pt-3">
+                    <Skeleton className="h-9 w-3/4" />
                 </div>
+            </div>
+            <div className="px-5 pb-2 pt-7 sm:px-10">
+                <Skeleton className="h-4 w-16" />
+            </div>
+            <div className="px-5 sm:px-10">
+                <div className="overflow-hidden rounded-sm border border-border">
+                    <EditorSkeleton className="h-75 md:h-130" />
+                </div>
+            </div>
+            <div className="px-5 py-4 sm:px-10">
+                <Skeleton className="h-3.5 w-80 max-w-full" />
+            </div>
+            <div className="flex items-center justify-between gap-4 border-t border-border bg-muted px-5 py-5 sm:px-10">
+                <Skeleton className="h-3 w-64 max-w-full bg-border" />
+                <Skeleton className="h-10 w-36 rounded-md bg-border" />
             </div>
         </div>
     );
@@ -287,37 +268,24 @@ export function CreateFormSkeleton() {
 
 export function AccountSettingsSkeleton() {
     return (
-        <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start lg:gap-8">
-            <div className="sheet">
-                <div className="flex items-center gap-4 px-5 py-6 lg:flex-col lg:items-start lg:gap-5">
-                    <Skeleton className="size-20 shrink-0 rounded-3xl lg:size-28" />
-                    <div className="w-full space-y-2.5">
-                        <Skeleton className="h-6 w-40" />
-                        <Skeleton className="h-3.5 w-48" />
-                        <Skeleton className="h-3.5 w-20" />
+        <div className="sheet divide-y divide-border">
+            <div className="flex items-center gap-5 px-5 py-8 sm:px-10">
+                <Skeleton className="size-14 shrink-0 rounded-full" />
+                <div className="w-full space-y-2.5">
+                    <Skeleton className="h-8 w-56" />
+                    <Skeleton className="h-3.5 w-64 max-w-full" />
+                </div>
+                <Skeleton className="hidden h-8 w-24 shrink-0 rounded-md sm:block" />
+            </div>
+            {Array.from({ length: 3 }, (_, i) => (
+                <div key={i} className="grid gap-3 px-5 py-6 sm:px-10 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-8">
+                    <Skeleton className="h-4 w-28 md:mt-2" />
+                    <div className="flex max-w-md flex-col gap-3 sm:flex-row">
+                        <Skeleton className="h-9 w-full rounded-md" />
+                        <Skeleton className="h-9 w-full rounded-md sm:w-28" />
                     </div>
                 </div>
-                <div className="border-t border-border px-5 py-4">
-                    <TextLinesSkeleton lines={2} />
-                </div>
-                <div className="border-t border-border px-5 py-5">
-                    <Skeleton className="h-9 w-full rounded-md" />
-                </div>
-            </div>
-            <div className="sheet divide-y divide-border">
-                {Array.from({ length: 3 }, (_, i) => (
-                    <div key={i} className="grid gap-4 px-5 py-6 sm:px-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-8">
-                        <div className="space-y-2.5">
-                            <Skeleton className="h-5 w-32" />
-                            <TextLinesSkeleton lines={2} />
-                        </div>
-                        <div className="flex flex-col gap-3 sm:flex-row md:pt-7">
-                            <Skeleton className="h-9 w-full rounded-md" />
-                            <Skeleton className="h-9 w-full rounded-md sm:w-28" />
-                        </div>
-                    </div>
-                ))}
-            </div>
+            ))}
         </div>
     );
 }

@@ -9,10 +9,8 @@ import {
     GitBranchPlus,
     Maximize2,
     Minus,
-    MousePointerClick,
     Plus,
     RotateCw,
-    SearchX,
     X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -37,6 +35,7 @@ import {
     MAX_DOI_LOOKUPS,
     normalizeGraph,
     pickNextLookup,
+    radialPositions,
     type NodeKind,
     toNodeId,
 } from "./articleGraphController";
@@ -61,7 +60,7 @@ async function queryBackendGraph(doi: string) {
 
 type LoadedRecord = { record: DoiRecord; fallbackNodes: GraphNode[] };
 
-// Papers without references in Crossref (e.g. arXiv) fall back to the backend's slow scraper, one level only.
+// Papers without references in Crossref (e.g. arXiv) fall back to the backend graph, one level only.
 async function loadRecord(doi: string, isRoot: boolean): Promise<LoadedRecord> {
     const record = await fetchDoiRecord(doi);
     if (!isRoot || record.references.length > 0) return { record, fallbackNodes: [] };
@@ -86,7 +85,7 @@ async function loadRecord(doi: string, isRoot: boolean): Promise<LoadedRecord> {
 type Hover = { node: CytoscapeNodeData; x: number; y: number };
 
 const readSerifFont = () => {
-    const serif = getComputedStyle(document.body).getPropertyValue("--font-newsreader").trim();
+    const serif = getComputedStyle(document.body).getPropertyValue("--font-source-serif").trim();
     return serif ? `${serif}, ui-serif, Georgia, serif` : getComputedStyle(document.body).fontFamily || "serif";
 };
 
@@ -141,11 +140,9 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
     };
 
     const stylesheet = useMemo(() => buildStylesheet(resolvedTheme, fontFamily), [resolvedTheme, fontFamily]);
+    const radial = useMemo(() => radialPositions(elements), [elements]);
     const structureKey = stats.papers;
-    const layout = useMemo(
-        () => Object.assign(buildLayout(layoutName, stats.maxDepth), { structureKey }),
-        [layoutName, stats.maxDepth, structureKey],
-    );
+    const layout = useMemo(() => Object.assign(buildLayout(layoutName, radial), { structureKey }), [layoutName, radial, structureKey]);
     const palette = getPalette(resolvedTheme);
 
     const clearHighlight = useCallback((cy: cytoscape.Core) => {
@@ -211,7 +208,7 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
     const exportPng = () => {
         if (!cyRef.current) return;
         const link = document.createElement("a");
-        link.href = cyRef.current.png({ full: true, scale: 2, bg: palette.labelBackground });
+        link.href = cyRef.current.png({ full: true, scale: 2, bg: palette.paper });
         link.download = `${doi.replaceAll("/", "_")}-graph.png`;
         link.click();
     };
@@ -219,33 +216,38 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
     const hasGraph = !initialLoading && !isEmpty && elements.length > 0;
 
     return (
-        <div className="flex flex-col">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-border/70 px-4 py-3 sm:px-6">
-                <Segmented label={t("depth")} hint={t("depthHint")}>
+        <figure className="flex flex-col">
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-border px-4 py-3 sm:px-6">
+                <TextTabs label={t("depth")} hint={t("depthHint")}>
                     {LEVELS.map((value) => (
-                        <SegmentButton key={value} active={level === value} onClick={() => setLevel(value)}>
+                        <TextTab key={value} active={level === value} onClick={() => setLevel(value)}>
                             {value}
-                        </SegmentButton>
+                        </TextTab>
                     ))}
-                </Segmented>
+                </TextTabs>
 
-                <Segmented label={t("layout")}>
+                <TextTabs label={t("layout")}>
                     {GRAPH_LAYOUTS.map((name) => (
-                        <SegmentButton key={name} active={layoutName === name} onClick={() => setLayoutName(name)} disabled={!hasGraph}>
+                        <TextTab key={name} active={layoutName === name} onClick={() => setLayoutName(name)} disabled={!hasGraph}>
                             {t(`layouts.${name}`)}
-                        </SegmentButton>
+                        </TextTab>
                     ))}
-                </Segmented>
+                </TextTabs>
 
-                {depthLimited ? <p className="text-xs text-muted-foreground">{t("depthLimited", { depth: citation.shownDepth })}</p> : null}
-                {citation.hidden > 0 ? <p className="text-xs text-muted-foreground">{t("hiddenPapers", { count: citation.hidden })}</p> : null}
+                {rootRecord ? (
+                    <div className="-mr-2 ml-auto flex items-center">
+                        <IconButton label={t("refresh")} onClick={refresh}>
+                            <RotateCw className={cn(loadingDepth && "animate-spin")} />
+                        </IconButton>
+                        <IconButton label={t("exportPng")} onClick={exportPng} disabled={!hasGraph}>
+                            <Download />
+                        </IconButton>
+                    </div>
+                ) : null}
             </div>
 
-            <div className="grid lg:grid-cols-[minmax(0,1fr)_18rem]">
-                <div
-                    data-testid="graph-canvas"
-                    className="relative h-80 touch-pan-y bg-[radial-gradient(circle,var(--color-border)_1px,transparent_1px)] bg-size-[18px_18px] sm:h-115"
-                >
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_17rem]">
+                <div data-testid="graph-canvas" className="relative h-80 touch-pan-y sm:h-115">
                     {hasGraph ? (
                         <CytoscapeComponent
                             elements={elements}
@@ -258,33 +260,11 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                     ) : null}
 
                     {hasGraph ? (
-                        <div className="pointer-events-none absolute left-3 top-3 hidden flex-col gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[11px] text-muted-foreground sm:flex">
-                            <LegendItem kind="root" label={t("legend.root")} palette={palette} />
-                            <LegendItem kind="cited" label={t("legend.cited")} palette={palette} />
-                            {stats.missing > 0 ? <LegendItem kind="missing" label={t("legend.missing")} palette={palette} /> : null}
-                            <span className="mt-0.5 border-t border-border/70 pt-1.5 font-medium text-foreground/80">
-                                {t("papers", { count: stats.papers })} · {t("links", { count: stats.links })}
-                            </span>
-                        </div>
-                    ) : null}
-
-                    {rootRecord ? (
-                        <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-md border border-border bg-card">
-                            <IconButton label={t("refresh")} onClick={refresh} className="rounded-none">
-                                <RotateCw className={cn(loadingDepth && "animate-spin")} />
-                            </IconButton>
-                            <IconButton label={t("exportPng")} onClick={exportPng} disabled={!hasGraph} className="rounded-none border-t border-border/70">
-                                <Download />
-                            </IconButton>
-                        </div>
-                    ) : null}
-
-                    {hasGraph ? (
-                        <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-md border border-border bg-card">
+                        <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-sm border border-border bg-card">
                             <IconButton label={t("zoomIn")} onClick={() => zoomBy(1.25)} className="rounded-none">
                                 <Plus />
                             </IconButton>
-                            <IconButton label={t("zoomOut")} onClick={() => zoomBy(0.8)} className="rounded-none border-y border-border/70">
+                            <IconButton label={t("zoomOut")} onClick={() => zoomBy(0.8)} className="rounded-none border-y border-border">
                                 <Minus />
                             </IconButton>
                             <IconButton label={t("fit")} onClick={() => cyRef.current?.animate({ fit: { eles: cyRef.current.elements(), padding: 36 }, duration: 250 })} className="rounded-none">
@@ -295,10 +275,10 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
 
                     {hover && hover.node.id !== selectedNode?.id ? (
                         <div
-                            className="pointer-events-none absolute z-10 max-w-64 -translate-x-1/2 -translate-y-full rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-sm"
-                            style={{ left: hover.x, top: hover.y - 16 }}
+                            className="pointer-events-none absolute z-10 max-w-64 -translate-x-1/2 -translate-y-full rounded-sm border border-border bg-popover px-3 py-2 text-xs text-popover-foreground"
+                            style={{ left: hover.x, top: hover.y - 14 }}
                         >
-                            <p className="line-clamp-2 font-serif text-sm font-medium leading-snug">{hover.node.title ?? hover.node.doi}</p>
+                            <p className="line-clamp-2 font-serif text-sm leading-snug">{hover.node.title ?? hover.node.doi}</p>
                             <p className="mt-0.5 text-muted-foreground">
                                 {hover.node.kind === "root" ? t("legend.root") : t("depthBadge", { depth: hover.node.depth })}
                             </p>
@@ -311,31 +291,16 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                         </LoadingRegion>
                     ) : null}
                     {loadingDepth && hasGraph ? (
-                        <div className="absolute inset-0 flex items-start justify-center bg-card/40 pt-4">
-                            <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground shadow-sm">
-                                <Spinner className="size-3.5" /> {t("loading")}
-                            </span>
-                        </div>
+                        <p className="absolute left-4 top-3 flex items-center gap-2 text-xs text-muted-foreground">
+                            <Spinner className="size-3" /> {t("loading")}
+                        </p>
                     ) : null}
-                    {isEmpty ? (
-                        <CanvasState icon={<SearchX className="size-6 text-muted-foreground" />} title={t("empty")} description={t("emptyHint")} />
-                    ) : null}
+                    {isEmpty ? <CanvasState title={t("empty")} description={t("emptyHint")} /> : null}
                 </div>
 
-                {hasGraph ? (
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border/70 px-4 py-2.5 text-[11px] text-muted-foreground sm:hidden">
-                        <LegendItem kind="root" label={t("legend.root")} palette={palette} />
-                        <LegendItem kind="cited" label={t("legend.cited")} palette={palette} />
-                        {stats.missing > 0 ? <LegendItem kind="missing" label={t("legend.missing")} palette={palette} /> : null}
-                        <span className="ml-auto font-medium text-foreground/80">
-                            {t("papers", { count: stats.papers })} · {t("links", { count: stats.links })}
-                        </span>
-                    </div>
-                ) : null}
-
-                <aside className="border-t border-border/70 p-4 sm:p-5 lg:border-l lg:border-t-0">
+                <aside className="border-t border-border p-4 sm:p-5 lg:border-l lg:border-t-0">
                     {expandError ? (
-                        <p role="alert" className="mb-3 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                        <p role="alert" className="mb-3 text-xs text-destructive">
                             {t("expandFailed")}
                         </p>
                     ) : null}
@@ -349,15 +314,27 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                             onClose={clearSelection}
                         />
                     ) : (
-                        <div className="flex h-full flex-col justify-center gap-3 text-sm text-muted-foreground">
-                            <MousePointerClick className="size-5 text-muted-foreground" />
-                            <p className="font-medium text-foreground">{t("selectHint")}</p>
-                            <p className="hidden lg:block">{t("hoverHint")}</p>
-                        </div>
+                        <p className="flex h-full items-center text-sm text-muted-foreground">{t("selectHint")}</p>
                     )}
                 </aside>
             </div>
-        </div>
+
+            {hasGraph ? (
+                <figcaption className="flex flex-wrap items-baseline gap-x-5 gap-y-1.5 border-t border-border px-4 py-3 text-sm text-muted-foreground sm:px-6">
+                    <span>
+                        <span className="font-serif italic text-foreground">{t("figure")}</span>{" "}
+                        {t("papers", { count: stats.papers })}, {t("links", { count: stats.links })}.
+                        {depthLimited ? ` ${t("depthLimited", { depth: citation.shownDepth })}` : null}
+                        {citation.hidden > 0 ? ` ${t("hiddenPapers", { count: citation.hidden })}.` : null}
+                    </span>
+                    <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                        <LegendItem kind="root" label={t("legend.root")} />
+                        <LegendItem kind="cited" label={t("legend.cited")} />
+                        {stats.missing > 0 ? <LegendItem kind="missing" label={t("legend.missing")} /> : null}
+                    </span>
+                </figcaption>
+            ) : null}
+        </figure>
     );
 }
 
@@ -393,25 +370,17 @@ function NodeDetails({
     return (
         <div className="flex flex-col gap-3">
             <div className="flex items-start justify-between gap-2">
-                <span
-                    className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider",
-                        node.kind === "root" && "bg-teal-800 text-white dark:bg-teal-300 dark:text-teal-950",
-                        node.kind === "cited" && "bg-teal-50 text-teal-800 dark:bg-teal-950 dark:text-teal-300",
-                        node.kind === "missing" && "border border-dashed border-muted-foreground/50 text-muted-foreground",
-                    )}
-                >
+                <span className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
+                    <LegendDot kind={node.kind} />
                     {t(`kind.${node.kind}`)}
+                    {node.kind !== "root" ? <span>· {t("depthBadge", { depth: node.depth })}</span> : null}
                 </span>
-                <IconButton label={t("clearSelection")} onClick={onClose} className="-mr-2 -mt-1.5">
+                <IconButton label={t("clearSelection")} onClick={onClose} className="-mr-2 -mt-1">
                     <X />
                 </IconButton>
             </div>
 
-            <div>
-                <p className="line-clamp-4 font-serif text-[1.0625rem] font-medium leading-snug text-foreground">{node.title ?? node.doi}</p>
-                {node.kind !== "root" ? <p className="mt-1 text-xs text-muted-foreground">{t("depthBadge", { depth: node.depth })}</p> : null}
-            </div>
+            <p className="line-clamp-5 font-serif text-lg leading-snug text-foreground">{node.title ?? node.doi}</p>
 
             {lookingUp ? (
                 <p className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -426,21 +395,21 @@ function NodeDetails({
                 </p>
             ) : null}
 
-            <div className="flex items-center gap-1 rounded-md border border-border bg-muted/40 py-1 pl-2.5 pr-1">
+            <div className="flex items-center gap-1">
                 <code className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">doi:{node.doi}</code>
                 <IconButton label={copied ? t("copied") : t("copyDoi")} onClick={() => void copyDoi()} className="size-7">
-                    {copied ? <Check className="text-teal-700 dark:text-teal-300" /> : <Copy />}
+                    {copied ? <Check className="text-foreground" /> : <Copy />}
                 </IconButton>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 border-t border-border pt-3">
                 {canExpand || expanding ? (
-                    <Button size="sm" onClick={onExpand} disabled={expanding}>
+                    <Button size="sm" variant="outline" onClick={onExpand} disabled={expanding}>
                         {expanding ? <Spinner className="size-3.5" /> : <GitBranchPlus />}
                         {t("expand")}
                     </Button>
                 ) : null}
-                <Button size="sm" variant="outline" asChild>
+                <Button size="sm" variant="ghost" asChild className="text-link">
                     <a href={node.url ?? `https://doi.org/${node.doi}`} target="_blank" rel="noopener noreferrer">
                         <ExternalLink /> {t("openSource")}
                     </a>
@@ -450,18 +419,18 @@ function NodeDetails({
     );
 }
 
-function Segmented({ label, hint, children }: Readonly<{ label: string; hint?: string; children: ReactNode }>) {
+function TextTabs({ label, hint, children }: Readonly<{ label: string; hint?: string; children: ReactNode }>) {
     return (
-        <div className="flex items-center gap-2" title={hint}>
+        <div className="flex items-baseline gap-3" title={hint}>
             <span className="text-sm text-muted-foreground">{label}</span>
-            <div role="group" aria-label={label} className="inline-flex rounded-md border border-border bg-muted/50 p-0.5">
+            <div role="group" aria-label={label} className="flex items-baseline gap-3">
                 {children}
             </div>
         </div>
     );
 }
 
-function SegmentButton({
+function TextTab({
     active,
     disabled,
     onClick,
@@ -474,8 +443,8 @@ function SegmentButton({
             disabled={disabled}
             onClick={onClick}
             className={cn(
-                "min-w-8 rounded-sm px-2.5 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                active ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                "text-sm tabular-nums decoration-1 underline-offset-[6px] transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                active ? "font-medium text-foreground underline" : "text-muted-foreground hover:text-foreground",
             )}
         >
             {children}
@@ -502,28 +471,34 @@ function IconButton({
     );
 }
 
-function LegendItem({ kind, label, palette }: Readonly<{ kind: NodeKind; label: string; palette: ReturnType<typeof getPalette> }>) {
-    const style =
-        kind === "root"
-            ? { backgroundColor: palette.root, boxShadow: `0 0 0 3px ${palette.rootRing}` }
-            : kind === "cited"
-              ? { backgroundColor: palette.near }
-              : { backgroundColor: palette.missingFill, border: `1.5px dashed ${palette.missingBorder}` };
+function LegendDot({ kind }: Readonly<{ kind: NodeKind }>) {
     return (
-        <span className="flex items-center gap-2">
-            <span className="inline-block size-2.5 rounded-full" style={style} />
+        <span
+            aria-hidden
+            className={cn(
+                "inline-block shrink-0 rounded-full",
+                kind === "root" && "size-2.5 bg-link",
+                kind === "cited" && "size-2 bg-foreground",
+                kind === "missing" && "size-2 border border-muted-foreground",
+            )}
+        />
+    );
+}
+
+function LegendItem({ kind, label }: Readonly<{ kind: NodeKind; label: string }>) {
+    return (
+        <span className="flex items-center gap-1.5">
+            <LegendDot kind={kind} />
             {label}
         </span>
     );
 }
 
-function CanvasState({ icon, title, description, action }: Readonly<{ icon: ReactNode; title: string; description?: string; action?: ReactNode }>) {
+function CanvasState({ title, description }: Readonly<{ title: string; description?: string }>) {
     return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
-            {icon}
-            <p className="text-sm font-medium text-foreground">{title}</p>
-            {description ? <p className="max-w-sm text-xs text-muted-foreground">{description}</p> : null}
-            {action ? <div className="mt-1">{action}</div> : null}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-6 text-center">
+            <p className="font-serif text-lg text-foreground">{title}</p>
+            {description ? <p className="max-w-sm text-sm text-muted-foreground">{description}</p> : null}
         </div>
     );
 }

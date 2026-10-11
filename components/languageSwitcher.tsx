@@ -17,14 +17,19 @@ export default function LanguageSwitcher({ className }: Readonly<{ className?: s
       role="group"
       aria-label={t("label")}
       className={cn(
-        "inline-flex rounded-full border border-border/80 bg-background/95 p-0.5 text-xs font-semibold shadow-sm",
+        "inline-flex items-center text-sm",
         isPending && "opacity-60",
         className,
       )}
     >
-      {locales.map((locale) => {
+      {locales.map((locale, index) => {
         const isActive = locale === activeLocale;
-        return (
+        return [
+          index > 0 ? (
+            <span key={`${locale}-sep`} aria-hidden className="px-0.5 text-border">
+              /
+            </span>
+          ) : null,
           <button
             key={locale}
             type="button"
@@ -38,13 +43,13 @@ export default function LanguageSwitcher({ className }: Readonly<{ className?: s
               startTransition(() => setLocaleAction(locale));
             }}
             className={cn(
-              "rounded-full px-2.5 py-1 uppercase tracking-wider transition-colors",
-              isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+              "rounded-sm px-1 py-0.5 uppercase transition-colors",
+              isActive ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
             {locale}
-          </button>
-        );
+          </button>,
+        ];
       })}
     </div>
   );

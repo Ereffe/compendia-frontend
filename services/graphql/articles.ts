@@ -9,15 +9,7 @@ export type GraphqlArticle = ArticleQuery["article"];
 
 export type GraphqlEditableArticle = EditableArticleQuery["article"];
 
-// The backend caches an article's comments by article id only (ignoring page/size), so every
-// caller must request the same page. Keep this the single source of that size.
-export const COMMENTS_PAGE_SIZE = 100;
-
-// Comment counts must use the article page's exact comments arguments, or they poison that cache entry.
-export const commentCountVariables = (withCommentCount: boolean) => ({
-    withCommentCount,
-    commentsSize: COMMENTS_PAGE_SIZE,
-});
+export const COMMENTS_PAGE_SIZE = 20;
 
 export const ARTICLES_QUERY = graphql(`
     query Articles(
@@ -28,7 +20,6 @@ export const ARTICLES_QUERY = graphql(`
         $sortBy: String
         $ascending: Boolean
         $withCommentCount: Boolean!
-        $commentsSize: Int!
     ) {
         articles(
             search: $search
@@ -49,10 +40,10 @@ export const ARTICLES_QUERY = graphql(`
                     negative
                 }
                 author {
+                    id
                     name
                 }
-                comments(page: 0, size: $commentsSize, sortBy: "datePosted", ascending: false)
-                    @include(if: $withCommentCount) {
+                comments(page: 0, size: 1) @include(if: $withCommentCount) {
                     totalElements
                 }
             }
@@ -65,7 +56,7 @@ export const ARTICLES_QUERY = graphql(`
 `);
 
 export const ARTICLE_QUERY = graphql(`
-    query Article($id: String!, $commentsPage: Int!, $commentsSize: Int!, $withAuthor: Boolean!) {
+    query Article($id: String!, $commentsPage: Int!, $commentsSize: Int!) {
         article(id: $id) {
             id
             title
@@ -76,6 +67,7 @@ export const ARTICLE_QUERY = graphql(`
                 positive
                 negative
             }
+            myVote
             comments(page: $commentsPage, size: $commentsSize, sortBy: "datePosted", ascending: false) {
                 content {
                     id
@@ -90,6 +82,7 @@ export const ARTICLE_QUERY = graphql(`
                         positive
                         negative
                     }
+                    myVote
                     parentComment {
                         id
                     }
@@ -103,20 +96,9 @@ export const ARTICLE_QUERY = graphql(`
                 description
                 url
             }
-            author @include(if: $withAuthor) {
+            author {
                 id
                 name
-            }
-        }
-    }
-`);
-
-export const ARTICLE_COMMENT_COUNT_QUERY = graphql(`
-    query ArticleCommentCount($id: String!, $commentsSize: Int!) {
-        article(id: $id) {
-            id
-            comments(page: 0, size: $commentsSize, sortBy: "datePosted", ascending: false) {
-                totalElements
             }
         }
     }
@@ -148,7 +130,7 @@ export const ADD_ARTICLE_MUTATION = graphql(`
     }
 `);
 
-// Null arguments leave the field unchanged. The backend can't clear references: an empty list is ignored.
+// Null arguments leave the field unchanged; an empty references list clears them.
 export const EDIT_ARTICLE_MUTATION = graphql(`
     mutation EditArticle($articleId: ID!, $title: String, $content: String, $complexity: String, $references: [String!]) {
         editArticle(articleId: $articleId, title: $title, content: $content, complexity: $complexity, references: $references) {
@@ -160,6 +142,18 @@ export const EDIT_ARTICLE_MUTATION = graphql(`
 export const RATE_ARTICLE_MUTATION = graphql(`
     mutation RateArticle($articleId: ID!, $positive: Boolean!) {
         rateArticle(articleId: $articleId, positive: $positive)
+    }
+`);
+
+export const UNRATE_ARTICLE_MUTATION = graphql(`
+    mutation UnrateArticle($articleId: ID!) {
+        unrateArticle(articleId: $articleId)
+    }
+`);
+
+export const LINK_ASSET_MUTATION = graphql(`
+    mutation LinkAsset($id: String!, $name: String!, $articleId: String!) {
+        uploadAssetMetadata(id: $id, name: $name, articleId: $articleId)
     }
 `);
 
@@ -176,6 +170,7 @@ export const mapArticleToSearchItem = (article: GraphqlArticleSummary): ArticleS
     title: article.title,
     datePosted: article.datePosted,
     author: article.author?.name ?? null,
+    authorId: article.author?.id ?? null,
     content: article.content,
     complexity: article.complexity,
     rating: article.rating,

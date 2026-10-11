@@ -1,7 +1,7 @@
 import { CombinedGraphQLErrors, ServerError } from "@apollo/client/errors";
 import { describe, expect, it } from "vitest";
 
-import { isAuthRejected, isDetachedAuthorError, isNotFoundError, toErrorKey } from "./graphqlErrors";
+import { isAuthRejected, isEmailTakenError, isNotFoundError, toErrorKey, toReferenceErrorKey } from "./graphqlErrors";
 
 const serverError = (status: number) =>
     new ServerError("Response not successful", {
@@ -49,18 +49,21 @@ describe("isNotFoundError", () => {
     });
 });
 
-describe("isDetachedAuthorError", () => {
-    const withMessage = (message: string) =>
-        new CombinedGraphQLErrors({ errors: [{ message, extensions: { classification: "INTERNAL_ERROR" } }] });
+describe("backend message errors", () => {
+    const withMessage = (message: string, classification = "BAD_REQUEST") =>
+        new CombinedGraphQLErrors({ errors: [{ message, extensions: { classification } }] });
 
-    it("recognizes the backend's unloaded author proxy", () => {
+    it("tells a missing DOI from unreachable DOI services", () => {
+        expect(toReferenceErrorKey(withMessage("DOI not found: 10.1000/x"))).toBe("referenceNotFound");
+        expect(toReferenceErrorKey(withMessage("Invalid DOI: abc"))).toBe("referenceNotFound");
         expect(
-            isDetachedAuthorError(withMessage("Could not initialize proxy [org.compedia.users.entities.User#cb33] - no session")),
-        ).toBe(true);
+            toReferenceErrorKey(withMessage("Could not reach the DOI services for 10.1000/x, try again later", "INTERNAL_ERROR")),
+        ).toBe("referenceLookupUnavailable");
+        expect(toReferenceErrorKey(withMessage("Title cannot be blank."))).toBeNull();
     });
 
-    it("ignores other errors", () => {
-        expect(isDetachedAuthorError(withMessage("Something else"))).toBe(false);
-        expect(isDetachedAuthorError(new Error("Could not initialize proxy [org.compedia.users.entities.User#x]"))).toBe(false);
+    it("recognizes an e-mail address that is already taken", () => {
+        expect(isEmailTakenError(withMessage("This email address is already taken."))).toBe(true);
+        expect(isEmailTakenError(withMessage("Request has expired"))).toBe(false);
     });
 });

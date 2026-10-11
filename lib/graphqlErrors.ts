@@ -16,10 +16,19 @@ export const isNotFoundError = (error: unknown): boolean => {
     return classification === "NOT_FOUND" || classification === "BAD_REQUEST";
 };
 
-// A cached article whose author can't be loaded any more (backend issue 6c).
-export const isDetachedAuthorError = (error: unknown): boolean =>
+// The backend rejects the whole save when one reference DOI can't be resolved; only its message says why.
+export const toReferenceErrorKey = (error: unknown): ErrorKey | null => {
+    if (!CombinedGraphQLErrors.is(error)) return null;
+    const message = error.errors[0]?.message ?? "";
+    if (message.startsWith("Could not reach the DOI services")) return "referenceLookupUnavailable";
+    if (/^(DOI not found|Invalid DOI|DOI has no title)/.test(message)) return "referenceNotFound";
+    return null;
+};
+
+export const isEmailTakenError = (error: unknown): boolean =>
+    getGraphqlClassification(error) === "BAD_REQUEST" &&
     CombinedGraphQLErrors.is(error) &&
-    error.errors.some((graphqlError) => graphqlError.message.includes("Could not initialize proxy [org.compedia.users.entities.User#"));
+    error.errors.some((graphqlError) => graphqlError.message.includes("already taken"));
 
 export const isAuthRejected = (error: unknown): boolean =>
     (ServerError.is(error) && (error.statusCode === 401 || error.statusCode === 403)) ||

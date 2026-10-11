@@ -32,7 +32,7 @@ export default function ArticleReferences({ references }: Readonly<{ references:
 export function SectionHeading({ id, title, meta }: Readonly<{ id?: string; title: string; meta?: string }>) {
     return (
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 id={id} className="font-serif text-2xl font-medium tracking-[-0.01em] text-foreground sm:text-[1.75rem]">
+            <h2 id={id} className="title-section text-foreground">
                 {title}
             </h2>
             {meta ? <span className="text-sm tabular-nums text-muted-foreground">{meta}</span> : null}
@@ -78,7 +78,7 @@ function ReferenceItem({ reference, index }: Readonly<{ reference: ArticleRefere
                 ) : null}
 
                 {reference.description ? (
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-foreground/75">{reference.description}</p>
+                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{reference.description}</p>
                 ) : null}
 
                 <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted-foreground">
@@ -92,7 +92,7 @@ function ReferenceItem({ reference, index }: Readonly<{ reference: ArticleRefere
                         title={copied ? t("copied") : t("copyDoi")}
                         className="text-muted-foreground"
                     >
-                        {copied ? <Check className="text-teal-700 dark:text-teal-300" /> : <Copy />}
+                        {copied ? <Check className="text-foreground" /> : <Copy />}
                     </Button>
                     <span aria-hidden className="mx-1 hidden text-border sm:inline">|</span>
                     <Button
@@ -100,7 +100,7 @@ function ReferenceItem({ reference, index }: Readonly<{ reference: ArticleRefere
                         variant="link"
                         size="xs"
                         onClick={() => showReferenceInGraph(reference.doi)}
-                        className="h-auto px-0 text-xs font-medium text-teal-800 dark:text-teal-300"
+                        className="h-auto px-0 text-xs font-medium text-link"
                     >
                         <Network /> {t("showInGraph")}
                     </Button>

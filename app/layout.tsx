@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Newsreader, Space_Grotesk } from "next/font/google";
+import { Source_Code_Pro, Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { Suspense } from "react";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -11,18 +11,18 @@ import SiteFooter from "@/components/siteFooter";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const geistSans = Space_Grotesk({
-  variable: "--font-geist-sans",
+const sourceSans = Source_Sans_3({
+  variable: "--font-source-sans",
   subsets: ["latin", "latin-ext"],
 });
 
-const geistMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
+const sourceCode = Source_Code_Pro({
+  variable: "--font-source-code",
   subsets: ["latin", "latin-ext"],
 });
 
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
+const sourceSerif = Source_Serif_4({
+  variable: "--font-source-serif",
   subsets: ["latin", "latin-ext"],
   style: ["normal", "italic"],
   axes: ["opsz"],
@@ -44,13 +44,11 @@ export default async function RootLayout({
   return (
     <html lang={await getLocale()} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} antialiased`}
+        className={`${sourceSans.variable} ${sourceSerif.variable} ${sourceCode.variable} font-sans antialiased`}
       >
         <NextIntlClientProvider>
         <AuthProvider>
-          <div className="compendia-surface flex min-h-screen flex-col overflow-x-clip text-foreground">
-            <div className="compendia-noise pointer-events-none fixed inset-0 -z-20" aria-hidden />
-            <div className="compendia-grid pointer-events-none fixed inset-0 -z-10 opacity-25" aria-hidden />
+          <div className="flex min-h-screen flex-col overflow-x-clip text-foreground">
             <Header />
             <main className="flex flex-1 flex-col">{children}</main>
             <SiteFooter />

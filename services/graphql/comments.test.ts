@@ -17,6 +17,7 @@ describe("mapGraphqlCommentToCommentItem", () => {
                 positive: 3,
                 negative: 0,
             },
+            myVote: null,
             parentComment: {
                 id: "c1",
             },

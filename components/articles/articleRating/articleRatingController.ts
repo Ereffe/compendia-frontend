@@ -1,55 +1,49 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import { rateArticleAction } from "@/app/actions/articles";
-import { articleVoteId, type VoteType } from "@/hooks/stores/useVoteStore";
+import { applyVote, toggledVote, type Vote } from "@/lib/votes";
 import type { ArticleRating } from "@/types/articles";
 import type { ErrorKey } from "@/types/errors";
 
-export const applyArticleVote = (rating: ArticleRating, voteType: VoteType, delta: 1 | -1): ArticleRating => ({
-    ...rating,
-    [voteType]: rating[voteType] + delta,
-});
-
 type CreateRateArticleHandlerParams = {
     articleId: string;
-    userKey: string | null;
-    getVote: (userKey: string, itemId: string) => VoteType | undefined;
-    setVote: (userKey: string, itemId: string, voteType: VoteType) => void;
-    clearVote: (userKey: string, itemId: string) => void;
+    canVote: boolean;
+    vote: Vote;
+    setVote: Dispatch<SetStateAction<Vote>>;
     setRating: Dispatch<SetStateAction<ArticleRating>>;
+    setPending: Dispatch<SetStateAction<boolean>>;
     setError: Dispatch<SetStateAction<ErrorKey | null>>;
-    onRated?: () => void;
+    onRated?: (vote: Vote) => void;
 };
 
 export const createRateArticleHandler = ({
     articleId,
-    userKey,
-    getVote,
+    canVote,
+    vote,
     setVote,
-    clearVote,
     setRating,
+    setPending,
     setError,
     onRated,
 }: CreateRateArticleHandlerParams) => async (positive: boolean) => {
-    if (!userKey) {
+    if (!canVote) {
         setError("voteRequiresLogin");
         return;
     }
 
-    const voteId = articleVoteId(articleId);
-    if (getVote(userKey, voteId)) return;
-
-    const voteType: VoteType = positive ? "positive" : "negative";
-    setVote(userKey, voteId, voteType);
-    setRating((rating) => applyArticleVote(rating, voteType, 1));
+    const next = toggledVote(vote, positive);
+    setVote(next);
+    setRating((rating) => applyVote(rating, vote, next));
+    setPending(true);
     setError(null);
 
-    const result = await rateArticleAction(articleId, positive).catch(() => null);
+    const result = await rateArticleAction(articleId, next).catch(() => null);
+    setPending(false);
     if (!result?.ok) {
-        clearVote(userKey, voteId);
-        setRating((rating) => applyArticleVote(rating, voteType, -1));
+        setVote(vote);
+        setRating((rating) => applyVote(rating, next, vote));
         setError(result ? result.error : "rateArticleFailed");
         return;
     }
-    onRated?.();
+    onRated?.(next);
 };

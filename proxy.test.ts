@@ -74,7 +74,10 @@ describe("proxy", () => {
 
         const response = await proxy(request(await sessionCookie({ accessTokenExpires: Date.now() + 30_000 })));
 
-        expect(fetchMock).toHaveBeenCalledWith("http://backend/auth/refresh?t=old-refresh", expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith(
+            "http://backend/auth/refresh",
+            expect.objectContaining({ method: "POST", body: JSON.stringify({ refreshToken: "old-refresh" }) }),
+        );
         const cookie = response.cookies.get(COOKIE);
         expect(cookie?.httpOnly).toBe(true);
         const refreshed = await decode({ secret: SECRET, token: cookie?.value });

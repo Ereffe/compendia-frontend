@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/pagination";
 import { parsePageParam } from "@/lib/pagination";
 import { authedQuery, requireAccessToken } from "@/lib/server/session";
-import { ARTICLES_QUERY, commentCountVariables, mapArticleToSearchItem } from "@/services/graphql/articles";
+import { ARTICLES_QUERY, mapArticleToSearchItem } from "@/services/graphql/articles";
 
 const ARTICLES_PER_PAGE = 12;
 
@@ -24,7 +24,7 @@ async function fetchArticles(page: number, accessToken: string) {
     size: ARTICLES_PER_PAGE,
     sortBy: "datePosted",
     ascending: false,
-    ...commentCountVariables(true),
+    withCommentCount: true,
   });
   return data.articles;
 }
@@ -155,21 +155,19 @@ export default async function AllArticlesPage({
 
   return (
     <>
-      <div className="container-page my-3 flex flex-col gap-8 py-8 sm:py-12">
-        <div>
-          <h1 className="text-4xl font-bold leading-tight sm:text-5xl">{t("title")}</h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">{t("description")}</p>
-          {data.totalPages > 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("pageOf", { page: page + 1, total: data.totalPages })}
-            </p>
-          ) : null}
+      <div className="container-page flex flex-col gap-8 pb-6 pt-10 sm:pt-14">
+        <div className="border-b border-border pb-6">
+          <h1 className="title-page">{t("title")}</h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+            {t("description")}
+            {data.totalPages > 0 ? (
+              <span className="tabular-nums"> {t("pageOf", { page: page + 1, total: data.totalPages })}.</span>
+            ) : null}
+          </p>
         </div>
 
         {data.content.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40 py-16 text-center">
-            <p className="text-muted-foreground">{t("empty")}</p>
-          </div>
+          <p className="py-16 text-center text-muted-foreground">{t("empty")}</p>
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

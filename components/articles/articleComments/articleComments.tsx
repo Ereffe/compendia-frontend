@@ -1,12 +1,12 @@
 "use client";
 
-import { type ReactNode, type SyntheticEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, type SyntheticEvent, useCallback, useMemo, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Pencil, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { useVoteStore } from "@/hooks/stores/useVoteStore";
 import type { CommentItem } from "@/types/comments";
 import type { ErrorKey } from "@/types/errors";
 
@@ -16,11 +16,13 @@ import { SectionHeading } from "@/components/articles/articleReferences";
 import { Textarea } from "@/components/ui/textarea";
 import UserAvatar from "@/components/userAvatar";
 import { cn } from "@/lib/utils";
+import { COMMENTS_PAGE_SIZE } from "@/services/graphql/articles";
 import {
     buildCommentTree,
     countComments,
     createDeleteCommentHandler,
     createEditCommentHandler,
+    createLoadMoreCommentsHandler,
     createRateCommentHandler,
     createSubmitCommentHandler,
     findComment,
@@ -44,7 +46,6 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const { data: session, status } = useSession();
     const isLoading = status === "loading";
     const canComment = status === "authenticated" && !session?.error;
-    const userKey = canComment ? (session?.user?.id ?? session?.user?.email ?? null) : null;
     const currentUserId = canComment ? (session?.user?.id ?? null) : null;
     const [comments, setComments] = useState<CommentItem[]>(() => buildCommentTree(initialComments));
     const [content, setContent] = useState("");
@@ -53,7 +54,7 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<ErrorKey | null>(null);
-    const [isHydrated, setIsHydrated] = useState(false);
+    const [votePending, setVotePending] = useState(false);
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editDraft, setEditDraft] = useState("");
     const [isSavingEdit, setIsSavingEdit] = useState(false);
@@ -62,24 +63,35 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const [isDeleting, setIsDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState<ErrorKey | null>(null);
     const [deletedCount, setDeletedCount] = useState(0);
+    const [serverTotal, setServerTotal] = useState(totalCount ?? initialComments.length);
+    const [nextPage, setNextPage] = useState(1);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [loadError, setLoadError] = useState<ErrorKey | null>(null);
 
-    const getVote = useVoteStore((state) => state.getVote);
-    const setVote = useVoteStore((state) => state.setVote);
-    const clearVote = useVoteStore((state) => state.clearVote);
-    const userVotes = useVoteStore((state) => (userKey ? state.votes[userKey] : undefined));
-
-    useEffect(() => {
-        setIsHydrated(true);
-    }, []);
-
-    useEffect(() => {
+    const [shownInitial, setShownInitial] = useState(initialComments);
+    if (shownInitial !== initialComments) {
+        setShownInitial(initialComments);
         setComments(buildCommentTree(initialComments));
-    }, [initialComments]);
+        setServerTotal(totalCount ?? initialComments.length);
+        setNextPage(1);
+        setDeletedCount(0);
+    }
 
     const totalComments = useMemo(() => countComments(comments), [comments]);
-    const remainingTotal = totalCount === undefined ? undefined : totalCount - deletedCount;
-    const displayedTotal = Math.max(totalComments, remainingTotal ?? 0);
-    const isTruncated = totalCount !== undefined && totalCount > initialComments.length;
+    const remainingTotal = serverTotal - deletedCount;
+    const displayedTotal = Math.max(totalComments, remainingTotal);
+    const hasMore = nextPage * COMMENTS_PAGE_SIZE < serverTotal;
+
+    const loadMore = createLoadMoreCommentsHandler({
+        articleId,
+        nextPage,
+        setNextPage,
+        setServerTotal,
+        setComments,
+        setDeletedCount,
+        setIsLoadingMore,
+        setError: setLoadError,
+    });
 
     let sessionLabel = "";
     if (isLoading) sessionLabel = t("checkingSession");
@@ -94,15 +106,13 @@ export default function ArticleComments({ articleId, initialComments, totalCount
     const handleRateComment = useMemo(
         () =>
             createRateCommentHandler({
-                userKey,
-                getVote,
-                setVote,
-                clearVote,
+                canVote: canComment,
                 setComments,
+                setVotePending,
                 setError,
-                onRated: () => toast.success(tToasts("voteSaved")),
+                onRated: (vote) => toast.success(tToasts(vote === null ? "voteRemoved" : "voteSaved")),
             }),
-        [userKey, getVote, setVote, clearVote, tToasts]
+        [canComment, tToasts]
     );
 
     const submitComment = useMemo(
@@ -216,47 +226,34 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         }));
     }, []);
 
-    const renderVoteButtons = (comment: CommentItem, hasVoted: boolean, isPositiveVote: boolean, isNegativeVote: boolean) => {
-        if (!isHydrated) {
-            return (
-                <>
-                    <Button variant="ghost" size="xs" className={voteClass} disabled>
-                        <ThumbsUp /> {comment.rating.positive}
-                    </Button>
-                    <Button variant="ghost" size="xs" className={voteClass} disabled>
-                        <ThumbsDown /> {comment.rating.negative}
-                    </Button>
-                </>
-            );
-        }
-
-        return (
-            <>
-                <Button
-                    variant="ghost"
-                    size="xs"
-                    className={cn(voteClass, isPositiveVote && "text-emerald-700 disabled:opacity-100 dark:text-emerald-400")}
-                    onClick={() => handleRateComment(comment.id, true)}
-                    disabled={hasVoted || !canComment}
-                    aria-label={t("upvote", { count: comment.rating.positive })}
-                    title={hasVoted ? t("alreadyVoted") : undefined}
-                >
-                    <ThumbsUp /> {comment.rating.positive}
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="xs"
-                    className={cn(voteClass, isNegativeVote && "text-red-700 disabled:opacity-100 dark:text-red-400")}
-                    onClick={() => handleRateComment(comment.id, false)}
-                    disabled={hasVoted || !canComment}
-                    aria-label={t("downvote", { count: comment.rating.negative })}
-                    title={hasVoted ? t("alreadyVoted") : undefined}
-                >
-                    <ThumbsDown /> {comment.rating.negative}
-                </Button>
-            </>
-        );
-    };
+    const renderVoteButtons = (comment: CommentItem) => (
+        <>
+            <Button
+                variant="ghost"
+                size="xs"
+                className={cn(voteClass, comment.myVote === true && "text-foreground disabled:opacity-100 [&_svg]:fill-current")}
+                onClick={() => handleRateComment(comment, true)}
+                disabled={votePending || !canComment}
+                aria-pressed={comment.myVote === true}
+                aria-label={t("upvote", { count: comment.rating.positive })}
+                title={comment.myVote === true ? t("removeVote") : undefined}
+            >
+                <ThumbsUp /> {comment.rating.positive}
+            </Button>
+            <Button
+                variant="ghost"
+                size="xs"
+                className={cn(voteClass, comment.myVote === false && "text-foreground disabled:opacity-100 [&_svg]:fill-current")}
+                onClick={() => handleRateComment(comment, false)}
+                disabled={votePending || !canComment}
+                aria-pressed={comment.myVote === false}
+                aria-label={t("downvote", { count: comment.rating.negative })}
+                title={comment.myVote === false ? t("removeVote") : undefined}
+            >
+                <ThumbsDown /> {comment.rating.negative}
+            </Button>
+        </>
+    );
 
     const renderReplyForm = (commentId: string) => (
         <form className="mt-3 space-y-3" onSubmit={(event) => handleReplySubmit(event, commentId)}>
@@ -305,14 +302,6 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         comment: CommentItem,
         depth = 0
     ): ReactNode => {
-        const userVote = isHydrated && userKey
-            ? userVotes?.[comment.id]
-            : undefined;
-
-        const isPositiveVote = userVote === "positive";
-        const isNegativeVote = userVote === "negative";
-        const hasVoted = userVote !== undefined;
-
         const isReplyFormVisible =
             activeReplyCommentId === comment.id;
 
@@ -329,10 +318,14 @@ export default function ArticleComments({ articleId, initialComments, totalCount
         return (
             <div key={comment.id} className="w-full">
                 <article className={cn("flex w-full gap-3", depth === 0 ? "py-5" : "py-3")}>
-                    <UserAvatar userId={comment.user.id} size={depth === 0 ? 32 : 24} className="mt-0.5" />
+                    <Link href={`/users/${comment.user.id}`} tabIndex={-1} aria-hidden className="mt-0.5 h-fit rounded-full">
+                        <UserAvatar name={comment.user.name} size={depth === 0 ? 32 : 24} />
+                    </Link>
                     <div className="min-w-0 flex-1">
                         <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
-                            <span className="font-medium text-foreground">{comment.user.name}</span>
+                            <Link href={`/users/${comment.user.id}`} className="font-medium text-foreground underline-offset-4 hover:underline">
+                                {comment.user.name}
+                            </Link>
                             <span className="text-xs text-muted-foreground">
                                 {format.dateTime(new Date(comment.datePosted), commentDateFormat)}
                                 {comment.editedAt ? ` · ${t("edited")}` : ""}
@@ -340,13 +333,13 @@ export default function ArticleComments({ articleId, initialComments, totalCount
                         </p>
 
                         {isEditing ? renderEditForm(comment) : (
-                            <p className="mt-1.5 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-foreground/90 wrap-anywhere">
+                            <p className="mt-1.5 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-foreground wrap-anywhere">
                                 {comment.content}
                             </p>
                         )}
 
                         <div className={cn("-ml-1.5 mt-2 flex flex-wrap items-center gap-x-1 gap-y-1", isEditing && "hidden")}>
-                            {renderVoteButtons(comment, hasVoted, isPositiveVote, isNegativeVote)}
+                            {renderVoteButtons(comment)}
                             <Button
                                 variant="ghost"
                                 size="xs"
@@ -432,10 +425,16 @@ export default function ArticleComments({ articleId, initialComments, totalCount
                     comments.map((comment) => renderComment(comment))
                 )}
             </div>
-            {isTruncated ? (
-                <p className="mt-4 text-center text-sm text-muted-foreground">
-                    {t("truncated", { shown: initialComments.length, total: remainingTotal ?? 0 })}
-                </p>
+            {hasMore ? (
+                <div className="mt-4 flex flex-col items-center gap-2">
+                    <p className="text-sm text-muted-foreground">
+                        {t("shownOf", { shown: totalComments, total: displayedTotal })}
+                    </p>
+                    <Button type="button" variant="outline" size="sm" onClick={() => void loadMore()} disabled={isLoadingMore}>
+                        {isLoadingMore ? t("loadingMore") : t("loadMore")}
+                    </Button>
+                    {loadError ? <p className="text-sm text-destructive" role="alert">{tErrors(loadError)}</p> : null}
+                </div>
             ) : null}
 
             <ConfirmDeleteDialog

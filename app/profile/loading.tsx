@@ -1,14 +1,13 @@
 import { useTranslations } from "next-intl";
 
-import { AccountSettingsSkeleton, LoadingRegion, PageHeadingSkeleton } from "@/components/skeletons";
+import { AccountSettingsSkeleton, LoadingRegion } from "@/components/skeletons";
 
 export default function ProfileLoading() {
   const t = useTranslations("common");
 
   return (
     <LoadingRegion label={t("loading")}>
-      <section className="container-page flex flex-col gap-8 py-8 sm:py-12">
-        <PageHeadingSkeleton />
+      <section className="container-reading pb-6 pt-10 sm:pt-14">
         <AccountSettingsSkeleton />
       </section>
     </LoadingRegion>

@@ -35,7 +35,11 @@ describe("LoginCard", () => {
 
         expect(screen.getByLabelText("Imię")).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "Zarejestruj się" })).toBeInTheDocument();
-        expect(screen.getByText("Utwórz konto, podając imię, e-mail i hasło.")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Zarejestruj się" })).toHaveAttribute("type", "submit");
+
+        await user.click(screen.getByRole("button", { name: "Zaloguj się" }));
+
+        expect(screen.queryByLabelText("Imię")).not.toBeInTheDocument();
     });
 
     it("submits credentials and redirects on successful login", async () => {
@@ -47,7 +51,7 @@ describe("LoginCard", () => {
 
         await user.type(screen.getByLabelText("E-mail"), "student@uczelnia.edu");
         await user.type(screen.getByLabelText("Hasło"), "secret123");
-        const submitButton = screen.getAllByRole("button", { name: "Zaloguj się" })[1];
+        const submitButton = screen.getByRole("button", { name: "Zaloguj się" });
 
         await user.click(submitButton);
 
@@ -70,7 +74,7 @@ describe("LoginCard", () => {
 
         renderWithIntl(<LoginCard />);
 
-        const submitButton = screen.getAllByRole("button", { name: "Zaloguj się" })[1];
+        const submitButton = screen.getByRole("button", { name: "Zaloguj się" });
 
         await user.click(submitButton);
 
@@ -88,7 +92,7 @@ describe("LoginCard", () => {
         await user.type(screen.getByLabelText("Imię"), "Ala");
         await user.type(screen.getByLabelText("E-mail"), "ala@uczelnia.edu");
         await user.type(screen.getByLabelText("Hasło"), "secret123");
-        await user.click(screen.getAllByRole("button", { name: "Zarejestruj się" })[1]);
+        await user.click(screen.getByRole("button", { name: "Zarejestruj się" }));
 
         expect(signIn).toHaveBeenCalledWith("credentials", expect.objectContaining({ mode: "register", name: "Ala" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("Konto z tym adresem e-mail już istnieje.");
@@ -103,7 +107,7 @@ describe("LoginCard", () => {
 
         await user.type(screen.getByLabelText("E-mail"), "student@uczelnia.edu");
         await user.type(screen.getByLabelText("Hasło"), "wrong");
-        await user.click(screen.getAllByRole("button", { name: "Zaloguj się" })[1]);
+        await user.click(screen.getByRole("button", { name: "Zaloguj się" }));
 
         expect(await screen.findByRole("alert")).toHaveTextContent("Nieprawidłowy e-mail lub hasło.");
         expect(replace).not.toHaveBeenCalled();

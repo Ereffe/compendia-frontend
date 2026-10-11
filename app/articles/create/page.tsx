@@ -11,7 +11,7 @@ export default async function CreateArticlePage() {
   const userId = await getCurrentUserId();
 
   return (
-    <section className="container-page flex flex-col gap-8 py-8 sm:py-12">
+    <section className="container-reading flex flex-col gap-8 pb-6 pt-10 sm:pt-14">
       <div>
         <Link
           href="/articles"
@@ -20,7 +20,7 @@ export default async function CreateArticlePage() {
           <ArrowLeft className="size-4" aria-hidden />
           {t("common.backToArticles")}
         </Link>
-        <h1 className="mt-4 font-serif text-4xl font-medium leading-tight tracking-[-0.02em] sm:text-5xl">{t("create.title")}</h1>
+        <h1 className="mt-4 title-page">{t("create.title")}</h1>
         <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">{t("create.description")}</p>
       </div>
 

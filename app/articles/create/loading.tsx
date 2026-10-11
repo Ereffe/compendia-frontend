@@ -7,7 +7,7 @@ export default function CreateArticleLoading() {
 
   return (
     <LoadingRegion label={t("loading")}>
-      <section className="container-page flex flex-col gap-8 py-8 sm:py-12">
+      <section className="container-reading flex flex-col gap-8 pb-6 pt-10 sm:pt-14">
         <div>
           <Skeleton className="h-4 w-36" />
           <Skeleton className="mt-5 h-10 w-72 sm:h-12 sm:w-md" />

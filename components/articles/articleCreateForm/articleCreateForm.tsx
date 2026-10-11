@@ -41,7 +41,7 @@ import {
   writeDraft,
 } from "./articleDraft";
 import { createHandleImageFiles, stripUploadPlaceholders } from "./editorImagesController";
-import ArticleReferencesEditor, { REFERENCE_INPUT_ID } from "./articleReferencesEditor";
+import ArticleReferencesEditor from "./articleReferencesEditor";
 import PdfDropzone, { PDF_INPUT_ID } from "./pdfDropzone";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
@@ -50,7 +50,6 @@ const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
 });
 
 const fieldLabel = "text-sm font-medium text-foreground";
-const panelSection = "px-5 py-5";
 
 type ArticleCreateFormProps = Readonly<{
   initialScientific?: boolean;
@@ -79,6 +78,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfJobId, setPdfJobId] = useState<string | null>(null);
   const [pendingUploads, setPendingUploads] = useState(0);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [imageError, setImageError] = useState<ErrorKey | null>(null);
   const [fillMessage, setFillMessage] = useState<DoiMetadataMessage | null>(null);
   const [draftDecided, setDraftDecided] = useState(false);
@@ -94,10 +94,10 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
     if (!draftKey || savedDraft || isSubmitting || isDraftEmpty({ title, content, references })) return;
     const timer = globalThis.setTimeout(() => {
       const savedAt = new Date().toISOString();
-      if (writeDraft(draftKey, { scientific, title, content, references, complexity, savedAt })) setDraftSavedAt(savedAt);
+      if (writeDraft(draftKey, { scientific, title, content, references, complexity, uploadedImages, savedAt })) setDraftSavedAt(savedAt);
     }, DRAFT_SAVE_DELAY_MS);
     return () => globalThis.clearTimeout(timer);
-  }, [draftKey, savedDraft, isSubmitting, scientific, title, content, references, complexity]);
+  }, [draftKey, savedDraft, isSubmitting, scientific, title, content, references, complexity, uploadedImages]);
 
   const restoreDraft = () => {
     if (!savedDraft) return;
@@ -106,6 +106,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
     setContent(stripUploadPlaceholders(savedDraft.content));
     setReferences(savedDraft.references);
     setComplexity(savedDraft.complexity);
+    setUploadedImages(savedDraft.uploadedImages);
     setDraftSavedAt(savedDraft.savedAt);
     setDraftDecided(true);
   };
@@ -139,6 +140,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
     references,
     pendingDoiInput: doiInput,
     complexity,
+    uploadedImages,
     pdfFile,
     isSubmitting,
     setIsSubmitting,
@@ -167,6 +169,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
     setContent,
     setPendingUploads,
     setImageError,
+    onUploaded: (assetId) => setUploadedImages((ids) => [...ids, assetId]),
   });
 
   const takeImageFiles = (event: React.ClipboardEvent | React.DragEvent, files: FileList) => {
@@ -185,6 +188,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
   let submitLabel = t(isEditing ? "edit.submit" : "create.submit");
   if (pdfFile) submitLabel = t(isSubmitting ? "create.pdf.submitting" : "create.pdf.submit");
   else if (isSubmitting) submitLabel = t(isEditing ? "edit.submitting" : "create.submitting");
+  const editorLocked = pdfFile !== null;
 
   const handleFillFromMetadata = createHandleFillFromMetadata({
     title,
@@ -196,12 +200,12 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
   });
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {savedDraft ? (
         <div
           role="region"
           aria-label={t("create.draft.foundTitle")}
-          className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between lg:col-span-2"
+          className="flex flex-col gap-3 rounded-sm border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="flex min-w-0 items-start gap-3">
             <History className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -227,8 +231,31 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
           </div>
         </div>
       ) : null}
+
       <div className="sheet flex min-w-0 flex-col overflow-hidden">
-        <div className="px-5 pt-5 sm:px-8 sm:pt-7">
+        <div className="grid gap-3 border-b border-border px-5 py-5 sm:px-10">
+          <InlineChoices
+            legend={t("create.typeLabel")}
+            hint={scientific ? t("create.typeScientificHint") : t("create.typeRegularHint")}
+          >
+            <InlineChoice name="article-type" checked={!scientific} onChange={() => setScientific(false)} title={t("create.typeRegular")} />
+            <InlineChoice name="article-type" checked={scientific} onChange={() => setScientific(true)} title={t("create.scientific")} />
+          </InlineChoices>
+          <InlineChoices legend={t("create.complexityLabel")} hint={t(`create.complexityHints.${complexity}`)}>
+            {COMPLEXITY_OPTIONS.map((option) => (
+              <InlineChoice
+                key={option}
+                name="complexity"
+                value={option}
+                checked={complexity === option}
+                onChange={() => setComplexity(option)}
+                title={t(`complexity.${option}`)}
+              />
+            ))}
+          </InlineChoices>
+        </div>
+
+        <div className="px-5 pt-8 sm:px-10">
           <div className="flex items-baseline justify-between gap-3">
             <label htmlFor="title" className={fieldLabel}>
               {t("create.titleLabel")}
@@ -236,7 +263,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
             <span
               className={cn(
                 "text-xs tabular-nums text-muted-foreground",
-                title.length > TITLE_MAX_LENGTH * 0.9 && "text-amber-700 dark:text-amber-400",
+                title.length > TITLE_MAX_LENGTH * 0.9 && "font-medium text-foreground",
               )}
             >
               {t("create.titleCounter", { count: title.length, max: TITLE_MAX_LENGTH })}
@@ -249,16 +276,16 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
             onChange={(event) => setTitle(event.target.value)}
             placeholder={t("create.titlePlaceholder")}
             autoComplete="off"
-            className="mt-1 w-full border-b border-border bg-transparent pb-4 pt-1 font-serif text-[1.75rem] font-medium leading-tight tracking-[-0.01em] text-foreground outline-none transition-colors placeholder:text-muted-foreground/55 focus:border-foreground/50 sm:text-[2.125rem]"
+            className="mt-1 w-full border-b border-input bg-transparent pb-4 pt-1 font-serif text-[1.75rem] font-medium leading-tight tracking-[-0.01em] text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground sm:text-[2.25rem]"
           />
         </div>
 
-        <div className="flex items-end justify-between gap-3 px-5 pb-2 pt-6 sm:px-8">
+        <div className="flex items-end justify-between gap-3 px-5 pb-2 pt-7 sm:px-10">
           <label htmlFor="content" className={fieldLabel}>
             {scientific ? t("create.scientificContentLabel") : t("create.contentLabel")}
           </label>
-          <Button asChild variant="ghost" size="sm" className="-mb-1 text-muted-foreground">
-            <label className={cn("cursor-pointer", isSubmitting && "pointer-events-none opacity-50")}>
+          <Button asChild variant="ghost" size="sm" className="-mb-1 -mr-2 text-muted-foreground">
+            <label className={cn("cursor-pointer", (isSubmitting || editorLocked) && "pointer-events-none opacity-50")}>
               <ImagePlus aria-hidden />
               {t("create.images.insert")}
               <input
@@ -266,7 +293,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
                 accept={IMAGE_ACCEPT}
                 multiple
                 className="sr-only"
-                disabled={isSubmitting}
+                disabled={isSubmitting || editorLocked}
                 aria-describedby="content-images-hint"
                 onChange={(event) => {
                   const files = [...(event.target.files ?? [])];
@@ -277,13 +304,37 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
             </label>
           </Button>
         </div>
-        <div className="px-5 sm:px-8">
-          <div className="overflow-hidden rounded-md border border-border" data-color-mode={editorColorMode}>
+        <div className="relative px-5 sm:px-10">
+          {pdfFile ? (
+            <div className="absolute inset-0 z-10 flex items-center justify-center px-10 sm:px-16">
+              <div role="status" className="max-w-sm rounded-sm border border-border bg-card px-6 py-5 text-center">
+                <p className="title-item text-foreground">{t("create.pdf.editorLockedTitle")}</p>
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{t("create.pdf.editorLocked")}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => setPdfFile(null)}
+                  disabled={isSubmitting}
+                >
+                  {t("create.pdf.remove", { name: pdfFile.name })}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          <div
+            className={cn("overflow-hidden rounded-sm border border-border", editorLocked && "pointer-events-none opacity-40")}
+            data-color-mode={editorColorMode}
+            aria-disabled={editorLocked || undefined}
+            inert={editorLocked || undefined}
+          >
             <MDEditor
               value={content}
               onChange={(value) => setContent(value ?? "")}
-              preview={isMobile ? "edit" : "live"}
-              height={isMobile ? 300 : 500}
+              preview={isMobile || editorLocked ? "edit" : "live"}
+              height={isMobile ? 300 : 520}
+              hideToolbar={editorLocked}
               visibleDragbar={false}
               previewOptions={{
                 urlTransform: articleUrlTransform,
@@ -305,23 +356,27 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
           </div>
         </div>
 
-        <div className="grid gap-1 px-5 pt-2 text-xs leading-5 sm:px-8">
+        <div className="grid gap-1 px-5 pt-2 text-xs leading-5 sm:px-10">
           {imageError ? (
             <p className="text-destructive" role="alert">
               {t(`errors.${imageError}`)}
             </p>
           ) : null}
           <p id="content-images-hint" className="text-muted-foreground" aria-live="polite">
-            {pendingUploads > 0 ? t("create.images.uploading", { count: pendingUploads }) : t("create.images.hint")}
+            {editorLocked
+              ? t("create.pdf.editorLocked")
+              : pendingUploads > 0
+                ? t("create.images.uploading", { count: pendingUploads })
+                : t("create.images.hint")}
           </p>
         </div>
 
-        <details className="group px-5 py-4 text-sm text-muted-foreground sm:px-8">
+        <details className="group px-5 pb-6 pt-3 text-sm text-muted-foreground sm:px-10">
           <summary className="flex cursor-pointer list-none items-center gap-1.5 hover:text-foreground [&::-webkit-details-marker]:hidden">
             <ChevronRight className="size-4 shrink-0 transition-transform group-open:rotate-90" aria-hidden />
             {t("create.markdownHint")}
           </summary>
-          <ul className="mt-3 grid gap-x-8 gap-y-1.5 pl-5.5 text-xs leading-5 sm:grid-cols-2">
+          <ul className="mt-3 grid gap-x-8 gap-y-1.5 pl-5.5 font-mono text-xs leading-5 sm:grid-cols-2">
             <li>{t("create.tips.headings")}</li>
             <li>{t("create.tips.lists")}</li>
             <li>{t("create.tips.code")}</li>
@@ -331,162 +386,89 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
         </details>
 
         {scientific ? (
-          <section className="border-t border-border px-5 py-6 sm:px-8 sm:py-8" aria-labelledby="article-references-heading">
+          <section className="border-t border-border px-5 py-7 sm:px-10" aria-labelledby="article-references-heading">
             <ArticleReferencesEditor
               references={references}
               onReferencesChange={setReferences}
               doiInput={doiInput}
               onDoiInputChange={setDoiInput}
-              minCount={hasReference ? 1 : 0}
               disabled={isSubmitting}
               onFill={handleFillFromMetadata}
               fillMessage={fillMessage}
             />
           </section>
         ) : null}
-      </div>
-
-      <aside className="sheet divide-y divide-border lg:sticky lg:top-6">
-        <div className={panelSection}>
-          <fieldset>
-            <legend className={cn(fieldLabel, "mb-3")}>{t("create.typeLabel")}</legend>
-            <div className="overflow-hidden rounded-md border border-border">
-              <ChoiceRow
-                name="article-type"
-                checked={!scientific}
-                onChange={() => setScientific(false)}
-                disabled={hasReference}
-                title={t("create.typeRegular")}
-                description={t("create.typeRegularHint")}
-              />
-              <ChoiceRow
-                name="article-type"
-                checked={scientific}
-                onChange={() => setScientific(true)}
-                title={t("create.scientific")}
-                description={t("create.typeScientificHint")}
-              />
-            </div>
-
-            {scientific ? (
-              <p className="mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-xs leading-5 text-muted-foreground">
-                <span>
-                  {references.length > 0 ? t("references.count", { count: references.length }) : t("create.references.none")}
-                </span>
-                <a href={`#${REFERENCE_INPUT_ID}`} className="font-medium text-teal-800 underline-offset-2 hover:underline dark:text-teal-300">
-                  {t("create.references.edit")}
-                </a>
-              </p>
-            ) : null}
-          </fieldset>
-        </div>
 
         {isEditing ? null : (
-          <div className={panelSection}>
-            <label htmlFor={PDF_INPUT_ID} className={cn(fieldLabel, "mb-3 block")}>
+          <div className="grid gap-3 border-t border-border px-5 py-6 sm:px-10 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-10">
+            <label htmlFor={PDF_INPUT_ID} className="title-item">
               {t("create.pdf.label")}
             </label>
-            <PdfDropzone
-              file={pdfFile}
-              onFileChange={setPdfFile}
-              jobId={pdfJobId}
-              onJobError={handlePdfJobError}
-              disabled={isSubmitting}
-            />
+            <PdfDropzone file={pdfFile} onFileChange={setPdfFile} jobId={pdfJobId} onJobError={handlePdfJobError} disabled={isSubmitting} />
           </div>
         )}
 
-        <div className={panelSection}>
-          <fieldset>
-            <legend className={cn(fieldLabel, "mb-3")}>{t("create.complexityLabel")}</legend>
-            <div className="overflow-hidden rounded-md border border-border">
-              {COMPLEXITY_OPTIONS.map((option) => (
-                <ChoiceRow
-                  key={option}
-                  name="complexity"
-                  value={option}
-                  checked={complexity === option}
-                  onChange={() => setComplexity(option)}
-                  title={t(`complexity.${option}`)}
-                  description={t(`create.complexityHints.${option}`)}
-                />
-              ))}
-            </div>
-          </fieldset>
-        </div>
-
-        <div className={cn(panelSection, "flex flex-col gap-3")}>
-          {error ? (
-            <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
-              {t(`errors.${error}`)}
-            </p>
-          ) : null}
-          <Button type="submit" size="lg" disabled={isSubmitting || (pendingUploads > 0 && !pdfFile)} className="w-full">
+        <div className="flex flex-col gap-4 border-t border-border bg-muted px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-10">
+          <div className="grid min-w-0 gap-1 text-xs leading-5 text-muted-foreground">
+            {error ? (
+              <p className="text-sm text-destructive" role="alert">
+                {t(`errors.${error}`)}
+              </p>
+            ) : null}
+            {draftKey ? (
+              <p aria-live="polite">
+                {draftSavedAt
+                  ? t("create.draft.savedAt", { time: format.dateTime(new Date(draftSavedAt), { timeStyle: "short" }) })
+                  : t("create.draft.autosaveHint")}
+              </p>
+            ) : null}
+            <p>{t(isEditing ? "edit.redirectHint" : "create.redirectHint")}</p>
+          </div>
+          <Button type="submit" size="lg" disabled={isSubmitting || (pendingUploads > 0 && !pdfFile)} className="w-full shrink-0 sm:w-auto">
             {isSubmitting ? <Spinner className="size-4" /> : null}
             {submitLabel}
           </Button>
-          <p className="text-xs leading-5 text-muted-foreground">{t(isEditing ? "edit.redirectHint" : "create.redirectHint")}</p>
-          {draftKey ? (
-            <p className="text-xs leading-5 text-muted-foreground" aria-live="polite">
-              {draftSavedAt
-                ? t("create.draft.savedAt", { time: format.dateTime(new Date(draftSavedAt), { timeStyle: "short" }) })
-                : t("create.draft.autosaveHint")}
-            </p>
-          ) : null}
         </div>
-      </aside>
+      </div>
     </form>
   );
 }
 
-function ChoiceRow({
+function InlineChoices({ legend, hint, children }: Readonly<{ legend: string; hint: string; children: React.ReactNode }>) {
+  return (
+    <fieldset className="grid gap-x-6 gap-y-1 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-baseline">
+      <legend className="float-left text-sm text-muted-foreground sm:w-32">{legend}</legend>
+      <div>
+        <div className="flex flex-wrap gap-x-5 gap-y-1">{children}</div>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">{hint}</p>
+      </div>
+    </fieldset>
+  );
+}
+
+function InlineChoice({
   name,
   value,
   checked,
   onChange,
-  disabled = false,
   title,
-  description,
 }: Readonly<{
   name: string;
   value?: string;
   checked: boolean;
   onChange: () => void;
-  disabled?: boolean;
   title: string;
-  description: string;
 }>) {
   return (
     <label
       className={cn(
-        "flex cursor-pointer items-start gap-3 border-t border-border px-3 py-2.5 transition-colors first:border-t-0",
-        "has-focus-visible:outline-2 has-focus-visible:-outline-offset-2 has-focus-visible:outline-ring",
-        checked ? "bg-muted/70" : "hover:bg-muted/40",
-        disabled && "cursor-not-allowed opacity-55 hover:bg-transparent",
+        "cursor-pointer rounded-sm text-sm decoration-1 underline-offset-[6px] transition-colors",
+        "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
+        checked ? "font-medium text-foreground underline" : "text-muted-foreground hover:text-foreground",
       )}
     >
-      <input
-        type="radio"
-        name={name}
-        value={value}
-        checked={checked}
-        onChange={onChange}
-        disabled={disabled}
-        className="sr-only"
-      />
-      <span
-        aria-hidden
-        className={cn(
-          "mt-0.75 flex size-3.5 shrink-0 items-center justify-center rounded-full border transition-colors",
-          checked ? "border-foreground" : "border-muted-foreground/50",
-        )}
-      >
-        {checked ? <span className="size-1.5 rounded-full bg-foreground" /> : null}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className={cn("block text-sm text-foreground", checked && "font-medium")}>{title}</span>
-        <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">{description}</span>
-      </span>
+      <input type="radio" name={name} value={value} checked={checked} onChange={onChange} className="sr-only" />
+      {title}
     </label>
   );
 }

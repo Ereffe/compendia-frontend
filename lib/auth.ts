@@ -44,8 +44,11 @@ const getAccessTokenExpiry = (accessToken: string) =>
 type RefreshedTokens = { accessToken: string; refreshToken: string; accessTokenExpires: number };
 
 const requestTokenRefresh = async (refreshToken: string): Promise<RefreshedTokens> => {
-  const response = await fetch(`${serverBackendUrl}/auth/refresh?t=${encodeURIComponent(refreshToken)}`, {
+  const response = await fetch(`${serverBackendUrl}/auth/refresh`, {
+    method: "POST",
     cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
   });
 
   if (!response.ok) {
@@ -79,6 +82,19 @@ const refreshAccessToken = (refreshToken: string): Promise<RefreshedTokens> => {
     () => pendingRefreshes.delete(refreshToken),
   );
   return refresh;
+};
+
+const revokeRefreshToken = async (refreshToken: string) => {
+  try {
+    await fetch(`${serverBackendUrl}/auth/logout`, {
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+  } catch (error) {
+    console.error("Revoking the refresh token failed:", error);
+  }
 };
 
 const fetchCurrentUser = async (accessToken: string): Promise<CurrentUser | null> => {
@@ -168,8 +184,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (!response.ok) {
-          // The backend answers 400 both for "wrong credentials" and "e-mail already taken".
-          if (mode === "register" && response.status === 400) {
+          if (mode === "register" && response.status === 409) {
             throw new Error("EmailTaken");
           }
           return null;
@@ -221,6 +236,11 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub;
       }
       return session;
+    },
+  },
+  events: {
+    async signOut({ token }) {
+      if (token?.refreshToken) await revokeRefreshToken(token.refreshToken);
     },
   },
   pages: {

@@ -9,7 +9,6 @@ Compendia is a Next.js app for reading, creating, and discussing educational art
 - Tailwind CSS 4
 - next-auth for session management (backend tokens stay server-side)
 - Apollo Client: server components for reads, Server Actions for writes
-- Zustand for per-user local vote state
 
 ## Requirements
 

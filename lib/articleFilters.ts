@@ -1,5 +1,5 @@
 import { isKnownComplexity } from "@/lib/articleComplexity";
-import type { ArticleComplexity, ArticleRating, ArticleSearchItem } from "@/types/articles";
+import type { ArticleComplexity, ArticleRating } from "@/types/articles";
 
 export const ARTICLE_SORTS = ["newest", "top", "mostRated"] as const;
 export type ArticleSort = (typeof ARTICLE_SORTS)[number];
@@ -30,19 +30,10 @@ export const articleFiltersHref = ({ sort, level }: ArticleFilters): string => {
     return query ? `/articles?${query}` : "/articles";
 };
 
-export const ratingScore = (rating: ArticleRating) => rating.positive - rating.negative;
-export const ratingCount = (rating: ArticleRating) => rating.positive + rating.negative;
-
-const byDateDesc = (a: ArticleSearchItem, b: ArticleSearchItem) => b.datePosted.localeCompare(a.datePosted);
-
-export const rankArticles = (articles: ArticleSearchItem[], sort: Exclude<ArticleSort, "newest">): ArticleSearchItem[] => {
-    const [primary, secondary] = sort === "top" ? [ratingScore, ratingCount] : [ratingCount, ratingScore];
-    return articles
-        .filter((article) => ratingCount(article.rating) > 0)
-        .sort(
-            (a, b) =>
-                primary(b.rating) - primary(a.rating) ||
-                secondary(b.rating) - secondary(a.rating) ||
-                byDateDesc(a, b),
-        );
+export const ARTICLE_SORT_FIELDS: Record<ArticleSort, string> = {
+    newest: "datePosted",
+    top: "rating",
+    mostRated: "ratingCount",
 };
+
+export const isRated = (rating: ArticleRating) => rating.positive + rating.negative > 0;

@@ -2,7 +2,7 @@
 
 import { unstable_rethrow } from "next/navigation";
 
-import { isAuthRejected } from "@/lib/graphqlErrors";
+import { isAuthRejected, isEmailTakenError } from "@/lib/graphqlErrors";
 import { actionIdSchema, emailSchema, nameSchema, newPasswordSchema } from "@/lib/schemas";
 import { parseInput } from "@/lib/validation";
 import { getServerClient } from "@/lib/server/apollo";
@@ -68,23 +68,21 @@ export async function requestPasswordChangeAction(): Promise<ActionResult<null>>
     }
 }
 
-export async function confirmEmailChangeAction(actionId: string, email: string): Promise<ActionResult<null>> {
+export async function confirmEmailChangeAction(actionId: string): Promise<ActionResult<null>> {
     const parsedId = parseInput(actionIdSchema, actionId, "invalidActionLink");
     if (!parsedId.ok) return parsedId;
-    const parsedEmail = parseInput(emailSchema, email, "invalidEmail");
-    if (!parsedEmail.ok) return parsedEmail;
 
     try {
         const result = await getServerClient().mutate({
             mutation: CHANGE_EMAIL_MUTATION,
-            variables: { actionId: parsedId.data, email: parsedEmail.data },
+            variables: { actionId: parsedId.data },
             fetchPolicy: "no-cache",
         });
         if (!result.data?.changeUsersEmail) return { ok: false, error: "changeEmailFailed" };
         return { ok: true, data: null };
     } catch (error) {
         console.error("confirmEmailChangeAction failed:", error);
-        return { ok: false, error: "changeEmailFailed" };
+        return { ok: false, error: isEmailTakenError(error) ? "emailAlreadyTaken" : "changeEmailFailed" };
     }
 }
 

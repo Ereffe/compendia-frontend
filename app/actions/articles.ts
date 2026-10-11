@@ -3,16 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { redirect, unstable_rethrow } from "next/navigation";
 
+import { articleImages } from "@/lib/articleContent";
 import { withNotice } from "@/lib/notices";
-import { toErrorKey } from "@/lib/graphqlErrors";
+import { toErrorKey, toReferenceErrorKey } from "@/lib/graphqlErrors";
 import { articleIdSchema, createArticleSchema, editArticleSchema } from "@/lib/schemas";
 import { parseInput } from "@/lib/validation";
+import { type Vote, voteSchema } from "@/lib/votes";
 import { authedMutate, getAccessToken } from "@/lib/server/session";
 import {
     ADD_ARTICLE_MUTATION,
     DELETE_ARTICLE_MUTATION,
     EDIT_ARTICLE_MUTATION,
+    LINK_ASSET_MUTATION,
     RATE_ARTICLE_MUTATION,
+    UNRATE_ARTICLE_MUTATION,
 } from "@/services/graphql/articles";
 import type { ActionError, ActionResult, ArticleComplexity } from "@/types/articles";
 
@@ -21,6 +25,7 @@ export type CreateArticleInput = {
     content: string;
     complexity: ArticleComplexity;
     references: string[];
+    uploadedImages: string[];
 };
 
 export async function createArticleAction(input: CreateArticleInput): Promise<ActionError> {
@@ -29,7 +34,7 @@ export async function createArticleAction(input: CreateArticleInput): Promise<Ac
 
     const parsed = parseInput(createArticleSchema, input, "createArticleFailed");
     if (!parsed.ok) return parsed;
-    const { title, content, complexity, references } = parsed.data;
+    const { title, content, complexity, references, uploadedImages } = parsed.data;
 
     let articleId: string;
     try {
@@ -43,12 +48,26 @@ export async function createArticleAction(input: CreateArticleInput): Promise<Ac
     } catch (error) {
         unstable_rethrow(error);
         console.error("createArticleAction failed:", error);
-        return { ok: false, error: toErrorKey(error, "createArticleFailed") };
+        return { ok: false, error: toReferenceErrorKey(error) ?? toErrorKey(error, "createArticleFailed") };
     }
+    await linkArticleImages(accessToken, articleId, content, uploadedImages);
 
     revalidateArticleLists();
     // redirect() throws, so it must stay outside the try/catch above.
     redirect(withNotice(`/articles/${articleId}`, "articleCreated"));
+}
+
+// The monthly backend cleanup deletes unlinked uploads. Linking moves an image, so only this editor's uploads are linked.
+async function linkArticleImages(accessToken: string, articleId: string, content: string, uploadedImages: string[]) {
+    const uploaded = new Set(uploadedImages.map((id) => id.toLowerCase()));
+    for (const { id, name } of articleImages(content).filter((image) => uploaded.has(image.id))) {
+        try {
+            await authedMutate(accessToken, LINK_ASSET_MUTATION, { id, name, articleId });
+        } catch (error) {
+            unstable_rethrow(error);
+            console.error(`Linking image ${id} to article ${articleId} failed:`, error);
+        }
+    }
 }
 
 const revalidateArticleLists = () => {
@@ -61,6 +80,7 @@ export type EditArticleInput = {
     content: string;
     complexity: ArticleComplexity;
     references: string[] | null;
+    uploadedImages: string[];
 };
 
 export async function editArticleAction(articleId: string, input: EditArticleInput): Promise<ActionError> {
@@ -70,7 +90,7 @@ export async function editArticleAction(articleId: string, input: EditArticleInp
 
     const parsed = parseInput(editArticleSchema, input, "editArticleFailed");
     if (!parsed.ok) return parsed;
-    const { title, content, complexity, references } = parsed.data;
+    const { title, content, complexity, references, uploadedImages } = parsed.data;
 
     try {
         await authedMutate(accessToken, EDIT_ARTICLE_MUTATION, {
@@ -78,13 +98,14 @@ export async function editArticleAction(articleId: string, input: EditArticleInp
             title,
             content,
             complexity,
-            references: references && references.length > 0 ? references : null,
+            references,
         });
     } catch (error) {
         unstable_rethrow(error);
         console.error("editArticleAction failed:", error);
-        return { ok: false, error: toErrorKey(error, "editArticleFailed") };
+        return { ok: false, error: toReferenceErrorKey(error) ?? toErrorKey(error, "editArticleFailed") };
     }
+    await linkArticleImages(accessToken, articleId, content, uploadedImages);
 
     revalidatePath(`/articles/${articleId}`);
     revalidateArticleLists();
@@ -110,13 +131,15 @@ export async function deleteArticleAction(articleId: string): Promise<ActionErro
     redirect(withNotice("/articles", "articleDeleted"));
 }
 
-export async function rateArticleAction(articleId: string, positive: boolean): Promise<ActionResult<null>> {
+export async function rateArticleAction(articleId: string, vote: Vote): Promise<ActionResult<null>> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
     if (!articleIdSchema.safeParse(articleId).success) return { ok: false, error: "notFound" };
+    if (!voteSchema.safeParse(vote).success) return { ok: false, error: "rateArticleFailed" };
 
     try {
-        await authedMutate(accessToken, RATE_ARTICLE_MUTATION, { articleId, positive });
+        if (vote === null) await authedMutate(accessToken, UNRATE_ARTICLE_MUTATION, { articleId });
+        else await authedMutate(accessToken, RATE_ARTICLE_MUTATION, { articleId, positive: vote });
         return { ok: true, data: null };
     } catch (error) {
         unstable_rethrow(error);

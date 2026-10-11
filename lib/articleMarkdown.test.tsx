@@ -2,7 +2,13 @@ import { render, screen } from "@testing-library/react";
 import Markdown from "react-markdown";
 import { describe, expect, it } from "vitest";
 
-import { articleRehypePlugins, articleRemarkPlugins, articleUrlTransform } from "./articleContent";
+import {
+    articleRehypePlugins,
+    articleRemarkPlugins,
+    articleUrlTransform,
+    rehypeArticleSections,
+    type ArticleSection,
+} from "./articleContent";
 
 const renderArticle = (markdown: string) =>
     render(
@@ -39,5 +45,21 @@ $$`);
 
         expect(container.textContent).toContain("i dalej tekst.");
         expect(container.querySelector(".katex-error")).not.toBeNull();
+    });
+
+    it("gives each section heading a unique id and lists it for the contents", () => {
+        const sections: ArticleSection[] = [];
+        render(
+            <Markdown rehypePlugins={[[rehypeArticleSections, sections]]}>
+                {"## Wstęp i **cel**\n\n### Szczegóły\n\n## Wstęp i cel\n\n## Łódź"}
+            </Markdown>,
+        );
+
+        expect(sections).toEqual([
+            { id: "section-wstep-i-cel", title: "Wstęp i cel" },
+            { id: "section-wstep-i-cel-2", title: "Wstęp i cel" },
+            { id: "section-łodz", title: "Łódź" },
+        ]);
+        expect(screen.getByRole("heading", { name: "Łódź" })).toHaveAttribute("id", "section-łodz");
     });
 });

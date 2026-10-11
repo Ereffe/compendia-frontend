@@ -2,43 +2,25 @@ import { getTranslations } from "next-intl/server";
 
 import ArticleFilters from "@/components/articleFilters";
 import ArticleSearchModal from "@/components/articleSearchModal/articleSearchModal";
-import { type ArticleFilters as Filters, parseArticleFilters, rankArticles } from "@/lib/articleFilters";
+import { ARTICLE_SORT_FIELDS, type ArticleFilters as Filters, isRated, parseArticleFilters } from "@/lib/articleFilters";
 import { authedQuery, requireAccessToken } from "@/lib/server/session";
 import ArticleCard from "@/components/articleCard";
-import {
-  ARTICLE_COMMENT_COUNT_QUERY,
-  ARTICLES_QUERY,
-  commentCountVariables,
-  mapArticleToSearchItem,
-} from "@/services/graphql/articles";
+import { ARTICLES_QUERY, mapArticleToSearchItem } from "@/services/graphql/articles";
 import type { ArticleSearchItem } from "@/types/articles";
 
 const SECTION_SIZE = 6;
-// The backend can't sort by rating, so rated views rank this many articles on the server.
-const RANKING_POOL_SIZE = 1000;
 
 async function getArticles(accessToken: string, { sort, level }: Filters): Promise<ArticleSearchItem[]> {
-  const ranked = sort !== "newest";
   const data = await authedQuery(accessToken, ARTICLES_QUERY, {
     complexity: level,
     page: 0,
-    size: ranked ? RANKING_POOL_SIZE : SECTION_SIZE,
-    sortBy: "datePosted",
+    size: SECTION_SIZE,
+    sortBy: ARTICLE_SORT_FIELDS[sort],
     ascending: false,
-    ...commentCountVariables(!ranked),
+    withCommentCount: true,
   });
   const articles = data.articles.content.map(mapArticleToSearchItem);
-  return ranked ? withCommentCounts(accessToken, rankArticles(articles, sort).slice(0, SECTION_SIZE)) : articles;
-}
-
-async function withCommentCounts(accessToken: string, articles: ArticleSearchItem[]): Promise<ArticleSearchItem[]> {
-  const { commentsSize } = commentCountVariables(true);
-  return Promise.all(
-    articles.map(async (article) => {
-      const data = await authedQuery(accessToken, ARTICLE_COMMENT_COUNT_QUERY, { id: article.id, commentsSize });
-      return { ...article, commentCount: data.article.comments.totalElements };
-    }),
-  );
+  return sort === "mostRated" ? articles.filter((article) => isRated(article.rating)) : articles;
 }
 
 export default async function ArticlesPage({
@@ -54,36 +36,30 @@ export default async function ArticlesPage({
   else if (filters.level) emptyMessage = t("emptyFiltered");
 
   return (
-    <>
-      <section className="container-page relative pt-8 sm:pt-12">
-        <div className="w-full">
+    <section id="articles" className="container-page pb-6 pt-10 sm:pt-14">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
+        <div className="min-w-0">
+          <h1 className="title-page">{t(`titles.${filters.sort}`)}</h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">{t(`descriptions.${filters.sort}`)}</p>
+        </div>
+        <div className="w-full shrink-0 lg:w-96">
           <ArticleSearchModal articles={articles} />
         </div>
-      </section>
+      </div>
 
-      <section id="articles" className="container-page relative pb-14 pt-8 sm:pb-16 sm:pt-12">
-        <div className="mb-8">
-          <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">{t(`titles.${filters.sort}`)}</h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
-            {t(`descriptions.${filters.sort}`)}
-          </p>
-          <div className="mt-6">
-            <ArticleFilters filters={filters} />
-          </div>
+      <div className="mb-8 mt-8 border-y border-border py-4">
+        <ArticleFilters filters={filters} />
+      </div>
+
+      {articles.length === 0 ? (
+        <p className="py-16 text-center text-muted-foreground">{emptyMessage}</p>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {articles.map((article) => (
+            <ArticleCard key={article.id} article={article} />
+          ))}
         </div>
-
-        {articles.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-16 text-center text-muted-foreground">
-            {emptyMessage}
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {articles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
-          </div>
-        )}
-      </section>
-    </>
+      )}
+    </section>
   );
 }

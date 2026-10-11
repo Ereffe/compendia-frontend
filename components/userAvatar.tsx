@@ -1,21 +1,31 @@
-"use client";
-
-import { Blobatar } from "@blobatar/react";
-import "blobatar/motion.css";
-
 import { cn } from "@/lib/utils";
 
 type UserAvatarProps = Readonly<{
-    userId: string;
+    name: string;
     size: number;
-    animated?: boolean;
     className?: string;
 }>;
 
-export default function UserAvatar({ userId, size, animated = false, className }: UserAvatarProps) {
-    if (animated) {
-        return <Blobatar name={userId} size={size} background="squircle" animate="always" aria-hidden className={cn("shrink-0", className)} />;
-    }
+const initials = (name: string) =>
+    name
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((word) => Array.from(word)[0] ?? "")
+        .join("")
+        .toUpperCase();
 
-    return <Blobatar name={userId} size={size} background="circle" alt="" className={cn("shrink-0", className)} />;
+export default function UserAvatar({ name, size, className }: UserAvatarProps) {
+    return (
+        <span
+            aria-hidden
+            className={cn(
+                "inline-flex shrink-0 select-none items-center justify-center rounded-full border border-border bg-muted font-serif font-medium leading-none text-muted-foreground",
+                className,
+            )}
+            style={{ width: size, height: size, fontSize: Math.round(size * 0.4) }}
+        >
+            {initials(name)}
+        </span>
+    );
 }

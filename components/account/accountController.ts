@@ -76,10 +76,10 @@ export const createHandlePasswordRequest = (form: FormState) => async () => {
 };
 
 export const createHandleEmailConfirm =
-    ({ actionId, email, onConfirmed, ...form }: FormState & { actionId: string; email: string; onConfirmed: () => void }) =>
+    ({ actionId, onConfirmed, ...form }: FormState & { actionId: string; onConfirmed: () => void }) =>
     async (event: SubmitEvent) => {
         event.preventDefault();
-        await runSubmit(form, validateEmail(email), () => confirmEmailChangeAction(actionId, email), onConfirmed);
+        await runSubmit(form, null, () => confirmEmailChangeAction(actionId), onConfirmed);
     };
 
 export const createHandlePasswordConfirm =

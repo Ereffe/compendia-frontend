@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "description": "Compendia porządkuje notatki, pomysły i projekty w jednym żyjącym centrum wiedzy."
+    "description": "Artykuły edukacyjne i naukowe z bibliografią DOI i grafem cytowań."
   },
   "common": {
     "brand": "Compendia",
@@ -16,11 +16,25 @@
   "header": {
     "allArticles": "Wszystkie artykuły",
     "createArticle": "Stwórz artykuł",
+    "users": "Użytkownicy",
     "menu": "Menu",
     "openMenu": "Otwórz menu",
     "navigation": "Nawigacja",
     "account": "Twoje konto",
     "accountOf": "Konto: {name}"
+  },
+  "users": {
+    "title": "Użytkownicy",
+    "description": "Znajdź autorów po imieniu i zobacz ich artykuły.",
+    "searchLabel": "Szukaj użytkowników",
+    "placeholder": "Imię lub nazwisko",
+    "submit": "Szukaj",
+    "noResults": "Nie znaleziono użytkowników o tym imieniu.",
+    "empty": "Nikt jeszcze nie opublikował artykułu.",
+    "articleCount": "{count, plural, =0 {Brak artykułów} one {# artykuł} few {# artykuły} many {# artykułów} other {# artykułu}}",
+    "articlesHeading": "Artykuły",
+    "noArticles": "Ten użytkownik nie opublikował jeszcze artykułów.",
+    "accountSettings": "Ustawienia konta"
   },
   "language": {
     "label": "Język",
@@ -35,44 +49,30 @@
     "dark": "Ciemny motyw"
   },
   "footer": {
-    "tagline": "Stworzone dla studentów i wykładowców, którzy uczą się lepiej razem."
+    "tagline": "Artykuły edukacyjne i naukowe dla studentów i wykładowców."
   },
   "landing": {
-    "title": "Jedno miejsce na notatki, artykuły i uporządkowaną naukę.",
-    "subtitle": "Zaloguj się, aby kontynuować dokładnie tam, gdzie skończyłeś, i trzymać materiały w jednym miejscu.",
-    "highlights": {
-      "context": {
-        "title": "Notatki w kontekście",
-        "description": "Zachowuj powiązania między artykułami, pomysłami i materiałami do nauki."
-      },
-      "quickAccess": {
-        "title": "Szybki dostęp",
-        "description": "Wracaj do najnowszych treści bez przeklikiwania menu."
-      },
-      "learning": {
-        "title": "Stworzone do nauki",
-        "description": "Skupiona przestrzeń dla studentów i wykładowców pracujących razem."
-      }
-    },
-    "sessionExpired": "Twoja sesja wygasła. Zaloguj się ponownie."
+    "title": "Artykuły do nauki, ze źródłami na wierzchu.",
+    "subtitle": "Compendia to miejsce, w którym studenci i wykładowcy publikują notatki, wyjaśnienia i komentarze do publikacji naukowych. Źródła podajesz numerem DOI, a Compendia pokazuje, co one same cytują.",
+    "sessionExpired": "Twoja sesja wygasła. Zaloguj się ponownie.",
+    "recent": "Ostatnio opublikowane",
+    "recentHint": "Zaloguj się, aby przeczytać całe artykuły."
   },
   "login": {
     "modes": {
       "login": "Zaloguj się",
       "register": "Zarejestruj się"
     },
-    "descriptions": {
-      "login": "Wpisz e-mail i hasło, aby kontynuować.",
-      "register": "Utwórz konto, podając imię, e-mail i hasło."
-    },
     "name": "Imię",
-    "namePlaceholder": "Twoje imię",
     "email": "E-mail",
     "emailPlaceholder": "student@uczelnia.edu",
     "password": "Hasło",
-    "passwordPlaceholder": "Wpisz hasło",
     "modalTitle": "Zaloguj się do Compendia",
     "modalDescription": "Zaloguj się, aby kontynuować.",
+    "switch": {
+      "login": "Masz już konto?",
+      "register": "Nie masz konta?"
+    },
     "errors": {
       "missingFieldsLogin": "Wpisz e-mail i hasło.",
       "missingFieldsRegister": "Wpisz imię, e-mail i hasło.",
@@ -93,7 +93,7 @@
       "mostRated": "Najczęściej oceniane"
     },
     "descriptions": {
-      "newest": "Przeglądaj najnowsze wpisy, otwieraj pełne artykuły i wracaj do czytania bez utraty kontekstu.",
+      "newest": "Ostatnio opublikowane artykuły, od najnowszego.",
       "top": "Artykuły, które czytelnicy ocenili najlepiej: najwięcej głosów pozytywnych po odjęciu negatywnych.",
       "mostRated": "Artykuły, o których czytelnicy mają najwięcej do powiedzenia: najwięcej oddanych głosów."
     },
@@ -112,7 +112,7 @@
   },
   "archive": {
     "title": "Wszystkie artykuły",
-    "description": "Przeglądaj wszystkie artykuły dostępne na platformie. Znajdź inspirację, poszerz swoją wiedzę i odkryj nowe tematy.",
+    "description": "Wszystkie artykuły na platformie, od najnowszego.",
     "pageOf": "Strona {page} z {total}",
     "empty": "Brak artykułów do wyświetlenia",
     "previous": "Poprzednia",
@@ -135,7 +135,13 @@
     "thanksForRating": "Dziękujemy za ocenę.",
     "upvote": "Oceń pozytywnie ({count})",
     "downvote": "Oceń negatywnie ({count})",
-    "alreadyRated": "Już oceniono"
+    "removeVote": "Kliknij ponownie, aby wycofać głos",
+    "contents": "Spis treści",
+    "cite": {
+      "title": "Jak cytować",
+      "copy": "Kopiuj cytowanie {format}",
+      "copied": "Skopiowano"
+    }
   },
   "complexity": {
     "SIMPLE": "Proste",
@@ -157,13 +163,15 @@
     "cancel": "Anuluj",
     "edited": "edytowano",
     "empty": "Brak komentarzy.",
-    "truncated": "Wyświetlono {shown} najnowszych z {total} komentarzy.",
+    "shownOf": "Wyświetlono {shown} z {total} komentarzy.",
+    "loadMore": "Pokaż więcej komentarzy",
+    "loadingMore": "Wczytywanie…",
     "hideReplies": "Ukryj odpowiedzi",
     "noReplies": "Brak odpowiedzi",
     "showReplies": "{count, plural, one {Pokaż # odpowiedź} other {Pokaż # odpowiedzi}}",
     "upvote": "Głos pozytywny ({count})",
     "downvote": "Głos negatywny ({count})",
-    "alreadyVoted": "Już zagłosowano",
+    "removeVote": "Kliknij ponownie, aby wycofać głos",
     "edit": "Edytuj",
     "delete": "Usuń",
     "editLabel": "Edytuj komentarz",
@@ -176,9 +184,8 @@
   },
   "search": {
     "openLabel": "Otwórz wyszukiwarkę artykułów",
-    "buttonLabel": "Szukaj artykułów i tematów",
-    "example": "Przykład: optymalizacja SQL, planowanie procesów, listy wiązane...",
-    "open": "Otwórz",
+    "buttonLabel": "Szukaj w tytułach i treści artykułów",
+    "example": "np. optymalizacja SQL, planowanie procesów, listy wiązane",
     "title": "Wyszukiwanie artykułów",
     "description": "Zacznij pisać, aby przeszukać tytuły i treść wszystkich artykułów.",
     "placeholder": "Szukaj artykułów...",
@@ -189,7 +196,7 @@
   },
   "create": {
     "title": "Utwórz nowy artykuł",
-    "description": "Podziel się swoją wiedzą ze społecznością. Artykuły mogą zawierać notatki, wyjaśnienia, przykłady i materiały do nauki powiązane z wybranymi tematami.",
+    "description": "Notatki, wyjaśnienia i materiały do nauki albo komentarz do publikacji naukowej wskazanej numerem DOI.",
     "scientific": "Artykuł naukowy",
     "titleLabel": "Tytuł",
     "titlePlaceholder": "Np. Wprowadzenie do struktur danych",
@@ -248,8 +255,7 @@
       "fill": "Uzupełnij z DOI {doi}",
       "moveUp": "Przesuń wyżej: {doi}",
       "moveDown": "Przesuń niżej: {doi}",
-      "remove": "Usuń źródło: {doi}",
-      "locked": "Podczas edycji artykuł musi mieć co najmniej jedno źródło. Dodaj nowe, zanim usuniesz ostatnie."
+      "remove": "Usuń źródło: {doi}"
     },
     "pdf": {
       "label": "Import z PDF",
@@ -264,7 +270,9 @@
       "progress": {
         "PENDING": "Plik wysłany. Czeka w kolejce na przetworzenie...",
         "PROCESSING": "Przetwarzanie PDF. To może potrwać kilka minut, nie zamykaj tej strony."
-      }
+      },
+      "editorLocked": "Treść powstanie z pliku PDF. Usuń plik, żeby pisać samodzielnie.",
+      "editorLockedTitle": "Edytor jest zablokowany"
     },
     "images": {
       "insert": "Wstaw obraz",
@@ -284,7 +292,7 @@
   },
   "graph": {
     "title": "Graf cytowań",
-    "subtitle": "Jak to źródło łączy się z literaturą, którą cytuje.",
+    "figure": "Rys. 1.",
     "papers": "{count, plural, one {# praca} few {# prace} many {# prac} other {# pracy}}",
     "links": "{count, plural, one {# cytowanie} few {# cytowania} many {# cytowań} other {# cytowania}}",
     "reference": "Źródło",
@@ -316,7 +324,6 @@
       "missing": "Brak metadanych"
     },
     "selectHint": "Kliknij węzeł, aby zobaczyć szczegóły pracy.",
-    "hoverHint": "Najedź na węzeł, aby podświetlić jego cytowania.",
     "missingDescription": "Nie udało się pobrać tytułu ani autorów tej pracy. Znany jest tylko jej DOI.",
     "lookingUp": "Pobieranie metadanych…",
     "depthLimited": "Graf jest za duży — pokazano głębokość {depth}.",
@@ -336,7 +343,7 @@
   },
   "notFound": {
     "title": "Strona nie znaleziona",
-    "description": "Przepraszamy, ale szukana strona nie istnieje. Sprawdź adres URL lub wróć do głównej strony."
+    "description": "Pod tym adresem nie ma strony. Sprawdź adres albo wróć do listy artykułów."
   },
   "error": {
     "title": "Coś poszło nie tak",
@@ -348,6 +355,7 @@
     "notSignedIn": "Musisz być zalogowany.",
     "voteRequiresLogin": "Musisz być zalogowany, aby głosować.",
     "emptyComment": "Komentarz nie może być pusty.",
+    "loadCommentsFailed": "Nie udało się wczytać kolejnych komentarzy.",
     "addCommentFailed": "Nie udało się dodać komentarza.",
     "rateCommentFailed": "Nie udało się ocenić komentarza.",
     "missingTitleOrContent": "Uzupełnij tytuł i treść.",
@@ -374,6 +382,9 @@
     "changeNameFailed": "Nie udało się zmienić nazwy.",
     "emailRequestFailed": "Nie udało się wysłać linku. Spróbuj ponownie za chwilę.",
     "passwordRequestFailed": "Nie udało się wysłać linku do zmiany hasła. Spróbuj ponownie za chwilę.",
+    "emailAlreadyTaken": "Ten adres e-mail jest już zajęty przez inne konto.",
+    "referenceNotFound": "Nie znaleziono jednego ze źródeł w bazach DOI. Sprawdź numery DOI i spróbuj ponownie.",
+    "referenceLookupUnavailable": "Nie udało się połączyć z bazą DOI, więc artykuł nie został zapisany. Spróbuj ponownie za chwilę.",
     "changeEmailFailed": "Nie udało się zmienić adresu e-mail. Link mógł wygasnąć albo został już użyty.",
     "changePasswordFailed": "Nie udało się zmienić hasła. Link mógł wygasnąć albo został już użyty.",
     "invalidActionLink": "Ten link jest nieprawidłowy. Wyślij nowy ze strony konta.",
@@ -404,9 +415,6 @@
     "showInGraph": "Pokaż w grafie"
   },
   "account": {
-    "title": "Twoje konto",
-    "description": "Nazwa, adres e-mail i hasło, których używasz w Compendii.",
-    "avatarHint": "Awatar powstaje z identyfikatora konta, więc zostaje ten sam po zmianie nazwy czy adresu.",
     "roles": {
       "USER": "Użytkownik",
       "STUDENT": "Student",
@@ -415,7 +423,6 @@
     },
     "name": {
       "title": "Nazwa wyświetlana",
-      "description": "Widać ją przy Twoich artykułach i komentarzach.",
       "label": "Nazwa",
       "submit": "Zapisz nazwę",
       "submitting": "Zapisywanie…",
@@ -439,8 +446,6 @@
       "sent": "Sprawdź skrzynkę {email}. Link jest ważny przez 15 minut."
     },
     "signOut": {
-      "title": "Wylogowanie",
-      "description": "Kończy sesję na tym urządzeniu.",
       "submit": "Wyloguj się",
       "submitting": "Wylogowywanie…"
     }
@@ -451,8 +456,7 @@
     "goToSignIn": "Przejdź do logowania",
     "email": {
       "title": "Potwierdź nowy adres e-mail",
-      "description": "Wpisz adres, na który przyszedł ten link.",
-      "label": "Nowy adres e-mail",
+      "description": "Potwierdź, aby od teraz logować się nowym adresem.",
       "submit": "Zmień adres e-mail",
       "submitting": "Zmienianie…",
       "done": "Adres e-mail został zmieniony. Od teraz logujesz się nim."
@@ -476,6 +480,7 @@
     "replyAdded": "Dodano odpowiedź.",
     "commentSaved": "Zapisano komentarz.",
     "commentDeleted": "Usunięto komentarz.",
-    "voteSaved": "Dziękujemy, głos został zapisany."
+    "voteSaved": "Dziękujemy, głos został zapisany.",
+    "voteRemoved": "Głos został wycofany."
   }
 }

@@ -8,15 +8,12 @@ const redirect = vi.fn((path: string) => {
     throw new Error(`REDIRECT:${path}`);
 });
 const revalidatePath = vi.fn();
-const authedMutate = vi.fn();
 
 vi.mock("@/lib/server/session", () => ({
     getAccessToken: () => getAccessToken(),
-    authedMutate: (...args: unknown[]) => authedMutate(...args),
 }));
 vi.mock("next/navigation", () => ({
     redirect: (path: string) => redirect(path),
-    unstable_rethrow: () => {},
 }));
 vi.mock("next/cache", () => ({ revalidatePath: (...args: unknown[]) => revalidatePath(...args) }));
 vi.mock("@/lib/config", () => ({ serverBackendUrl: "http://backend" }));
@@ -106,16 +103,7 @@ describe("getPdfImportStatusAction", () => {
         fetchMock.mockResolvedValue(jsonResponse(200, { jobId: JOB_ID, status: "DONE", articleId: "Abc123" }));
 
         await expect(getPdfImportStatusAction(JOB_ID)).rejects.toThrow("REDIRECT:/articles/Abc123?notice=articleImported");
-        expect(authedMutate).toHaveBeenCalledWith("token", expect.anything(), { articleId: "Abc123" });
         expect(revalidatePath).toHaveBeenCalledWith("/articles");
-    });
-
-    it("still redirects when evicting the cached article fails", async () => {
-        fetchMock.mockResolvedValue(jsonResponse(200, { jobId: JOB_ID, status: "DONE", articleId: "Abc123" }));
-        authedMutate.mockRejectedValue(new Error("rate limited"));
-        vi.spyOn(console, "error").mockImplementation(() => {});
-
-        await expect(getPdfImportStatusAction(JOB_ID)).rejects.toThrow("REDIRECT:/articles/Abc123?notice=articleImported");
     });
 
     it("maps failed, missing and malformed jobs to error keys", async () => {

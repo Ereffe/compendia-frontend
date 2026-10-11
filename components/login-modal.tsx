@@ -14,13 +14,13 @@ export default function LoginModal() {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5"
+          className="rounded-md bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           {t("modes.login")}
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-[calc(100%-1.5rem)] border-none bg-transparent p-0 shadow-none sm:max-w-md" showCloseButton closeLabel={tCommon("close")}>
+      <DialogContent className="max-w-[calc(100%-1.5rem)] border-none bg-transparent p-0 shadow-none sm:max-w-sm" showCloseButton closeLabel={tCommon("close")}>
         <DialogHeader className="sr-only">
           <DialogTitle>{t("modalTitle")}</DialogTitle>
           <DialogDescription>{t("modalDescription")}</DialogDescription>

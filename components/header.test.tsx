@@ -55,7 +55,7 @@ describe("Header", () => {
     it("renders navigation links and an account link when the user has access", () => {
         renderWithIntl(<Header />);
 
-        expect(screen.getByRole("link", { name: "COMPENDIA" })).toHaveAttribute("href", "/articles");
+        expect(screen.getByRole("link", { name: "Compendia" })).toHaveAttribute("href", "/articles");
         expect(screen.getByRole("link", { name: "Wszystkie artykuły" })).toHaveAttribute("href", "/all-articles/1");
         expect(screen.getByRole("link", { name: "Stwórz artykuł" })).toHaveAttribute("href", "/articles/create");
         expect(screen.getByTestId("theme-toggle")).toBeInTheDocument();

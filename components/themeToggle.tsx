@@ -16,14 +16,14 @@ export default function ThemeToggle() {
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="ghost"
       size="icon-sm"
-      className="rounded-full border-border/80 bg-background/95 text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground"
+      className="text-muted-foreground hover:text-foreground"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? t("toLight") : t("toDark")}
       title={isDark ? t("light") : t("dark")}
     >
-      {isDark ? <Sun className="size-4 text-amber-500" /> : <Moon className="size-4 text-sky-600" />}
+      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
   );
 }

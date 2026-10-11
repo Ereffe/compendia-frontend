@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { articleUrlTransform, cleanArticleMarkdown } from "./articleContent";
+import { articleImages, articleUrlTransform, cleanArticleMarkdown } from "./articleContent";
 
 const ASSET_ID = "0b6f3c1e-2f4a-4c8e-9d1a-5e7b8c9d0a1b";
 
@@ -32,5 +32,22 @@ describe("cleanArticleMarkdown", () => {
         const article = "Here is an example:\n\n```markdown\n# Heading\n```\n\nAnd more text.";
         expect(cleanArticleMarkdown(article)).toBe(article);
         expect(cleanArticleMarkdown("Sure, it works.\n\nText")).toBe("Sure, it works.\n\nText");
+    });
+});
+
+describe("articleImages", () => {
+    it("lists each uploaded image once, named by its alt text", () => {
+        const other = "1c2d3e4f-0000-4000-8000-000000000001";
+        const markdown = [
+            `![Wykres](/api/v1/articles/assets/${ASSET_ID})`,
+            `![](/api/v1/articles/assets/${other})`,
+            `![copy](/api/v1/articles/assets/${ASSET_ID.toUpperCase()})`,
+            "![external](https://example.com/a.png)",
+        ].join("\n");
+
+        expect(articleImages(markdown)).toEqual([
+            { id: ASSET_ID, name: "Wykres" },
+            { id: other, name: "image" },
+        ]);
     });
 });

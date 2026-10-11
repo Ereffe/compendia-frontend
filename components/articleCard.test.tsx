@@ -13,6 +13,7 @@ const article: ArticleSearchItem = {
     title: "Grafy cytowań",
     datePosted: "2026-05-07T10:00:00.000Z",
     author: "Anna",
+    authorId: "u-anna",
     content: "## Wstęp\n\nTo **krótki** opis grafów.",
     complexity: "INTERMEDIATE",
     rating: { positive: 4, negative: 1 },
@@ -26,13 +27,13 @@ describe("ArticleCard", () => {
         expect(screen.getByRole("link", { name: "Grafy cytowań" })).toHaveAttribute("href", "/articles/abc123");
         expect(screen.getByText("Wstęp To krótki opis grafów.")).toBeInTheDocument();
         expect(screen.getByText("Średnie")).toBeInTheDocument();
-        expect(screen.getByText("Autor: Anna")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Autor: Anna" })).toHaveAttribute("href", "/users/u-anna");
         expect(screen.getByRole("img", { name: "5 komentarzy" })).toBeInTheDocument();
         expect(screen.getByRole("img", { name: /4 pozytywn/ })).toBeInTheDocument();
     });
 
     it("hides the comment count when it wasn't loaded", () => {
-        renderWithIntl(<ArticleCard article={{ ...article, commentCount: null, author: null }} />);
+        renderWithIntl(<ArticleCard article={{ ...article, commentCount: null, author: null, authorId: null }} />);
 
         expect(screen.queryByRole("img", { name: /komentarz/ })).not.toBeInTheDocument();
         expect(screen.getByText("Autor: Nieznany autor")).toBeInTheDocument();

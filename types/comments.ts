@@ -12,6 +12,7 @@ export type CommentItem = {
         positive: number;
         negative: number;
     };
+    myVote: boolean | null;
     replies?: CommentItem[];
 };
 

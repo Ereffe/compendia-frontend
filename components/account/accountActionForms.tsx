@@ -9,7 +9,6 @@ import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { MAX_EMAIL_LENGTH } from "@/lib/account";
 import type { ErrorKey } from "@/types/errors";
 import { createHandleEmailConfirm, createHandlePasswordConfirm, type FormStatus } from "./accountController";
 
@@ -48,7 +47,7 @@ function FormFooter({ error, pending, label, pendingLabel }: Readonly<{ error: E
   return (
     <>
       {error ? (
-        <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="rounded-sm border border-destructive px-3 py-2 text-sm text-destructive" role="alert">
           {tErrors(error)}
         </p>
       ) : null}
@@ -64,13 +63,11 @@ export function ConfirmEmailChangeForm({ actionId }: Readonly<{ actionId: string
   const t = useTranslations("accountAction");
   const { status: sessionStatus, update } = useSession();
   const signedIn = sessionStatus === "authenticated";
-  const [email, setEmail] = useState("");
   const [status, setStatus] = useState<FormStatus>("idle");
   const [error, setError] = useState<ErrorKey | null>(null);
 
   const handleSubmit = createHandleEmailConfirm({
     actionId,
-    email,
     status,
     setStatus,
     setError,
@@ -88,22 +85,7 @@ export function ConfirmEmailChangeForm({ actionId }: Readonly<{ actionId: string
           linkLabel={signedIn ? t("goToAccount") : t("goToSignIn")}
         />
       ) : (
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-          <div className="grid gap-2">
-            <label htmlFor="confirm-email" className={fieldLabel}>
-              {t("email.label")}
-            </label>
-            <Input
-              id="confirm-email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              maxLength={MAX_EMAIL_LENGTH}
-              autoComplete="email"
-              aria-invalid={error ? true : undefined}
-              className="bg-background"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <FormFooter error={error} pending={status === "pending"} label={t("email.submit")} pendingLabel={t("email.submitting")} />
         </form>
       )}

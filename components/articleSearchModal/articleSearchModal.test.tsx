@@ -32,6 +32,7 @@ const article = (id: string, title: string, author: string): ArticleSearchItem =
     id,
     title,
     author,
+    authorId: null,
     commentCount: null,
     datePosted: "2026-05-07T10:00:00.000Z",
     complexity: "SIMPLE",

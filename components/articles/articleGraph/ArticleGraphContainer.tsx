@@ -45,7 +45,6 @@ export default function ArticleGraphContainer({
                 <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
                         <SectionHeading title={t("title")} />
-                        <p className="mt-1.5 text-sm text-muted-foreground">{t("subtitle")}</p>
                     </div>
                     <Button
                         variant="ghost"

@@ -4,15 +4,12 @@ import {
     addCommentAction,
     deleteCommentAction,
     editCommentAction,
+    loadCommentsAction,
     rateCommentAction,
 } from "@/app/actions/comments";
-import type { VoteType } from "@/hooks/stores/useVoteStore";
+import { applyVote, toggledVote, type Vote } from "@/lib/votes";
 import type { CommentItem, EditedComment } from "@/types/comments";
 import type { ErrorKey } from "@/types/errors";
-
-type GetVote = (userKey: string, commentId: string) => VoteType | undefined;
-type SetVote = (userKey: string, commentId: string, voteType: VoteType) => void;
-type ClearVote = (userKey: string, commentId: string) => void;
 
 const normalizeComment = (comment: CommentItem): CommentItem => ({
     ...comment,
@@ -51,33 +48,25 @@ export const buildCommentTree = (comments: CommentItem[]): CommentItem[] => {
     return roots;
 };
 
+export const flattenComments = (comments: CommentItem[]): CommentItem[] =>
+    comments.flatMap(({ replies, ...comment }) => [comment, ...flattenComments(replies ?? [])]);
+
+export const mergeCommentPage = (tree: CommentItem[], page: CommentItem[]): CommentItem[] => {
+    const loaded = flattenComments(tree);
+    const known = new Set(loaded.map((comment) => comment.id));
+    return buildCommentTree([...loaded, ...page.filter((comment) => !known.has(comment.id))]);
+};
+
 export const countComments = (comments: CommentItem[]): number =>
     comments.reduce((total, comment) => total + 1 + countComments(comment.replies ?? []), 0);
 
-export const updateCommentRating = (
-    comments: CommentItem[],
-    commentId: string,
-    voteType: VoteType,
-    delta: 1 | -1
-): CommentItem[] =>
-    comments.map((comment) => {
-        const updatedReplies = comment.replies ? updateCommentRating(comment.replies, commentId, voteType, delta) : undefined;
-        if (comment.id === commentId) {
-            return {
-                ...comment,
-                rating: {
-                    ...comment.rating,
-                    [voteType]: comment.rating[voteType] + delta,
-                },
-                replies: updatedReplies,
-            };
-        }
-
-        return {
-            ...comment,
-            replies: updatedReplies,
-        };
-    });
+export const updateCommentVote = (comments: CommentItem[], commentId: string, vote: Vote): CommentItem[] =>
+    comments.map((comment) => ({
+        ...(comment.id === commentId
+            ? { ...comment, rating: applyVote(comment.rating, comment.myVote, vote), myVote: vote }
+            : comment),
+        replies: comment.replies ? updateCommentVote(comment.replies, commentId, vote) : comment.replies,
+    }));
 
 export const insertReply = (comments: CommentItem[], parentCommentId: string, reply: CommentItem): CommentItem[] =>
     comments.map((comment) => {
@@ -119,44 +108,40 @@ export const removeComment = (comments: CommentItem[], commentId: string): Comme
         }));
 
 type CreateRateCommentHandlerParams = {
-    userKey: string | null;
-    getVote: GetVote;
-    setVote: SetVote;
-    clearVote: ClearVote;
+    canVote: boolean;
     setComments: Dispatch<SetStateAction<CommentItem[]>>;
+    setVotePending: Dispatch<SetStateAction<boolean>>;
     setError: Dispatch<SetStateAction<ErrorKey | null>>;
-    onRated?: () => void;
+    onRated?: (vote: Vote) => void;
 };
 
 export const createRateCommentHandler = ({
-    userKey,
-    getVote,
-    setVote,
-    clearVote,
+    canVote,
     setComments,
+    setVotePending,
     setError,
     onRated,
-}: CreateRateCommentHandlerParams) => (commentId: string, positive: boolean) => {
-    if (!userKey) {
+}: CreateRateCommentHandlerParams) => (comment: CommentItem, positive: boolean) => {
+    if (!canVote) {
         setError("voteRequiresLogin");
         return;
     }
-    if (getVote(userKey, commentId)) return;
 
-    const voteType: VoteType = positive ? "positive" : "negative";
-    setVote(userKey, commentId, voteType);
-    setComments((currentComments) => updateCommentRating(currentComments, commentId, voteType, 1));
+    const previous = comment.myVote;
+    const next = toggledVote(previous, positive);
+    setComments((currentComments) => updateCommentVote(currentComments, comment.id, next));
+    setVotePending(true);
     setError(null);
 
     void (async () => {
-        const result = await rateCommentAction(commentId, positive);
-        if (!result.ok) {
-            clearVote(userKey, commentId);
-            setComments((currentComments) => updateCommentRating(currentComments, commentId, voteType, -1));
-            setError(result.error);
+        const result = await rateCommentAction(comment.id, next).catch(() => null);
+        setVotePending(false);
+        if (!result?.ok) {
+            setComments((currentComments) => updateCommentVote(currentComments, comment.id, previous));
+            setError(result ? result.error : "rateCommentFailed");
             return;
         }
-        onRated?.();
+        onRated?.(next);
     })();
 };
 
@@ -282,3 +267,33 @@ export const createDeleteCommentHandler = ({
             setIsDeleting(false);
         }
     };
+
+type CreateLoadMoreCommentsHandlerParams = {
+    articleId: string;
+    nextPage: number;
+    setNextPage: Dispatch<SetStateAction<number>>;
+    setServerTotal: Dispatch<SetStateAction<number>>;
+    setComments: Dispatch<SetStateAction<CommentItem[]>>;
+    setDeletedCount: Dispatch<SetStateAction<number>>;
+    setIsLoadingMore: Dispatch<SetStateAction<boolean>>;
+    setError: Dispatch<SetStateAction<ErrorKey | null>>;
+};
+
+// shortcut: pages are offsets into the newest-first list, so comments added or deleted meanwhile can shift
+// one comment across a page boundary (duplicates are dropped, a skipped one appears after a reload).
+export const createLoadMoreCommentsHandler =
+    ({ articleId, nextPage, setNextPage, setServerTotal, setComments, setDeletedCount, setIsLoadingMore, setError }: CreateLoadMoreCommentsHandlerParams) =>
+        async () => {
+            setIsLoadingMore(true);
+            setError(null);
+            const result = await loadCommentsAction(articleId, nextPage).catch(() => null);
+            setIsLoadingMore(false);
+            if (!result?.ok) {
+                setError(result ? result.error : "loadCommentsFailed");
+                return;
+            }
+            setComments((current) => mergeCommentPage(current, result.data.comments));
+            setServerTotal(result.data.totalElements);
+            setDeletedCount(0);
+            setNextPage(nextPage + 1);
+        };

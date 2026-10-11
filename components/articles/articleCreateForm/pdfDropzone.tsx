@@ -134,8 +134,8 @@ export default function PdfDropzone({ file, onFileChange, jobId, onJobError, dis
           {...getRootProps({
             className: cn(
               "flex cursor-pointer flex-col items-center gap-1.5 rounded-md border border-dashed border-border px-4 py-6 text-center transition-colors outline-none",
-              "hover:border-foreground/40 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring",
-              isDragActive && "border-foreground/50 bg-muted/60",
+              "hover:border-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring",
+              isDragActive && "border-foreground bg-muted",
               disabled && "cursor-not-allowed opacity-55",
             ),
           })}

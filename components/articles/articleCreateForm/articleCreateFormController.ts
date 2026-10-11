@@ -26,6 +26,7 @@ type CreateHandleArticleSubmitParams = {
     references: string[];
     pendingDoiInput: string;
     complexity: ArticleComplexity;
+    uploadedImages: string[];
     pdfFile?: File | null;
     isSubmitting: boolean;
     setIsSubmitting: Dispatch<SetStateAction<boolean>>;
@@ -134,10 +135,9 @@ export { TITLE_MAX_LENGTH };
 
 export const COMPLEXITY_OPTIONS: ArticleComplexity[] = [...COMPLEXITIES];
 
-// Re-sending unchanged DOIs makes the backend look them up again, and a failed lookup drops the reference.
 export const getEditedReferences = (scientific: boolean, references: string[], initialReferences: string[]): string[] | null => {
-    if (!scientific || references.length === 0 || areReferencesEqual(references, initialReferences)) return null;
-    return references;
+    const next = scientific ? references : [];
+    return areReferencesEqual(next, initialReferences) ? null : next;
 };
 
 const submitArticle = async ({
@@ -148,6 +148,7 @@ const submitArticle = async ({
     references,
     pendingDoiInput,
     complexity,
+    uploadedImages,
     setIsSubmitting,
     setError,
     onSubmitStart,
@@ -172,12 +173,14 @@ const submitArticle = async ({
                 content,
                 complexity,
                 references: getEditedReferences(scientific, submitted.references, editedArticle.references),
+                uploadedImages,
             })
             : await createArticleAction({
                 title,
                 content,
                 complexity,
                 references: submitted.references,
+                uploadedImages,
             });
 
         if (result && !result.ok) {

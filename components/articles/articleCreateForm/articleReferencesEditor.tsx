@@ -28,7 +28,6 @@ type ArticleReferencesEditorProps = Readonly<{
   onReferencesChange: (references: string[]) => void;
   doiInput: string;
   onDoiInputChange: (value: string) => void;
-  minCount: number;
   disabled: boolean;
   onFill: (metadata: DoiMetadata | null) => void;
   fillMessage: DoiMetadataMessage | null;
@@ -39,7 +38,6 @@ export default function ArticleReferencesEditor({
   onReferencesChange,
   doiInput,
   onDoiInputChange,
-  minCount,
   disabled,
   onFill,
   fillMessage,
@@ -69,8 +67,6 @@ export default function ArticleReferencesEditor({
     onDoiInputChange("");
   };
 
-  const canRemove = references.length > minCount;
-
   return (
     <div>
       <SectionHeading
@@ -89,7 +85,6 @@ export default function ArticleReferencesEditor({
               record={records[toNodeId(doi)]}
               isFirst={index === 0}
               isLast={index === references.length - 1}
-              canRemove={canRemove}
               disabled={disabled}
               onMove={(offset) => onReferencesChange(moveReference(references, index, offset))}
               onRemove={() => onReferencesChange(removeReference(references, index))}
@@ -104,9 +99,6 @@ export default function ArticleReferencesEditor({
       <p className="mt-3 text-xs leading-5 text-muted-foreground empty:hidden" role="status">
         {fillMessage ? t(`create.metadata.${fillMessage}`) : null}
       </p>
-      {!canRemove && minCount > 0 ? (
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("create.references.locked")}</p>
-      ) : null}
 
       <div className="mt-5 grid gap-2">
         <label htmlFor={REFERENCE_INPUT_ID} className="text-sm font-medium text-foreground">
@@ -156,7 +148,6 @@ function ReferenceRow({
   record,
   isFirst,
   isLast,
-  canRemove,
   disabled,
   onMove,
   onRemove,
@@ -167,7 +158,6 @@ function ReferenceRow({
   record: DoiRecord | undefined;
   isFirst: boolean;
   isLast: boolean;
-  canRemove: boolean;
   disabled: boolean;
   onMove: (offset: number) => void;
   onRemove: () => void;
@@ -207,7 +197,7 @@ function ReferenceRow({
             ) : null}
           </>
         ) : (
-          <p className="text-sm text-amber-800 dark:text-amber-300">{t("create.references.notFound")}</p>
+          <p className="text-sm text-destructive">{t("create.references.notFound")}</p>
         )}
 
         <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted-foreground">
@@ -220,7 +210,7 @@ function ReferenceRow({
               onClick={() => onFill(node)}
               disabled={disabled || record === undefined}
               aria-label={t("create.references.fill", { doi })}
-              className="h-auto px-1 text-xs font-medium text-teal-800 dark:text-teal-300"
+              className="h-auto px-1 text-xs font-medium text-link"
             >
               <Download /> {t("create.metadata.fetch")}
             </Button>
@@ -251,7 +241,7 @@ function ReferenceRow({
               variant="ghost"
               size="icon-xs"
               onClick={onRemove}
-              disabled={disabled || !canRemove}
+              disabled={disabled}
               aria-label={t("create.references.remove", { doi })}
               title={t("create.references.remove", { doi })}
               className="hover:text-destructive"

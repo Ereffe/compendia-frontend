@@ -10,6 +10,7 @@ export type ArticleSearchItem = {
     title: string;
     datePosted: string;
     author: string | null;
+    authorId: string | null;
     content: string;
     complexity: ArticleComplexity;
     rating: ArticleRating;

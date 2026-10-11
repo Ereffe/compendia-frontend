@@ -18,9 +18,36 @@ export const ADD_COMMENT_MUTATION = graphql(`
                 positive
                 negative
             }
+            myVote
             parentComment {
                 id
             }
+        }
+    }
+`);
+
+export const ARTICLE_COMMENTS_QUERY = graphql(`
+    query ArticleComments($articleId: String!, $page: Int!, $size: Int!) {
+        comments(articleId: $articleId, page: $page, size: $size, sortBy: "datePosted", ascending: false) {
+            content {
+                id
+                content
+                datePosted
+                editedAt
+                user {
+                    id
+                    name
+                }
+                rating {
+                    positive
+                    negative
+                }
+                myVote
+                parentComment {
+                    id
+                }
+            }
+            totalElements
         }
     }
 `);
@@ -47,6 +74,12 @@ export const RATE_COMMENT_MUTATION = graphql(`
     }
 `);
 
+export const UNRATE_COMMENT_MUTATION = graphql(`
+    mutation UnrateComment($commentId: Int!) {
+        unrateComment(commentId: $commentId)
+    }
+`);
+
 export type GraphqlCommentItem = AddCommentMutation["addComment"];
 
 export const mapGraphqlCommentToCommentItem = (comment: GraphqlCommentItem): CommentItem => ({
@@ -56,5 +89,6 @@ export const mapGraphqlCommentToCommentItem = (comment: GraphqlCommentItem): Com
     editedAt: comment.editedAt,
     user: comment.user,
     rating: comment.rating,
+    myVote: comment.myVote,
     parentCommentId: comment.parentComment?.id ?? null,
 });

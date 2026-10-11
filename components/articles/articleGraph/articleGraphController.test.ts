@@ -8,6 +8,7 @@ import {
     normalizeDoi,
     normalizeGraph,
     pickNextLookup,
+    radialPositions,
     MAX_DOI_LOOKUPS,
     MAX_PAPERS_PER_DEPTH,
     toNodeId,
@@ -194,5 +195,23 @@ describe("pickNextLookup", () => {
     it("stops after the lookup limit", () => {
         const many = new Map(Array.from({ length: MAX_DOI_LOOKUPS }, (_, i) => [`x${i}`, { node: null, references: [] }]));
         expect(pickNextLookup(elements, many, null)).toBeNull();
+    });
+});
+
+describe("radialPositions", () => {
+    it("puts each depth on its own ring and places a child next to the paper that cites it", () => {
+        const elements = buildGraphElements(
+            graph(["r", "a", "b", "c", "d"], [["r", "a"], ["r", "b"], ["r", "c"], ["r", "d"], ["a", "x"], ["c", "y"]]),
+            "r",
+        );
+        const positions = radialPositions(elements);
+        const radius = (doi: string) => Math.hypot(positions.get(toNodeId(doi))!.x, positions.get(toNodeId(doi))!.y);
+        const distance = (from: string, to: string) =>
+            Math.hypot(positions.get(toNodeId(from))!.x - positions.get(toNodeId(to))!.x, positions.get(toNodeId(from))!.y - positions.get(toNodeId(to))!.y);
+
+        expect(radius("r")).toBe(0);
+        expect(radius("x")).toBeCloseTo(2 * radius("a"));
+        expect(distance("x", "a")).toBeLessThan(distance("x", "c"));
+        expect(distance("y", "c")).toBeLessThan(distance("y", "a"));
     });
 });

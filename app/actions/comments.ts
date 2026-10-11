@@ -3,15 +3,19 @@
 import { unstable_rethrow } from "next/navigation";
 
 import { toErrorKey } from "@/lib/graphqlErrors";
-import { addCommentSchema, commentIdSchema, editCommentSchema } from "@/lib/schemas";
+import { addCommentSchema, articleIdSchema, commentIdSchema, editCommentSchema } from "@/lib/schemas";
 import { parseInput } from "@/lib/validation";
-import { authedMutate, getAccessToken } from "@/lib/server/session";
+import { type Vote, voteSchema } from "@/lib/votes";
+import { authedMutate, authedQuery, getAccessToken } from "@/lib/server/session";
+import { COMMENTS_PAGE_SIZE } from "@/services/graphql/articles";
 import {
     ADD_COMMENT_MUTATION,
+    ARTICLE_COMMENTS_QUERY,
     DELETE_COMMENT_MUTATION,
     EDIT_COMMENT_MUTATION,
     mapGraphqlCommentToCommentItem,
     RATE_COMMENT_MUTATION,
+    UNRATE_COMMENT_MUTATION,
 } from "@/services/graphql/comments";
 import type { ActionResult } from "@/types/articles";
 import type { CommentItem, EditedComment } from "@/types/comments";
@@ -37,15 +41,42 @@ export async function addCommentAction(
     }
 }
 
-export async function rateCommentAction(commentId: string, positive: boolean): Promise<ActionResult<null>> {
+export async function loadCommentsAction(
+    articleId: string,
+    page: number,
+): Promise<ActionResult<{ comments: CommentItem[]; totalElements: number }>> {
+    const accessToken = await getAccessToken();
+    if (!accessToken) return { ok: false, error: "notSignedIn" };
+    if (!articleIdSchema.safeParse(articleId).success) return { ok: false, error: "notFound" };
+    if (!Number.isInteger(page) || page < 1) return { ok: false, error: "loadCommentsFailed" };
+
+    try {
+        const data = await authedQuery(accessToken, ARTICLE_COMMENTS_QUERY, { articleId, page, size: COMMENTS_PAGE_SIZE });
+        return {
+            ok: true,
+            data: {
+                comments: data.comments.content.map(mapGraphqlCommentToCommentItem),
+                totalElements: data.comments.totalElements,
+            },
+        };
+    } catch (error) {
+        unstable_rethrow(error);
+        console.error("loadCommentsAction failed:", error);
+        return { ok: false, error: toErrorKey(error, "loadCommentsFailed") };
+    }
+}
+
+export async function rateCommentAction(commentId: string, vote: Vote): Promise<ActionResult<null>> {
     const accessToken = await getAccessToken();
     if (!accessToken) return { ok: false, error: "notSignedIn" };
 
     const parsedId = parseInput(commentIdSchema, commentId, "rateCommentFailed");
     if (!parsedId.ok) return parsedId;
+    if (!voteSchema.safeParse(vote).success) return { ok: false, error: "rateCommentFailed" };
 
     try {
-        await authedMutate(accessToken, RATE_COMMENT_MUTATION, { commentId: parsedId.data, positive });
+        if (vote === null) await authedMutate(accessToken, UNRATE_COMMENT_MUTATION, { commentId: parsedId.data });
+        else await authedMutate(accessToken, RATE_COMMENT_MUTATION, { commentId: parsedId.data, positive: vote });
         return { ok: true, data: null };
     } catch (error) {
         unstable_rethrow(error);

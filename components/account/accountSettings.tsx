@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, LogOut, MailCheck } from "lucide-react";
+import { Check, MailCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -21,44 +21,41 @@ import {
 } from "./accountController";
 
 const fieldLabel = "text-sm font-medium text-foreground";
-const section = "grid gap-4 px-5 py-6 sm:px-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-8";
+const section = "grid gap-3 px-5 py-6 sm:px-10 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-8";
 
 export default function AccountSettings({ user }: Readonly<{ user: AccountUser }>) {
   const t = useTranslations("account");
   const [name, setName] = useState(user.name);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start lg:gap-8">
-      <aside className="sheet lg:sticky lg:top-6">
-        <div className="flex items-center gap-4 px-5 py-6 lg:flex-col lg:items-start lg:gap-5">
-          <UserAvatar userId={user.id} size={112} animated className="size-20 lg:size-28" />
-          <div className="min-w-0">
-            <p className="font-serif text-2xl font-medium leading-tight tracking-[-0.01em] wrap-anywhere">{name}</p>
-            <p className="mt-1 text-sm text-muted-foreground wrap-anywhere">{user.email}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{t(`roles.${user.role}`)}</p>
-          </div>
+    <div className="sheet divide-y divide-border">
+      <header className="flex flex-wrap items-center gap-x-5 gap-y-4 px-5 py-8 sm:px-10">
+        <UserAvatar name={name} size={56} />
+        <div className="min-w-0 flex-1">
+          <h1 className="font-serif text-3xl font-medium leading-tight tracking-[-0.01em] wrap-anywhere">{name}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            <span className="wrap-anywhere">{user.email}</span>
+            <span aria-hidden> · </span>
+            <span>{t(`roles.${user.role}`)}</span>
+          </p>
         </div>
-        <p className="border-t border-border px-5 py-4 text-xs leading-5 text-muted-foreground">{t("avatarHint")}</p>
-        <SignOutSection />
-      </aside>
-
-      <div className="sheet divide-y divide-border">
-        <NameSection currentName={name} onSaved={setName} />
-        <EmailSection currentEmail={user.email} />
-        <PasswordSection email={user.email} />
-      </div>
+        <SignOutButton />
+      </header>
+      <NameSection currentName={name} onSaved={setName} />
+      <EmailSection currentEmail={user.email} />
+      <PasswordSection email={user.email} />
     </div>
   );
 }
 
-function SettingsSection({ title, description, children }: Readonly<{ title: string; description: string; children: ReactNode }>) {
+function SettingsSection({ title, description, children }: Readonly<{ title: string; description?: string; children: ReactNode }>) {
   return (
     <section className={section}>
-      <div>
-        <h2 className="font-serif text-xl font-medium leading-snug">{title}</h2>
-        <p className="mt-1.5 text-sm leading-6 text-muted-foreground wrap-break-word">{description}</p>
+      <h2 className="text-sm font-semibold text-foreground md:pt-2">{title}</h2>
+      <div className="flex min-w-0 max-w-md flex-col gap-3">
+        {description ? <p className="text-sm leading-6 text-muted-foreground wrap-break-word md:pt-1.5">{description}</p> : null}
+        {children}
       </div>
-      <div className="flex min-w-0 flex-col gap-3 md:pt-1">{children}</div>
     </section>
   );
 }
@@ -67,7 +64,7 @@ function FormError({ error }: Readonly<{ error: ErrorKey | null }>) {
   const t = useTranslations("errors");
   if (!error) return null;
   return (
-    <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+    <p className="rounded-sm border border-destructive px-3 py-2 text-sm text-destructive" role="alert">
       {t(error)}
     </p>
   );
@@ -112,9 +109,9 @@ function NameSection({ currentName, onSaved }: Readonly<{ currentName: string; o
   });
 
   return (
-    <SettingsSection title={t("title")} description={t("description")}>
+    <SettingsSection title={t("title")}>
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
-        <label htmlFor="account-name" className={fieldLabel}>
+        <label htmlFor="account-name" className="sr-only">
           {t("label")}
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -128,7 +125,6 @@ function NameSection({ currentName, onSaved }: Readonly<{ currentName: string; o
             maxLength={MAX_NAME_LENGTH}
             autoComplete="name"
             aria-invalid={error ? true : undefined}
-            className="bg-background"
           />
           <SubmitButton pending={status === "pending"} label={t("submit")} pendingLabel={t("submitting")} />
         </div>
@@ -183,8 +179,7 @@ function EmailSection({ currentEmail }: Readonly<{ currentEmail: string }>) {
               maxLength={MAX_EMAIL_LENGTH}
               autoComplete="email"
               aria-invalid={error ? true : undefined}
-              className="bg-background"
-            />
+              />
             <SubmitButton pending={status === "pending"} label={t("submit")} pendingLabel={t("submitting")} />
           </div>
           <FormError error={error} />
@@ -218,7 +213,7 @@ function PasswordSection({ email }: Readonly<{ email: string }>) {
   );
 }
 
-function SignOutSection() {
+function SignOutButton() {
   const t = useTranslations("account.signOut");
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -231,15 +226,9 @@ function SignOutSection() {
   };
 
   return (
-    <div className="flex flex-col gap-3 border-t border-border px-5 py-5">
-      <div>
-        <h2 className="text-sm font-medium">{t("title")}</h2>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("description")}</p>
-      </div>
-      <Button type="button" variant="outline" disabled={pending} onClick={() => void handleSignOut()} className="w-full">
-        {pending ? <Spinner className="size-4" /> : <LogOut className="size-4" aria-hidden />}
-        {pending ? t("submitting") : t("submit")}
-      </Button>
-    </div>
+    <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => void handleSignOut()}>
+      {pending ? <Spinner className="size-4" /> : null}
+      {pending ? t("submitting") : t("submit")}
+    </Button>
   );
 }

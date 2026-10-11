@@ -8,6 +8,7 @@ export type ArticleDraft = {
     content: string;
     references: string[];
     complexity: ArticleComplexity;
+    uploadedImages: string[];
     savedAt: string;
 };
 
@@ -50,6 +51,7 @@ export const parseDraft = (raw: string | null): ArticleDraft | null => {
             content: draft.content as string,
             references,
             complexity: draft.complexity as ArticleComplexity,
+            uploadedImages: isStringArray(draft.uploadedImages) ? draft.uploadedImages : [],
             savedAt: draft.savedAt as string,
         };
         return isDraftEmpty(parsed) ? null : parsed;

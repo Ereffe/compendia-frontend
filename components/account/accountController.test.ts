@@ -94,9 +94,9 @@ describe("confirm handlers", () => {
         vi.mocked(confirmEmailChangeAction).mockResolvedValue({ ok: true, data: null });
         const onConfirmed = vi.fn();
 
-        await createHandleEmailConfirm({ ...form(), actionId: "abc", email: "ala@new.edu", onConfirmed })(event);
+        await createHandleEmailConfirm({ ...form(), actionId: "abc", onConfirmed })(event);
 
-        expect(confirmEmailChangeAction).toHaveBeenCalledWith("abc", "ala@new.edu");
+        expect(confirmEmailChangeAction).toHaveBeenCalledWith("abc");
         expect(onConfirmed).toHaveBeenCalledTimes(1);
     });
 

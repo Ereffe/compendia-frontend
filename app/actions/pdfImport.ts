@@ -1,15 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect, unstable_rethrow } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { serverBackendUrl } from "@/lib/config";
 import { SESSION_EXPIRED_PATH } from "@/lib/graphqlErrors";
 import { withNotice } from "@/lib/notices";
 import { jobIdSchema, pdfImportAcceptedSchema, pdfImportSchema, pdfImportStatusSchema } from "@/lib/schemas";
-import { authedMutate, getAccessToken } from "@/lib/server/session";
+import { getAccessToken } from "@/lib/server/session";
 import { parseInput } from "@/lib/validation";
-import { EDIT_ARTICLE_MUTATION } from "@/services/graphql/articles";
 import type { ActionResult } from "@/types/articles";
 
 export type PdfImportProgress = "PENDING" | "PROCESSING";
@@ -18,16 +17,6 @@ const pdfImportUrl = (jobId?: string) =>
     `${serverBackendUrl}/api/v1/articles/pdf-import${jobId ? `/${encodeURIComponent(jobId)}` : ""}`;
 
 const isAuthRejectedStatus = (status: number) => status === 401 || status === 403;
-
-// The import thread caches the article with an unloaded author proxy (backend issue 6c); a no-op edit evicts it.
-async function evictImportedArticle(accessToken: string, articleId: string) {
-    try {
-        await authedMutate(accessToken, EDIT_ARTICLE_MUTATION, { articleId });
-    } catch (error) {
-        unstable_rethrow(error);
-        console.error("evictImportedArticle failed:", error);
-    }
-}
 
 export async function startPdfImportAction(formData: FormData): Promise<ActionResult<{ jobId: string }>> {
     const accessToken = await getAccessToken();
@@ -93,7 +82,6 @@ export async function getPdfImportStatusAction(jobId: string): Promise<ActionRes
     if (!job.ok) return job;
     if (job.data.status === "FAILED") return { ok: false, error: "pdfImportFailed" };
     if (job.data.status === "DONE") {
-        await evictImportedArticle(accessToken, job.data.articleId);
         revalidatePath("/articles");
         revalidatePath("/all-articles/[page]", "page");
         redirect(withNotice(`/articles/${job.data.articleId}`, "articleImported"));

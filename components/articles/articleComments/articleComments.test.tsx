@@ -12,12 +12,7 @@ const addComment = vi.fn();
 const rateComment = vi.fn();
 const editComment = vi.fn();
 const deleteComment = vi.fn();
-let storedVotes: Record<string, Record<string, string>> = {};
-const setVote = vi.fn((userKey: string, id: string, vote: string) => {
-    storedVotes = { ...storedVotes, [userKey]: { ...storedVotes[userKey], [id]: vote } };
-});
-const clearVote = vi.fn();
-const getVote = (userKey: string, id: string) => storedVotes[userKey]?.[id];
+const loadComments = vi.fn();
 
 type SessionState = { status: "authenticated" | "unauthenticated" | "loading"; data: { user: { id: string } } | null };
 const signedIn: SessionState = { status: "authenticated", data: { user: { id: "u-me" } } };
@@ -28,26 +23,17 @@ vi.mock("@/app/actions/comments", () => ({
     rateCommentAction: (...args: unknown[]) => rateComment(...args),
     editCommentAction: (...args: unknown[]) => editComment(...args),
     deleteCommentAction: (...args: unknown[]) => deleteComment(...args),
+    loadCommentsAction: (...args: unknown[]) => loadComments(...args),
 }));
 
 vi.mock("next-auth/react", () => ({
     useSession: () => sessionState,
 }));
 
-vi.mock("@/hooks/stores/useVoteStore", () => ({
-    useVoteStore: (selector: (state: unknown) => unknown) => selector({
-        votes: storedVotes,
-        setVote,
-        clearVote,
-        getVote,
-    }),
-}));
-
 afterEach(() => {
     cleanup();
     vi.clearAllMocks();
     sessionState = signedIn;
-    storedVotes = {};
 });
 
 describe("ArticleComments", () => {
@@ -57,14 +43,14 @@ describe("ArticleComments", () => {
             content: "Pierwszy komentarz",
             datePosted: "2026-05-06T12:00:00.000Z",
             user: { id: "u1", name: "Ala" },
-            rating: { positive: 2, negative: 0 },
+            rating: { positive: 2, negative: 0 }, myVote: null,
         },
         {
             id: "c2",
             content: "Odpowiedź",
             datePosted: "2026-05-06T13:00:00.000Z",
             user: { id: "u2", name: "Olek" },
-            rating: { positive: 1, negative: 0 },
+            rating: { positive: 1, negative: 0 }, myVote: null,
             parentCommentId: "c1",
         },
     ];
@@ -79,7 +65,7 @@ describe("ArticleComments", () => {
                 content: "Nowa odpowiedź",
                 datePosted: "2026-05-07T12:00:00.000Z",
                 user: { id: "u3", name: "Autor" },
-                rating: { positive: 0, negative: 0 },
+                rating: { positive: 0, negative: 0 }, myVote: null,
                 parentCommentId: "c1",
             },
         });
@@ -133,14 +119,54 @@ describe("ArticleComments", () => {
         expect(screen.getByText("Musisz być zalogowany, aby komentować.")).toBeInTheDocument();
     });
 
-    it("tells the user when only part of the comments is shown", () => {
-        renderWithIntl(<ArticleComments articleId="a1" initialComments={initialComments} totalCount={250} />);
+    it("loads the next page and attaches replies to parents that arrive later", async () => {
+        const user = userEvent.setup();
+        const orphanReply: CommentItem = {
+            id: "c5",
+            content: "Odpowiedź na starszy",
+            datePosted: "2026-05-06T14:00:00.000Z",
+            user: { id: "u2", name: "Olek" },
+            rating: { positive: 0, negative: 0 },
+            myVote: null,
+            parentCommentId: "c4",
+        };
+        const older: CommentItem = {
+            id: "c4",
+            content: "Starszy komentarz",
+            datePosted: "2026-05-01T12:00:00.000Z",
+            user: { id: "u1", name: "Ala" },
+            rating: { positive: 0, negative: 0 },
+            myVote: null,
+        };
+        loadComments.mockResolvedValue({ ok: true, data: { comments: [older], totalElements: 25 } });
 
-        expect(screen.getByText("250 komentarzy")).toBeInTheDocument();
-        expect(screen.getByText("Wyświetlono 2 najnowszych z 250 komentarzy.")).toBeInTheDocument();
+        renderWithIntl(
+            <ArticleComments articleId="Abc123" initialComments={[...initialComments, orphanReply]} totalCount={25} />,
+        );
+
+        expect(screen.getByText("25 komentarzy")).toBeInTheDocument();
+        expect(screen.getByText("Wyświetlono 3 z 25 komentarzy.")).toBeInTheDocument();
+        expect(screen.getByText("Odpowiedź na starszy")).toBeInTheDocument();
+
+        await user.click(screen.getByRole("button", { name: "Pokaż więcej komentarzy" }));
+
+        expect(loadComments).toHaveBeenCalledWith("Abc123", 1);
+        expect(await screen.findByText("Starszy komentarz")).toBeInTheDocument();
+        expect(screen.queryByText("Odpowiedź na starszy")).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Pokaż więcej komentarzy" })).not.toBeInTheDocument();
     });
 
-    it("records the vote for the signed-in user and rolls back when the server rejects it", async () => {
+    it("shows an error when the next page can't be loaded", async () => {
+        const user = userEvent.setup();
+        loadComments.mockResolvedValue({ ok: false, error: "loadCommentsFailed" });
+
+        renderWithIntl(<ArticleComments articleId="Abc123" initialComments={initialComments} totalCount={25} />);
+        await user.click(screen.getByRole("button", { name: "Pokaż więcej komentarzy" }));
+
+        expect(await screen.findByRole("alert")).toHaveTextContent("Nie udało się wczytać kolejnych komentarzy.");
+    });
+
+    it("rolls back the vote when the server rejects it", async () => {
         const user = userEvent.setup();
         rateComment.mockResolvedValue({ ok: false, error: "rateCommentFailed" });
 
@@ -148,16 +174,29 @@ describe("ArticleComments", () => {
 
         await user.click(screen.getByRole("button", { name: "Głos pozytywny (2)" }));
 
-        expect(setVote).toHaveBeenCalledWith("u-me", "c1", "positive");
-        await waitFor(() => {
-            expect(clearVote).toHaveBeenCalledWith("u-me", "c1");
-        });
-        expect(screen.getByText("Nie udało się ocenić komentarza.")).toBeInTheDocument();
+        expect(rateComment).toHaveBeenCalledWith("c1", true);
+        expect(await screen.findByText("Nie udało się ocenić komentarza.")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Głos pozytywny (2)" })).toHaveAttribute("aria-pressed", "false");
     });
 
-    it("sends only one vote when the user clicks again before the page updates", async () => {
+    it("removes the user's vote when the pressed button is clicked again", async () => {
         const user = userEvent.setup();
         rateComment.mockResolvedValue({ ok: true, data: null });
+        const voted = initialComments.map((comment) => (comment.id === "c1" ? { ...comment, myVote: true } : comment));
+
+        renderWithIntl(<ArticleComments articleId="a1" initialComments={voted} />);
+
+        const upvote = screen.getByRole("button", { name: "Głos pozytywny (2)" });
+        expect(upvote).toHaveAttribute("aria-pressed", "true");
+        await user.click(upvote);
+
+        expect(rateComment).toHaveBeenCalledWith("c1", null);
+        expect(screen.getByRole("button", { name: "Głos pozytywny (1)" })).toHaveAttribute("aria-pressed", "false");
+    });
+
+    it("sends only one vote while a vote is pending", async () => {
+        const user = userEvent.setup();
+        rateComment.mockReturnValue(new Promise(() => {}));
 
         renderWithIntl(<ArticleComments articleId="a1" initialComments={initialComments} />);
 
@@ -177,7 +216,7 @@ describe("ArticleComments", () => {
                 content: "Mój komentarz",
                 datePosted: "2026-05-08T12:00:00.000Z",
                 user: { id: "u-me", name: "Ja" },
-                rating: { positive: 0, negative: 0 },
+                rating: { positive: 0, negative: 0 }, myVote: null,
             },
         ];
 
@@ -273,10 +312,10 @@ describe("ArticleComments", () => {
 
 describe("articleCommentsController edit/delete helpers", () => {
     const tree = buildCommentTree([
-        { id: "1", content: "a", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 } },
-        { id: "2", content: "b", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 }, parentCommentId: "1" },
-        { id: "3", content: "c", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 }, parentCommentId: "2" },
-        { id: "4", content: "d", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 } },
+        { id: "1", content: "a", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 }, myVote: null },
+        { id: "2", content: "b", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 }, myVote: null, parentCommentId: "1" },
+        { id: "3", content: "c", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 }, myVote: null, parentCommentId: "2" },
+        { id: "4", content: "d", datePosted: "", user: { id: "u", name: "U" }, rating: { positive: 0, negative: 0 }, myVote: null },
     ]);
 
     it("finds nested comments", () => {

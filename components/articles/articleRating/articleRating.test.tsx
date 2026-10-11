@@ -6,12 +6,7 @@ import { renderWithIntl } from "@/test/renderWithIntl";
 
 import ArticleRating from "./articleRating";
 
-let storedVotes: Record<string, Record<string, string>> = {};
 const rateArticle = vi.fn();
-const setVote = vi.fn((userKey: string, id: string, vote: string) => {
-    storedVotes = { ...storedVotes, [userKey]: { ...storedVotes[userKey], [id]: vote } };
-});
-const clearVote = vi.fn();
 const toastSuccess = vi.fn();
 
 vi.mock("sonner", () => ({
@@ -30,47 +25,61 @@ vi.mock("next-auth/react", () => ({
     useSession: () => sessionState,
 }));
 
-vi.mock("@/hooks/stores/useVoteStore", () => ({
-    articleVoteId: (id: string) => `article:${id}`,
-    useVoteStore: (selector: (state: unknown) => unknown) => selector({
-        votes: storedVotes,
-        getVote: (userKey: string, id: string) => storedVotes[userKey]?.[id],
-        setVote,
-        clearVote,
-    }),
-}));
-
 afterEach(() => {
     cleanup();
     vi.clearAllMocks();
     sessionState = signedIn;
-    storedVotes = {};
 });
 
 const rating = { positive: 3, negative: 1 };
 
 describe("ArticleRating", () => {
-    it("rates the article and remembers the vote for the user", async () => {
+    it("rates the article", async () => {
         const user = userEvent.setup();
         rateArticle.mockResolvedValue({ ok: true, data: null });
 
-        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} />);
+        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} initialVote={null} />);
 
         expect(screen.getByText("Czy ten artykuł był pomocny?")).toBeInTheDocument();
         await user.click(screen.getByRole("button", { name: "Oceń pozytywnie (3)" }));
 
         expect(rateArticle).toHaveBeenCalledWith("abc123", true);
-        expect(setVote).toHaveBeenCalledWith("u-me", "article:abc123", "positive");
-        expect(screen.getByRole("button", { name: "Oceń pozytywnie (4)" })).toBeInTheDocument();
-        expect(clearVote).not.toHaveBeenCalled();
+        expect(screen.getByRole("button", { name: "Oceń pozytywnie (4)" })).toHaveAttribute("aria-pressed", "true");
         await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith("Dziękujemy, głos został zapisany."));
     });
 
-    it("sends only one vote when the user clicks again before the page updates", async () => {
+    it("switches an existing vote to the other side", async () => {
         const user = userEvent.setup();
         rateArticle.mockResolvedValue({ ok: true, data: null });
 
-        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} />);
+        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} initialVote={true} />);
+
+        await user.click(screen.getByRole("button", { name: "Oceń negatywnie (1)" }));
+
+        expect(rateArticle).toHaveBeenCalledWith("abc123", false);
+        expect(screen.getByRole("button", { name: "Oceń pozytywnie (2)" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Oceń negatywnie (2)" })).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("removes the vote when the pressed button is clicked again", async () => {
+        const user = userEvent.setup();
+        rateArticle.mockResolvedValue({ ok: true, data: null });
+
+        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} initialVote={true} />);
+
+        expect(screen.getByText("Dziękujemy za ocenę.")).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Oceń pozytywnie (3)" }));
+
+        expect(rateArticle).toHaveBeenCalledWith("abc123", null);
+        expect(screen.getByRole("button", { name: "Oceń pozytywnie (2)" })).toHaveAttribute("aria-pressed", "false");
+        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith("Głos został wycofany."));
+    });
+
+    it("sends only one request while a vote is pending", async () => {
+        const user = userEvent.setup();
+        rateArticle.mockReturnValue(new Promise(() => {}));
+
+        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} initialVote={null} />);
 
         await user.click(screen.getByRole("button", { name: "Oceń pozytywnie (3)" }));
         await user.click(screen.getByRole("button", { name: /Oceń negatywnie/ }));
@@ -82,32 +91,19 @@ describe("ArticleRating", () => {
         const user = userEvent.setup();
         rateArticle.mockResolvedValue({ ok: false, error: "rateArticleFailed" });
 
-        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} />);
+        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} initialVote={null} />);
 
         await user.click(screen.getByRole("button", { name: "Oceń negatywnie (1)" }));
 
-        await waitFor(() => {
-            expect(clearVote).toHaveBeenCalledWith("u-me", "article:abc123");
-        });
-        expect(screen.getByRole("alert")).toHaveTextContent("Nie udało się ocenić artykułu.");
-        expect(screen.getByRole("button", { name: "Oceń negatywnie (1)" })).toBeInTheDocument();
+        expect(await screen.findByRole("alert")).toHaveTextContent("Nie udało się ocenić artykułu.");
+        expect(screen.getByRole("button", { name: "Oceń negatywnie (1)" })).toHaveAttribute("aria-pressed", "false");
         expect(toastSuccess).not.toHaveBeenCalled();
-    });
-
-    it("disables voting after the user already rated", () => {
-        storedVotes = { "u-me": { "article:abc123": "positive" } };
-
-        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} />);
-
-        expect(screen.getByText("Dziękujemy za ocenę.")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "Oceń pozytywnie (3)" })).toBeDisabled();
-        expect(screen.getByRole("button", { name: "Oceń negatywnie (1)" })).toBeDisabled();
     });
 
     it("disables voting when signed out", () => {
         sessionState = { status: "unauthenticated", data: null };
 
-        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} />);
+        renderWithIntl(<ArticleRating articleId="abc123" initialRating={rating} initialVote={null} />);
 
         expect(screen.getByRole("button", { name: "Oceń pozytywnie (3)" })).toBeDisabled();
     });

@@ -35,11 +35,12 @@ type CreateHandleImageFilesParams = {
     setContent: Dispatch<SetStateAction<string>>;
     setPendingUploads: Dispatch<SetStateAction<number>>;
     setImageError: Dispatch<SetStateAction<ErrorKey | null>>;
+    onUploaded?: (assetId: string) => void;
     createKey?: () => string;
 };
 
 export const createHandleImageFiles =
-    ({ defaultAlt, getSelection, setContent, setPendingUploads, setImageError, createKey = createUploadKey }: CreateHandleImageFilesParams) =>
+    ({ defaultAlt, getSelection, setContent, setPendingUploads, setImageError, onUploaded, createKey = createUploadKey }: CreateHandleImageFilesParams) =>
         async (files: File[]) => {
             const invalid = files.map(validateImageFile).find(Boolean) ?? null;
             const uploads = files
@@ -61,6 +62,7 @@ export const createHandleImageFiles =
                         const result = await uploadImageAction(formData);
                         if (result?.ok) {
                             setContent((current) => resolveUploadPlaceholder(current, key, backendAssetPath(result.data.assetId)));
+                            onUploaded?.(result.data.assetId);
                             return;
                         }
                         setContent((current) => resolveUploadPlaceholder(current, key, null));

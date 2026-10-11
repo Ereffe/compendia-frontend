@@ -12,13 +12,13 @@ import {
 } from "./schemas";
 import { parseInput } from "./validation";
 
-const article = { title: " Tytuł ", content: " Treść ", complexity: "SIMPLE", references: [" 10.1000/a ", " "] };
+const article = { title: " Tytuł ", content: " Treść ", complexity: "SIMPLE", references: [" 10.1000/a ", " "], uploadedImages: [] };
 
 describe("article schemas", () => {
     it("trims text and drops blank references", () => {
         expect(parseInput(createArticleSchema, article, "createArticleFailed")).toEqual({
             ok: true,
-            data: { title: "Tytuł", content: "Treść", complexity: "SIMPLE", references: ["10.1000/a"] },
+            data: { title: "Tytuł", content: "Treść", complexity: "SIMPLE", references: ["10.1000/a"], uploadedImages: [] },
         });
         expect(parseInput(editArticleSchema, { ...article, references: null }, "editArticleFailed")).toMatchObject({
             ok: true,

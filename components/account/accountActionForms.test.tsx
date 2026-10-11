@@ -41,10 +41,9 @@ describe("ConfirmEmailChangeForm", () => {
         const actor = userEvent.setup();
         renderWithIntl(<ConfirmEmailChangeForm actionId={actionId} />);
 
-        await actor.type(screen.getByLabelText("Nowy adres e-mail"), "ala@new.edu");
         await actor.click(screen.getByRole("button", { name: "Zmień adres e-mail" }));
 
-        expect(confirmEmailChangeAction).toHaveBeenCalledWith(actionId, "ala@new.edu");
+        expect(confirmEmailChangeAction).toHaveBeenCalledWith(actionId);
         expect(await screen.findByRole("status")).toHaveTextContent("Adres e-mail został zmieniony.");
         expect(screen.getByRole("link", { name: "Przejdź do konta" })).toHaveAttribute("href", "/profile");
         expect(update).toHaveBeenCalledTimes(1);
@@ -55,7 +54,6 @@ describe("ConfirmEmailChangeForm", () => {
         const actor = userEvent.setup();
         renderWithIntl(<ConfirmEmailChangeForm actionId={actionId} />, { locale: "en" });
 
-        await actor.type(screen.getByLabelText("New e-mail address"), "ala@new.edu");
         await actor.click(screen.getByRole("button", { name: "Change e-mail address" }));
 
         expect(await screen.findByRole("alert")).toHaveTextContent("The link may have expired or already been used.");

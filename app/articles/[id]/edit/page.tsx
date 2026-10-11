@@ -43,7 +43,7 @@ export default async function EditArticlePage({ params }: Readonly<{ params: Pro
   const references = (article.references ?? []).flatMap((reference) => (reference ? [reference.doi] : []));
 
   return (
-    <section className="container-page flex flex-col gap-8 py-8 sm:py-12">
+    <section className="container-reading flex flex-col gap-8 pb-6 pt-10 sm:pt-14">
       <div>
         <Link
           href={`/articles/${id}`}
@@ -52,7 +52,7 @@ export default async function EditArticlePage({ params }: Readonly<{ params: Pro
           <ArrowLeft className="size-4" aria-hidden />
           {t("edit.backToArticle")}
         </Link>
-        <h1 className="mt-4 font-serif text-4xl font-medium leading-tight tracking-[-0.02em] sm:text-5xl">{t("edit.title")}</h1>
+        <h1 className="mt-4 title-page">{t("edit.title")}</h1>
         <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">{t("edit.description")}</p>
       </div>
 
