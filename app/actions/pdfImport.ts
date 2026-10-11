@@ -13,8 +13,10 @@ import type { ActionResult } from "@/types/articles";
 
 export type PdfImportProgress = "PENDING" | "PROCESSING";
 
-const pdfImportUrl = (jobId?: string) =>
-    `${serverBackendUrl}/api/v1/articles/pdf-import${jobId ? `/${encodeURIComponent(jobId)}` : ""}`;
+const pdfImportUrl = (jobId?: string) => {
+    const base = `${serverBackendUrl}/api/v1/articles/pdf-import`;
+    return jobId ? `${base}/${encodeURIComponent(jobId)}` : base;
+};
 
 const isAuthRejectedStatus = (status: number) => status === 401 || status === 403;
 

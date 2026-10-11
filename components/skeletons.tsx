@@ -12,8 +12,8 @@ const readingColumn = "mx-auto w-full max-w-[40rem]";
 
 export function LoadingRegion({ label, className, children }: Readonly<{ label: string; className?: string; children: ReactNode }>) {
     return (
-        <div role="status" aria-busy="true" aria-live="polite" className={className}>
-            <span className="sr-only">{label}</span>
+        <div aria-busy="true" className={className}>
+            <output className="sr-only">{label}</output>
             <div aria-hidden className="contents">
                 {children}
             </div>

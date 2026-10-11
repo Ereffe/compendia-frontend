@@ -14,7 +14,7 @@ export const MAX_NAME_LENGTH = 200;
 export const MAX_EMAIL_LENGTH = 200;
 export const MIN_PASSWORD_LENGTH = 8;
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 
 const requiredString = (key: ErrorKey) => z.string(err(key)).trim().min(1, err(key));
 

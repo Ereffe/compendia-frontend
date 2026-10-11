@@ -155,32 +155,30 @@ export default async function AllArticlesPage({
   }
 
   return (
-    <>
-      <div className="container-page flex flex-col gap-8 pb-6 pt-10 sm:pt-14">
-        <div className="border-b border-border pb-6">
-          <h1 className="title-page">{t("title")}</h1>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
-            {t("description")}
-            {data.totalPages > 0 ? (
-              <span className="tabular-nums"> {t("pageOf", { page: page + 1, total: data.totalPages })}.</span>
-            ) : null}
-          </p>
-        </div>
-
-        {data.content.length === 0 ? (
-          <EmptyState message={t("empty")} action={{ href: "/articles/create", label: t("createFirst") }} />
-        ) : (
-          <>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {data.content.map((article) => (
-                <ArticleCard key={article.id} article={mapArticleToSearchItem(article)} />
-              ))}
-            </div>
-
-            {data.totalPages > 1 ? <PaginationControls currentPage={page} totalPages={data.totalPages} /> : null}
-          </>
-        )}
+    <div className="container-page flex flex-col gap-8 pb-6 pt-10 sm:pt-14">
+      <div className="border-b border-border pb-6">
+        <h1 className="title-page">{t("title")}</h1>
+        <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+          {t("description")}
+          {data.totalPages > 0 ? (
+            <span className="tabular-nums"> {t("pageOf", { page: page + 1, total: data.totalPages })}.</span>
+          ) : null}
+        </p>
       </div>
-    </>
+
+      {data.content.length === 0 ? (
+        <EmptyState message={t("empty")} action={{ href: "/articles/create", label: t("createFirst") }} />
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {data.content.map((article) => (
+              <ArticleCard key={article.id} article={mapArticleToSearchItem(article)} />
+            ))}
+          </div>
+
+          {data.totalPages > 1 ? <PaginationControls currentPage={page} totalPages={data.totalPages} /> : null}
+        </>
+      )}
+    </div>
   );
 }

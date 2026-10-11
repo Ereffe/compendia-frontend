@@ -16,7 +16,7 @@ vi.mock("next/navigation", () => ({
     redirect: (path: string) => redirect(path),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: (...args: unknown[]) => revalidatePath(...args) }));
-vi.mock("@/lib/config", () => ({ serverBackendUrl: "http://backend" }));
+vi.mock("@/lib/config", () => ({ serverBackendUrl: "https://backend" }));
 
 const JOB_ID = "0b6f3c1e-2f4a-4c8e-9d1a-5e7b8c9d0a1b";
 
@@ -50,7 +50,7 @@ describe("startPdfImportAction", () => {
         await expect(startPdfImportAction(importForm())).resolves.toEqual({ ok: true, data: { jobId: JOB_ID } });
 
         const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-        expect(url).toBe("http://backend/api/v1/articles/pdf-import");
+        expect(url).toBe("https://backend/api/v1/articles/pdf-import");
         expect(init.method).toBe("POST");
         expect(init.headers).toEqual({ Authorization: "Bearer token" });
         const body = init.body as FormData;
@@ -96,7 +96,7 @@ describe("getPdfImportStatusAction", () => {
         fetchMock.mockResolvedValue(jsonResponse(200, { jobId: JOB_ID, status: "PROCESSING" }));
 
         await expect(getPdfImportStatusAction(JOB_ID)).resolves.toEqual({ ok: true, data: { status: "PROCESSING" } });
-        expect(fetchMock.mock.calls[0][0]).toBe(`http://backend/api/v1/articles/pdf-import/${JOB_ID}`);
+        expect(fetchMock.mock.calls[0][0]).toBe(`https://backend/api/v1/articles/pdf-import/${JOB_ID}`);
     });
 
     it("redirects to the new article when the job is done", async () => {

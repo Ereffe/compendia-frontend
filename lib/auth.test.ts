@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { authOptions } from "./auth";
 
-vi.mock("@/lib/config", () => ({ serverBackendUrl: "http://backend" }));
+vi.mock("@/lib/config", () => ({ serverBackendUrl: "https://backend" }));
 
 const fetchMock = vi.fn();
 
@@ -25,7 +25,7 @@ describe("authOptions", () => {
         await authOptions.events?.signOut?.({ token: { refreshToken: "r1" } as JWT, session: null as never });
 
         expect(fetchMock).toHaveBeenCalledWith(
-            "http://backend/auth/logout",
+            "https://backend/auth/logout",
             expect.objectContaining({ method: "POST", body: JSON.stringify({ refreshToken: "r1" }) }),
         );
     });

@@ -28,21 +28,21 @@ describe("ArticleCard", () => {
         expect(screen.getByText("To krótki opis grafów.")).toBeInTheDocument();
         expect(screen.getByText("Średnie")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "Autor: Anna" })).toHaveAttribute("href", "/users/u-anna");
-        expect(screen.getByRole("img", { name: "5 komentarzy" })).toBeInTheDocument();
-        expect(screen.getByRole("img", { name: /4 pozytywn/ })).toBeInTheDocument();
+        expect(screen.getByText("5 komentarzy")).toBeInTheDocument();
+        expect(screen.getByText(/4 pozytywn/)).toBeInTheDocument();
     });
 
     it("hides the comment count when it wasn't loaded", () => {
         renderWithIntl(<ArticleCard article={{ ...article, commentCount: null, author: null, authorId: null }} />);
 
-        expect(screen.queryByRole("img", { name: /komentarz/ })).not.toBeInTheDocument();
+        expect(screen.queryByText(/komentarz/)).not.toBeInTheDocument();
         expect(screen.getByText("Autor: Nieznany autor")).toBeInTheDocument();
     });
 
     it("hides zero votes and zero comments", () => {
         renderWithIntl(<ArticleCard article={{ ...article, commentCount: 0, rating: { positive: 0, negative: 0 } }} />);
 
-        expect(screen.queryByRole("img", { name: /komentarz/ })).not.toBeInTheDocument();
-        expect(screen.queryByRole("img", { name: /Oceny/ })).not.toBeInTheDocument();
+        expect(screen.queryByText(/komentarz/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Oceny/)).not.toBeInTheDocument();
     });
 });

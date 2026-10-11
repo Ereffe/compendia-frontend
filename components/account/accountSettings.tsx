@@ -72,10 +72,10 @@ function FormError({ error }: Readonly<{ error: ErrorKey | null }>) {
 
 function SuccessNote({ icon, children }: Readonly<{ icon: ReactNode; children: ReactNode }>) {
   return (
-    <p className="flex items-start gap-2 text-sm leading-6 text-foreground" role="status">
+    <output className="flex items-start gap-2 text-sm leading-6 text-foreground">
       <span className="mt-1 text-primary">{icon}</span>
       <span className="min-w-0 wrap-anywhere">{children}</span>
-    </p>
+    </output>
   );
 }
 

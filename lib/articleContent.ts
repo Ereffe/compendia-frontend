@@ -63,8 +63,10 @@ export const articleUrlTransform = (url: string): string => {
     return assetId ? assetProxyPath(assetId) : safeUrl;
 };
 
-const MODEL_PREAMBLE =
-    /^[ \t]*(?:(?:sure|certainly|of course|okay|ok)[,!.]?[ \t]+)?here(?:'s|’s| is| are)\b[^\n]*markdown[^\n]*:[ \t]*\n(?:[ \t]*\n)*(?:[ \t]*-{3,}[ \t]*\n)?/gim;
+const COURTESY_OPENER = String.raw`(?:(?:sure|certainly|of course|okay|ok)[,!.]?[ \t]+)?`;
+const HERE_IS_MARKDOWN_LINE = String.raw`here(?:'s|’s| is| are)\b[^\n]*markdown[^\n]*:[ \t]*\n`;
+const BLANK_LINES_AND_RULE = String.raw`(?:[ \t]*\n)*(?:[ \t]*-{3,}[ \t]*\n)?`;
+const MODEL_PREAMBLE = new RegExp(String.raw`^[ \t]*${COURTESY_OPENER}${HERE_IS_MARKDOWN_LINE}${BLANK_LINES_AND_RULE}`, "gim");
 
 const WHOLE_MARKDOWN_FENCE = /^```(?:markdown|md)[ \t]*\n([\s\S]*?)\n```\s*$/i;
 

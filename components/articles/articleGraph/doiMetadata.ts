@@ -9,7 +9,7 @@ export type CslItem = {
     reference?: { DOI?: string }[];
 };
 
-const stripTags = (text: string) => text.replace(/<[^>]*>/g, " ").split(/\s/).filter(Boolean).join(" ");
+const stripTags = (text: string) => text.replace(/<[^<>]*>/g, " ").split(/\s/).filter(Boolean).join(" ");
 
 const formatName = (name: CslName) =>
     name.family ? [name.family, name.given].filter(Boolean).join(", ") : (name.literal ?? name.name ?? "");

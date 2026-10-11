@@ -3,12 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "./route";
 
-vi.mock("@/lib/config", () => ({ serverBackendUrl: "http://backend" }));
+vi.mock("@/lib/config", () => ({ serverBackendUrl: "https://backend" }));
 
 const ASSET_ID = "0b6f3c1e-2f4a-4c8e-9d1a-5e7b8c9d0a1b";
 const fetchMock = vi.fn();
 
-const get = (assetId: string) => GET(new Request("http://app/api/assets/x"), { params: Promise.resolve({ assetId }) });
+const get = (assetId: string) => GET(new Request("https://app/api/assets/x"), { params: Promise.resolve({ assetId }) });
 
 beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -25,7 +25,7 @@ describe("GET /api/assets/[assetId]", () => {
 
         const response = await get(ASSET_ID);
 
-        expect(fetchMock.mock.calls[0][0]).toBe(`http://backend/api/v1/articles/assets/${ASSET_ID}`);
+        expect(fetchMock.mock.calls[0][0]).toBe(`https://backend/api/v1/articles/assets/${ASSET_ID}`);
         expect(response.status).toBe(200);
         expect(response.headers.get("Content-Type")).toBe("image/png");
         expect(response.headers.get("Cache-Control")).toContain("immutable");

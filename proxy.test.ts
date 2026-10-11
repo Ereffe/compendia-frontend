@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { decode, encode } from "next-auth/jwt";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/config", () => ({ serverBackendUrl: "http://backend" }));
+vi.mock("@/lib/config", () => ({ serverBackendUrl: "https://backend" }));
 
 const SECRET = "test-secret";
 const COOKIE = "next-auth.session-token";
@@ -75,7 +75,7 @@ describe("proxy", () => {
         const response = await proxy(request(await sessionCookie({ accessTokenExpires: Date.now() + 30_000 })));
 
         expect(fetchMock).toHaveBeenCalledWith(
-            "http://backend/auth/refresh",
+            "https://backend/auth/refresh",
             expect.objectContaining({ method: "POST", body: JSON.stringify({ refreshToken: "old-refresh" }) }),
         );
         const cookie = response.cookies.get(COOKIE);

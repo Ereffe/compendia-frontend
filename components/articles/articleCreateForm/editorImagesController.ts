@@ -25,7 +25,7 @@ export const resolveUploadPlaceholder = (content: string, key: string, url: stri
 
 export const stripUploadPlaceholders = (content: string): string => content.replace(PLACEHOLDER, "");
 
-export const createUploadKey = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+export const createUploadKey = () => `${Date.now().toString(36)}${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`;
 
 export type TextSelection = { start: number; end: number };
 

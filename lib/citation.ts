@@ -2,8 +2,10 @@ export type CitationParts = { id: string; author: string | null; title: string; 
 
 const escapeBibtex = (text: string) => text.replace(/[&%#_$]/g, String.raw`\$&`);
 
-export const apaCitation = ({ author, title, date, url }: CitationParts) =>
-    `${author ? `${author}. ` : ""}(${date}). ${title}. Compendia. ${url}`;
+export const apaCitation = ({ author, title, date, url }: CitationParts) => {
+    const authorPart = author ? `${author}. ` : "";
+    return `${authorPart}(${date}). ${title}. Compendia. ${url}`;
+};
 
 export const bibtexCitation = ({ id, author, title, year, url }: CitationParts) =>
     [

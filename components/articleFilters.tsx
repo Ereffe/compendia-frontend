@@ -11,9 +11,9 @@ function FilterRow({ label, children }: Readonly<{ label: string; children: Reac
   return (
     <div className="flex min-w-0 items-baseline gap-4">
       <span className="w-16 shrink-0 text-sm text-muted-foreground">{label}</span>
-      <div role="group" aria-label={label} className="-my-1 flex min-w-0 gap-x-5 overflow-x-auto py-1">
+      <fieldset aria-label={label} className="-my-1 flex min-w-0 gap-x-5 overflow-x-auto py-1">
         {children}
-      </div>
+      </fieldset>
     </div>
   );
 }

@@ -40,13 +40,10 @@ export default function ArticleCard({ article }: Readonly<{ article: ArticleSear
         <span className="flex shrink-0 items-center gap-3">
           {article.rating.positive + article.rating.negative > 0 ? <ArticleRatingBadge rating={article.rating} /> : null}
           {!article.commentCount ? null : (
-            <span
-              className="inline-flex items-center gap-1 tabular-nums"
-              role="img"
-              aria-label={tArticles("commentCount", { count: article.commentCount })}
-            >
+            <span className="inline-flex items-center gap-1 tabular-nums">
+              <span className="sr-only">{tArticles("commentCount", { count: article.commentCount })}</span>
               <MessageSquare className="size-3.5" aria-hidden />
-              {article.commentCount}
+              <span aria-hidden>{article.commentCount}</span>
             </span>
           )}
         </span>

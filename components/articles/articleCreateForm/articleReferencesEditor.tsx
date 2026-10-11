@@ -96,9 +96,9 @@ export default function ArticleReferencesEditor({
         <p className="mt-3 text-sm text-muted-foreground">{t("create.references.empty")}</p>
       )}
 
-      <p className="mt-3 text-xs leading-5 text-muted-foreground empty:hidden" role="status">
+      <output className="mt-3 block text-xs leading-5 text-muted-foreground empty:hidden">
         {fillMessage ? t(`create.metadata.${fillMessage}`) : null}
-      </p>
+      </output>
 
       <div className="mt-5 grid gap-2">
         <label htmlFor={REFERENCE_INPUT_ID} className="text-sm font-medium text-foreground">
@@ -165,40 +165,13 @@ function ReferenceRow({
 }>) {
   const t = useTranslations();
   const node = record?.node ?? null;
-  const authors = node?.authors?.slice(0, MAX_AUTHORS) ?? [];
-  const moreAuthors = (node?.authors?.length ?? 0) - authors.length;
 
   return (
     <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-2 border-t border-border py-4 first:border-t-0 first:pt-0 sm:grid-cols-[2.25rem_minmax(0,1fr)]">
       <span className="pt-px font-serif text-base tabular-nums text-muted-foreground">{index + 1}.</span>
 
       <div className="min-w-0 wrap-anywhere">
-        {record === undefined ? (
-          <div className="grid gap-2 pt-1" aria-label={t("create.references.loading")} role="img">
-            <Skeleton className="h-4 w-4/5" />
-            <Skeleton className="h-3 w-2/5" />
-          </div>
-        ) : node ? (
-          <>
-            <a
-              href={`https://doi.org/${doi}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-serif text-[1.0625rem] font-medium leading-snug text-foreground underline decoration-border decoration-1 underline-offset-[3px] transition-colors hover:decoration-foreground"
-            >
-              {node.title}
-              <ExternalLink className="ml-1 inline size-3.5 align-[-1px] text-muted-foreground" aria-hidden />
-            </a>
-            {authors.length > 0 ? (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {authors.join(", ")}
-                {moreAuthors > 0 ? ` ${t("references.authorsMore", { count: moreAuthors })}` : ""}
-              </p>
-            ) : null}
-          </>
-        ) : (
-          <p className="text-sm text-destructive">{t("create.references.notFound")}</p>
-        )}
+        <ReferenceSummary doi={doi} record={record} />
 
         <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted-foreground">
           <span className="mr-1 font-mono">doi:{doi}</span>
@@ -252,5 +225,41 @@ function ReferenceRow({
         </div>
       </div>
     </li>
+  );
+}
+
+function ReferenceSummary({ doi, record }: Readonly<{ doi: string; record: DoiRecord | undefined }>) {
+  const t = useTranslations();
+  if (record === undefined) {
+    return (
+      <div className="grid gap-2 pt-1">
+        <span className="sr-only">{t("create.references.loading")}</span>
+        <Skeleton className="h-4 w-4/5" aria-hidden />
+        <Skeleton className="h-3 w-2/5" aria-hidden />
+      </div>
+    );
+  }
+  const node = record.node;
+  if (!node) return <p className="text-sm text-destructive">{t("create.references.notFound")}</p>;
+  const authors = node.authors?.slice(0, MAX_AUTHORS) ?? [];
+  const moreAuthors = (node.authors?.length ?? 0) - authors.length;
+  return (
+    <>
+      <a
+        href={`https://doi.org/${doi}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-serif text-[1.0625rem] font-medium leading-snug text-foreground underline decoration-border decoration-1 underline-offset-[3px] transition-colors hover:decoration-foreground"
+      >
+        {node.title}
+        <ExternalLink className="ml-1 inline size-3.5 align-[-1px] text-muted-foreground" aria-hidden />
+      </a>
+      {authors.length > 0 ? (
+        <p className="mt-1 text-sm text-muted-foreground">
+          {authors.join(", ")}
+          {moreAuthors > 0 ? ` ${t("references.authorsMore", { count: moreAuthors })}` : ""}
+        </p>
+      ) : null}
+    </>
   );
 }

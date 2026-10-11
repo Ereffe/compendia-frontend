@@ -13,8 +13,7 @@ export default function LanguageSwitcher({ className }: Readonly<{ className?: s
   const [isPending, startTransition] = useTransition();
 
   return (
-    <div
-      role="group"
+    <fieldset
       aria-label={t("label")}
       className={cn(
         "inline-flex items-center text-sm",
@@ -51,6 +50,6 @@ export default function LanguageSwitcher({ className }: Readonly<{ className?: s
           </button>,
         ];
       })}
-    </div>
+    </fieldset>
   );
 }

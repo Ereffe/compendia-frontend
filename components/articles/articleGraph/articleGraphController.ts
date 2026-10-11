@@ -269,8 +269,7 @@ const circularMean = (angles: number[]): number | null => {
     return Math.hypot(x, y) < 1e-9 ? null : Math.atan2(y, x);
 };
 
-// Rings by depth; each ring is ordered by the mean angle of its neighbours on the adjacent ring so edges stay short.
-export const radialPositions = (elements: CytoscapeElement[]): Map<string, { x: number; y: number }> => {
+const indexElements = (elements: CytoscapeElement[]) => {
     const rings = new Map<number, string[]>();
     const depthOf = new Map<string, number>();
     const neighbours = new Map<string, string[]>();
@@ -284,6 +283,12 @@ export const radialPositions = (elements: CytoscapeElement[]): Map<string, { x: 
             rings.set(element.data.depth, [...(rings.get(element.data.depth) ?? []), element.data.id]);
         }
     }
+    return { rings, depthOf, neighbours };
+};
+
+// Rings by depth; each ring is ordered by the mean angle of its neighbours on the adjacent ring so edges stay short.
+export const radialPositions = (elements: CytoscapeElement[]): Map<string, { x: number; y: number }> => {
+    const { rings, depthOf, neighbours } = indexElements(elements);
 
     const depths = [...rings.keys()].filter((depth) => depth > 0).sort((a, b) => a - b);
     const angle = new Map<string, number>();

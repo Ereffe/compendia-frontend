@@ -31,10 +31,10 @@ function ActionSheet({ title, description, children }: Readonly<{ title: string;
 function ActionDone({ message, href, linkLabel }: Readonly<{ message: string; href: string; linkLabel: string }>) {
   return (
     <div className="flex flex-col items-start gap-4">
-      <p className="flex items-start gap-2 text-sm leading-6" role="status">
+      <output className="flex items-start gap-2 text-sm leading-6">
         <CircleCheck className="mt-1 size-4 shrink-0 text-primary" aria-hidden />
         {message}
-      </p>
+      </output>
       <Button asChild>
         <Link href={href}>{linkLabel}</Link>
       </Button>

@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { signIn } from "next-auth/react";
 
 import type { AuthMode } from "@/lib/auth";
-import { MIN_PASSWORD_LENGTH } from "@/lib/schemas";
+import { EMAIL_PATTERN, MIN_PASSWORD_LENGTH } from "@/lib/schemas";
 import type { LoginErrorKey } from "@/types/errors";
 
 export type { AuthMode } from "@/lib/auth";
@@ -21,8 +21,6 @@ type CreateHandleCredentialsSignInParams = {
 };
 
 export type LoginError = { key: LoginErrorKey; values?: Record<string, number> };
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const validateCredentials = (email: string, password: string, name: string, mode: AuthMode): LoginError | null => {
     if (!email.trim() || !password || (mode === "register" && !name.trim())) {

@@ -30,6 +30,7 @@ import {
   TITLE_MAX_LENGTH,
 } from "./articleCreateFormController";
 import {
+  type ArticleDraft,
   clearDraft,
   DRAFT_SAVE_DELAY_MS,
   forgetInitialDraft,
@@ -51,6 +52,53 @@ const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
 
 const fieldLabel = "text-sm font-medium text-foreground";
 
+const toColorMode = (theme: string | undefined) => (theme === "dark" ? "dark" : "light");
+
+function useEditorColorMode() {
+  const { resolvedTheme } = useTheme();
+  const mounted = useMounted();
+  return mounted ? toColorMode(resolvedTheme) : undefined;
+}
+
+function useSavedDraft(draftKey: string | null) {
+  const [draftDecided, setDraftDecided] = useState(false);
+  const initialDraftRaw = useSyncExternalStore(subscribeToNothing, () => getInitialDraftRaw(draftKey), () => null);
+  useEffect(() => () => forgetInitialDraft(draftKey), [draftKey]);
+  return { savedDraft: draftDecided ? null : parseDraft(initialDraftRaw), decideDraft: () => setDraftDecided(true) };
+}
+
+type FormValues = Pick<EditableArticle, "title" | "content" | "complexity" | "references"> & { doiInput: string; pdfFile: File | null };
+
+const hasUnsavedChanges = (values: FormValues, article: EditableArticle | undefined): boolean => {
+  if (!article) {
+    return Boolean(values.title.trim() || values.content.trim() || values.references.length > 0 || values.doiInput.trim() || values.pdfFile);
+  }
+  return (
+    values.title !== article.title ||
+    values.content !== article.content ||
+    values.complexity !== article.complexity ||
+    !areReferencesEqual(values.references, article.references) ||
+    Boolean(values.doiInput.trim())
+  );
+};
+
+const readContentSelection = (fallback: number) => {
+  const textarea = document.getElementById("content");
+  return textarea instanceof HTMLTextAreaElement
+    ? { start: textarea.selectionStart, end: textarea.selectionEnd }
+    : { start: fallback, end: fallback };
+};
+
+const allowFileDrop = (event: React.DragEvent) => {
+  if (event.dataTransfer.types.includes("Files")) event.preventDefault();
+};
+
+const submitLabelKey =(hasPdf: boolean, isSubmitting: boolean, isEditing: boolean) => {
+  if (hasPdf) return isSubmitting ? "create.pdf.submitting" : "create.pdf.submit";
+  if (isSubmitting) return isEditing ? "edit.submitting" : "create.submitting";
+  return isEditing ? "edit.submit" : "create.submit";
+};
+
 type ArticleCreateFormProps = Readonly<{
   initialScientific?: boolean;
   article?: EditableArticle;
@@ -59,10 +107,7 @@ type ArticleCreateFormProps = Readonly<{
 
 export default function ArticleCreateForm({ initialScientific = false, article, draftOwnerId = null }: ArticleCreateFormProps) {
   const t = useTranslations();
-  const format = useFormatter();
-  const { resolvedTheme } = useTheme();
-  const mounted = useMounted();
-  const editorColorMode = mounted ? (resolvedTheme === "dark" ? "dark" : "light") : undefined;
+  const editorColorMode = useEditorColorMode();
   const isMobile = useIsMobile();
   const isEditing = article !== undefined;
   const initialReferences = article?.references ?? [];
@@ -81,14 +126,10 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [imageError, setImageError] = useState<ErrorKey | null>(null);
   const [fillMessage, setFillMessage] = useState<DoiMetadataMessage | null>(null);
-  const [draftDecided, setDraftDecided] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
 
   const draftKey = isEditing ? null : getDraftKey(draftOwnerId);
-  const initialDraftRaw = useSyncExternalStore(subscribeToNothing, () => getInitialDraftRaw(draftKey), () => null);
-  const savedDraft = draftDecided ? null : parseDraft(initialDraftRaw);
-
-  useEffect(() => () => forgetInitialDraft(draftKey), [draftKey]);
+  const { savedDraft, decideDraft } = useSavedDraft(draftKey);
 
   useEffect(() => {
     if (!draftKey || savedDraft || isSubmitting || isDraftEmpty({ title, content, references })) return;
@@ -108,21 +149,15 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
     setComplexity(savedDraft.complexity);
     setUploadedImages(savedDraft.uploadedImages);
     setDraftSavedAt(savedDraft.savedAt);
-    setDraftDecided(true);
+    decideDraft();
   };
 
   const discardDraft = () => {
     clearDraft(draftKey);
-    setDraftDecided(true);
+    decideDraft();
   };
 
-  const isDirty = article
-    ? title !== article.title ||
-      content !== article.content ||
-      complexity !== article.complexity ||
-      !areReferencesEqual(references, initialReferences) ||
-      Boolean(doiInput.trim())
-    : Boolean(title.trim() || content.trim() || references.length > 0 || doiInput.trim() || pdfFile);
+  const isDirty = hasUnsavedChanges({ title, content, complexity, references, doiInput, pdfFile }, article);
   useEffect(() => {
     if (!isDirty || isSubmitting) return;
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -160,12 +195,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
 
   const handleImageFiles = createHandleImageFiles({
     defaultAlt: t("create.images.defaultAlt"),
-    getSelection: () => {
-      const textarea = document.getElementById("content");
-      return textarea instanceof HTMLTextAreaElement
-        ? { start: textarea.selectionStart, end: textarea.selectionEnd }
-        : { start: content.length, end: content.length };
-    },
+    getSelection: () => readContentSelection(content.length),
     setContent,
     setPendingUploads,
     setImageError,
@@ -185,9 +215,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
     setError(jobError);
   };
 
-  let submitLabel = t(isEditing ? "edit.submit" : "create.submit");
-  if (pdfFile) submitLabel = t(isSubmitting ? "create.pdf.submitting" : "create.pdf.submit");
-  else if (isSubmitting) submitLabel = t(isEditing ? "edit.submitting" : "create.submitting");
+  const submitLabel = t(submitLabelKey(pdfFile !== null, isSubmitting, isEditing));
   const editorLocked = pdfFile !== null;
 
   const handleFillFromMetadata = createHandleFillFromMetadata({
@@ -201,36 +229,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      {savedDraft ? (
-        <div
-          role="region"
-          aria-label={t("create.draft.foundTitle")}
-          className="flex flex-col gap-3 rounded-sm border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div className="flex min-w-0 items-start gap-3">
-            <History className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
-            <div className="min-w-0 text-sm">
-              <p className="font-medium text-foreground">
-                {t("create.draft.foundTitle")}
-                {" · "}
-                <span className="font-normal text-muted-foreground">
-                  {format.dateTime(new Date(savedDraft.savedAt), { dateStyle: "medium", timeStyle: "short" })}
-                </span>
-              </p>
-              {savedDraft.title.trim() ? <p className="mt-0.5 truncate text-muted-foreground">{savedDraft.title}</p> : null}
-              <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{t("create.draft.foundHint")}</p>
-            </div>
-          </div>
-          <div className="flex shrink-0 gap-2">
-            <Button type="button" size="sm" onClick={restoreDraft}>
-              {t("create.draft.restore")}
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={discardDraft}>
-              {t("create.draft.discard")}
-            </Button>
-          </div>
-        </div>
-      ) : null}
+      {savedDraft ? <DraftNotice draft={savedDraft} onRestore={restoreDraft} onDiscard={discardDraft} /> : null}
 
       <div className="sheet flex min-w-0 flex-col overflow-hidden">
         <div className="grid gap-3 border-b border-border px-5 py-5 sm:px-10">
@@ -284,45 +283,10 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
           <label htmlFor="content" className={fieldLabel}>
             {scientific ? t("create.scientificContentLabel") : t("create.contentLabel")}
           </label>
-          <Button asChild variant="ghost" size="sm" className="-mb-1 -mr-2 text-muted-foreground">
-            <label className={cn("cursor-pointer", (isSubmitting || editorLocked) && "pointer-events-none opacity-50")}>
-              <ImagePlus aria-hidden />
-              {t("create.images.insert")}
-              <input
-                type="file"
-                accept={IMAGE_ACCEPT}
-                multiple
-                className="sr-only"
-                disabled={isSubmitting || editorLocked}
-                aria-describedby="content-images-hint"
-                onChange={(event) => {
-                  const files = [...(event.target.files ?? [])];
-                  event.target.value = "";
-                  if (files.length > 0) void handleImageFiles(files);
-                }}
-              />
-            </label>
-          </Button>
+          <ImageInsertButton disabled={isSubmitting || editorLocked} onFiles={(files) => void handleImageFiles(files)} />
         </div>
         <div className="relative px-5 sm:px-10">
-          {pdfFile ? (
-            <div className="absolute inset-0 z-10 flex items-center justify-center px-10 sm:px-16">
-              <div role="status" className="max-w-sm rounded-sm border border-border bg-card px-6 py-5 text-center">
-                <p className="title-item text-foreground">{t("create.pdf.editorLockedTitle")}</p>
-                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{t("create.pdf.editorLocked")}</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                  onClick={() => setPdfFile(null)}
-                  disabled={isSubmitting}
-                >
-                  {t("create.pdf.remove", { name: pdfFile.name })}
-                </Button>
-              </div>
-            </div>
-          ) : null}
+          {pdfFile ? <PdfLockNotice fileName={pdfFile.name} onRemove={() => setPdfFile(null)} disabled={isSubmitting} /> : null}
           <div
             className={cn("overflow-hidden rounded-sm border border-border", editorLocked && "pointer-events-none opacity-40")}
             data-color-mode={editorColorMode}
@@ -346,9 +310,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
                 placeholder: t("create.contentPlaceholder"),
                 "aria-describedby": "content-images-hint",
                 onPaste: (event) => takeImageFiles(event, event.clipboardData.files),
-                onDragOver: (event) => {
-                  if (event.dataTransfer.types.includes("Files")) event.preventDefault();
-                },
+                onDragOver: allowFileDrop,
                 onDrop: (event) => takeImageFiles(event, event.dataTransfer.files),
               }}
               className="rounded-none! bg-background text-sm shadow-none!"
@@ -362,13 +324,7 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
               {t(`errors.${imageError}`)}
             </p>
           ) : null}
-          <p id="content-images-hint" className="text-muted-foreground" aria-live="polite">
-            {editorLocked
-              ? t("create.pdf.editorLocked")
-              : pendingUploads > 0
-                ? t("create.images.uploading", { count: pendingUploads })
-                : t("create.images.hint")}
-          </p>
+          <ContentHint editorLocked={editorLocked} pendingUploads={pendingUploads} />
         </div>
 
         <details className="group px-5 pb-6 pt-3 text-sm text-muted-foreground sm:px-10">
@@ -408,29 +364,147 @@ export default function ArticleCreateForm({ initialScientific = false, article, 
           </div>
         )}
 
-        <div className="flex flex-col gap-4 border-t border-border bg-muted px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-10">
-          <div className="grid min-w-0 gap-1 text-xs leading-5 text-muted-foreground">
-            {error ? (
-              <p className="text-sm text-destructive" role="alert">
-                {t(`errors.${error}`)}
-              </p>
-            ) : null}
-            {draftKey ? (
-              <p aria-live="polite">
-                {draftSavedAt
-                  ? t("create.draft.savedAt", { time: format.dateTime(new Date(draftSavedAt), { timeStyle: "short" }) })
-                  : t("create.draft.autosaveHint")}
-              </p>
-            ) : null}
-            <p>{t(isEditing ? "edit.redirectHint" : "create.redirectHint")}</p>
-          </div>
-          <Button type="submit" size="lg" disabled={isSubmitting || (pendingUploads > 0 && !pdfFile)} className="w-full shrink-0 sm:w-auto">
-            {isSubmitting ? <Spinner className="size-4" /> : null}
-            {submitLabel}
-          </Button>
-        </div>
+        <FormFooter
+          error={error}
+          autosave={draftKey !== null}
+          draftSavedAt={draftSavedAt}
+          isEditing={isEditing}
+          isSubmitting={isSubmitting}
+          submitDisabled={isSubmitting || (pendingUploads > 0 && !pdfFile)}
+          submitLabel={submitLabel}
+        />
       </div>
     </form>
+  );
+}
+
+function FormFooter({
+  error,
+  autosave,
+  draftSavedAt,
+  isEditing,
+  isSubmitting,
+  submitDisabled,
+  submitLabel,
+}: Readonly<{
+  error: ErrorKey | null;
+  autosave: boolean;
+  draftSavedAt: string | null;
+  isEditing: boolean;
+  isSubmitting: boolean;
+  submitDisabled: boolean;
+  submitLabel: string;
+}>) {
+  const t = useTranslations();
+  const format = useFormatter();
+  const autosaveText = draftSavedAt
+    ? t("create.draft.savedAt", { time: format.dateTime(new Date(draftSavedAt), { timeStyle: "short" }) })
+    : t("create.draft.autosaveHint");
+  return (
+    <div className="flex flex-col gap-4 border-t border-border bg-muted px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-10">
+      <div className="grid min-w-0 gap-1 text-xs leading-5 text-muted-foreground">
+        {error ? (
+          <p className="text-sm text-destructive" role="alert">
+            {t(`errors.${error}`)}
+          </p>
+        ) : null}
+        {autosave ? <p aria-live="polite">{autosaveText}</p> : null}
+        <p>{t(isEditing ? "edit.redirectHint" : "create.redirectHint")}</p>
+      </div>
+      <Button type="submit" size="lg" disabled={submitDisabled} className="w-full shrink-0 sm:w-auto">
+        {isSubmitting ? <Spinner className="size-4" /> : null}
+        {submitLabel}
+      </Button>
+    </div>
+  );
+}
+
+function DraftNotice({ draft, onRestore, onDiscard }: Readonly<{ draft: ArticleDraft; onRestore: () => void; onDiscard: () => void }>) {
+  const t = useTranslations("create.draft");
+  const format = useFormatter();
+  return (
+    <section
+      aria-label={t("foundTitle")}
+      className="flex flex-col gap-3 rounded-sm border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div className="flex min-w-0 items-start gap-3">
+        <History className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+        <div className="min-w-0 text-sm">
+          <p className="font-medium text-foreground">
+            {t("foundTitle")}
+            {" · "}
+            <span className="font-normal text-muted-foreground">
+              {format.dateTime(new Date(draft.savedAt), { dateStyle: "medium", timeStyle: "short" })}
+            </span>
+          </p>
+          {draft.title.trim() ? <p className="mt-0.5 truncate text-muted-foreground">{draft.title}</p> : null}
+          <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{t("foundHint")}</p>
+        </div>
+      </div>
+      <div className="flex shrink-0 gap-2">
+        <Button type="button" size="sm" onClick={onRestore}>
+          {t("restore")}
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={onDiscard}>
+          {t("discard")}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function PdfLockNotice({ fileName, onRemove, disabled }: Readonly<{ fileName: string; onRemove: () => void; disabled: boolean }>) {
+  const t = useTranslations("create.pdf");
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center px-10 sm:px-16">
+      <div className="max-w-sm rounded-sm border border-border bg-card px-6 py-5 text-center">
+        <output className="block">
+          <span className="title-item block text-foreground">{t("editorLockedTitle")}</span>
+          <span className="mt-1.5 block text-sm leading-6 text-muted-foreground">{t("editorLocked")}</span>
+        </output>
+        <Button type="button" variant="outline" size="sm" className="mt-4" onClick={onRemove} disabled={disabled}>
+          {t("remove", { name: fileName })}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ImageInsertButton({ disabled, onFiles }: Readonly<{ disabled: boolean; onFiles: (files: File[]) => void }>) {
+  const t = useTranslations("create.images");
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = [...(event.target.files ?? [])];
+    event.target.value = "";
+    if (files.length > 0) onFiles(files);
+  };
+  return (
+    <Button asChild variant="ghost" size="sm" className="-mb-1 -mr-2 text-muted-foreground">
+      <label className={cn("cursor-pointer", disabled && "pointer-events-none opacity-50")}>
+        <ImagePlus aria-hidden />
+        {t("insert")}
+        <input
+          type="file"
+          accept={IMAGE_ACCEPT}
+          multiple
+          className="sr-only"
+          disabled={disabled}
+          aria-describedby="content-images-hint"
+          onChange={handleChange}
+        />
+      </label>
+    </Button>
+  );
+}
+
+function ContentHint({ editorLocked, pendingUploads }: Readonly<{ editorLocked: boolean; pendingUploads: number }>) {
+  const t = useTranslations("create");
+  let hint = t("images.hint");
+  if (editorLocked) hint = t("pdf.editorLocked");
+  else if (pendingUploads > 0) hint = t("images.uploading", { count: pendingUploads });
+  return (
+    <p id="content-images-hint" className="text-muted-foreground" aria-live="polite">
+      {hint}
+    </p>
   );
 }
 

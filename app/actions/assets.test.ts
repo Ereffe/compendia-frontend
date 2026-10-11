@@ -10,7 +10,7 @@ const redirect = vi.fn((path: string) => {
 
 vi.mock("@/lib/server/session", () => ({ getAccessToken: () => getAccessToken() }));
 vi.mock("next/navigation", () => ({ redirect: (path: string) => redirect(path) }));
-vi.mock("@/lib/config", () => ({ serverBackendUrl: "http://backend" }));
+vi.mock("@/lib/config", () => ({ serverBackendUrl: "https://backend" }));
 
 const ASSET_ID = "0b6f3c1e-2f4a-4c8e-9d1a-5e7b8c9d0a1b";
 const PNG_BYTES = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3];
@@ -41,7 +41,7 @@ describe("uploadImageAction", () => {
         await expect(uploadImageAction(imageForm(png()))).resolves.toEqual({ ok: true, data: { assetId: ASSET_ID } });
 
         const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-        expect(url).toBe("http://backend/api/v1/articles/assets");
+        expect(url).toBe("https://backend/api/v1/articles/assets");
         expect(init.headers).toEqual({ Authorization: "Bearer token" });
         const file = (init.body as FormData).get("file") as File;
         expect(file.name).toBe("image.png");

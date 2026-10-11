@@ -58,29 +58,7 @@ export default function ArticleGraphContainer({
                     </Button>
                 </div>
 
-                {expanded ? (
-                    references.length > 1 ? (
-                        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-                            <span className="text-sm text-muted-foreground">{t("reference")}</span>
-                            <Select value={selected.doi} onValueChange={setSelectedDoi}>
-                                <SelectTrigger className="w-full min-w-0 bg-background sm:max-w-md" aria-label={t("chooseReference")}>
-                                    <SelectValue placeholder={t("chooseReference")} />
-                                </SelectTrigger>
-                                <SelectContent className="max-w-[min(36rem,calc(100vw-2rem))]">
-                                    {references.map((reference) => (
-                                        <SelectItem key={reference.doi} value={reference.doi}>
-                                            <span className="truncate">{reference.title || reference.doi}</span>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    ) : (
-                        <p className="truncate text-sm text-muted-foreground">
-                            {t("reference")}: <span className="font-serif text-base text-foreground">{selected.title || selected.doi}</span>
-                        </p>
-                    )
-                ) : null}
+                {expanded ? <ReferencePicker references={references} selected={selected} onSelect={setSelectedDoi} /> : null}
             </header>
 
             {expanded && selected ? (
@@ -88,6 +66,38 @@ export default function ArticleGraphContainer({
                     <ArticleGraph key={selected.doi} doi={selected.doi} initialLevel={2} />
                 </div>
             ) : null}
+        </div>
+    );
+}
+
+function ReferencePicker({
+    references,
+    selected,
+    onSelect,
+}: Readonly<{ references: GraphReference[]; selected: GraphReference; onSelect: (doi: string) => void }>) {
+    const t = useTranslations("graph");
+    if (references.length === 1) {
+        return (
+            <p className="truncate text-sm text-muted-foreground">
+                {t("reference")}: <span className="font-serif text-base text-foreground">{selected.title || selected.doi}</span>
+            </p>
+        );
+    }
+    return (
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+            <span className="text-sm text-muted-foreground">{t("reference")}</span>
+            <Select value={selected.doi} onValueChange={onSelect}>
+                <SelectTrigger className="w-full min-w-0 bg-background sm:max-w-md" aria-label={t("chooseReference")}>
+                    <SelectValue placeholder={t("chooseReference")} />
+                </SelectTrigger>
+                <SelectContent className="max-w-[min(36rem,calc(100vw-2rem))]">
+                    {references.map((reference) => (
+                        <SelectItem key={reference.doi} value={reference.doi}>
+                            <span className="truncate">{reference.title || reference.doi}</span>
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
     );
 }

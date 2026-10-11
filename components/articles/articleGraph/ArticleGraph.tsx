@@ -16,7 +16,7 @@ import {
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type Dispatch, type ReactNode, type SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { GraphCanvasSkeleton, LoadingRegion } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
@@ -82,12 +82,84 @@ async function loadRecord(doi: string, isRoot: boolean): Promise<LoadedRecord> {
     }
 }
 
-type Hover = { node: CytoscapeNodeData; x: number; y: number };
+function useRecordLoader(
+    nextLookup: string | null,
+    rootId: string,
+    setRecords: Dispatch<SetStateAction<ReadonlyMap<string, DoiRecord>>>,
+    setFallbackNodes: Dispatch<SetStateAction<ReadonlyMap<string, GraphNode>>>,
+) {
+    useEffect(() => {
+        if (!nextLookup) return;
+        void loadRecord(nextLookup, toNodeId(nextLookup) === rootId).then(({ record, fallbackNodes: found }) => {
+            setRecords((previous) => new Map(previous).set(toNodeId(nextLookup), record));
+            if (found.length > 0) {
+                setFallbackNodes((previous) => new Map([...previous, ...found.map((node) => [toNodeId(node.doi), node] as const)]));
+            }
+        });
+    }, [nextLookup, rootId, setRecords, setFallbackNodes]);
+}
+
+type Hover ={ node: CytoscapeNodeData; x: number; y: number };
 
 const readSerifFont = () => {
     const serif = getComputedStyle(document.body).getPropertyValue("--font-source-serif").trim();
     return serif ? `${serif}, ui-serif, Georgia, serif` : getComputedStyle(document.body).fontFamily || "serif";
 };
+
+const clearHighlight = (cy: cytoscape.Core) => {
+    cy.batch(() => {
+        cy.elements().removeClass("faded highlighted");
+        cy.nodes().not(":selected").removeClass("labeled");
+    });
+};
+
+const zoomGraph = (cy: cytoscape.Core | null, factor: number) => {
+    if (!cy) return;
+    cy.animate({ zoom: { level: cy.zoom() * factor, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }, duration: 180 });
+};
+
+const exportGraphPng = (cy: cytoscape.Core | null, background: string, doi: string) => {
+    if (!cy) return;
+    const link = document.createElement("a");
+    link.href = cy.png({ full: true, scale: 2, bg: background });
+    link.download = `${doi.replaceAll("/", "_")}-graph.png`;
+    link.click();
+};
+
+function bindGraphEvents(cy: cytoscape.Core, onHover: (hover: Hover | null) => void, onSelect: (nodeId: string | null) => void) {
+    cy.minZoom(0.25);
+    cy.maxZoom(3);
+
+    cy.on("mouseover", "node", (evt) => {
+        const node = evt.target as cytoscape.NodeSingular;
+        cy.batch(() => {
+            cy.elements().addClass("faded");
+            node.closedNeighborhood().removeClass("faded").addClass("highlighted");
+            node.addClass("labeled");
+        });
+        const position = node.renderedPosition();
+        onHover({ node: node.data() as CytoscapeNodeData, x: position.x, y: position.y });
+        cy.container()?.style.setProperty("cursor", "pointer");
+    });
+    cy.on("mouseout", "node", () => {
+        clearHighlight(cy);
+        onHover(null);
+        cy.container()?.style.removeProperty("cursor");
+    });
+    cy.on("pan zoom", () => onHover(null));
+    cy.on("tap", "node", (evt) => {
+        const node = evt.target as cytoscape.NodeSingular;
+        cy.nodes().removeClass("labeled");
+        node.addClass("labeled");
+        onSelect(node.id());
+    });
+    cy.on("tap", (evt) => {
+        if (evt.target === cy) {
+            cy.nodes().unselect().removeClass("labeled");
+            onSelect(null);
+        }
+    });
+}
 
 export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: string; initialLevel?: number }>) {
     const t = useTranslations("graph");
@@ -109,15 +181,7 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
     const selectedNode = selectedId ? (elements.find((element) => element.data.id === selectedId)?.data as CytoscapeNodeData | undefined) ?? null : null;
     const nextLookup = pickNextLookup(elements, records, selectedId);
 
-    useEffect(() => {
-        if (!nextLookup) return;
-        void loadRecord(nextLookup, toNodeId(nextLookup) === rootId).then(({ record, fallbackNodes: found }) => {
-            setRecords((previous) => new Map(previous).set(toNodeId(nextLookup), record));
-            if (found.length > 0) {
-                setFallbackNodes((previous) => new Map([...previous, ...found.map((node) => [toNodeId(node.doi), node] as const)]));
-            }
-        });
-    }, [nextLookup, rootId]);
+    useRecordLoader(nextLookup, rootId, setRecords, setFallbackNodes);
 
     const rootRecord = records.get(rootId);
     const budgetLeft = records.size < MAX_DOI_LOOKUPS;
@@ -125,9 +189,6 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
     const loadingDepth = citation.waiting && budgetLeft && !initialLoading;
     const depthLimited = citation.waiting && !budgetLeft;
     const isEmpty = rootRecord !== undefined && citation.graph.scienceArticleGraph.edges.length === 0;
-    const selectedRecord = selectedNode ? records.get(selectedNode.id) : undefined;
-    const selectedExpanded = selectedNode ? expanded.has(selectedNode.id) : false;
-    const expandError = selectedExpanded && selectedRecord?.references.length === 0;
 
     const expandNode = (nodeId: string) => setExpanded((previous) => new Set(previous).add(nodeId));
 
@@ -145,73 +206,22 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
     const layout = useMemo(() => Object.assign(buildLayout(layoutName, radial), { structureKey }), [layoutName, radial, structureKey]);
     const palette = getPalette(resolvedTheme);
 
-    const clearHighlight = useCallback((cy: cytoscape.Core) => {
-        cy.batch(() => {
-            cy.elements().removeClass("faded highlighted");
-            cy.nodes().not(":selected").removeClass("labeled");
-        });
+    const bindCy = useCallback((cy: cytoscape.Core) => {
+        if (cyRef.current === cy) return;
+        cyRef.current?.removeAllListeners();
+        cyRef.current = cy;
+        setFontFamily(readSerifFont());
+        bindGraphEvents(cy, setHover, setSelectedId);
     }, []);
-
-    const bindCy = useCallback(
-        (cy: cytoscape.Core) => {
-            if (cyRef.current === cy) return;
-            cyRef.current?.removeAllListeners();
-            cyRef.current = cy;
-            setFontFamily(readSerifFont());
-            cy.minZoom(0.25);
-            cy.maxZoom(3);
-
-            cy.on("mouseover", "node", (evt) => {
-                const node = evt.target as cytoscape.NodeSingular;
-                cy.batch(() => {
-                    cy.elements().addClass("faded");
-                    node.closedNeighborhood().removeClass("faded").addClass("highlighted");
-                    node.addClass("labeled");
-                });
-                const position = node.renderedPosition();
-                setHover({ node: node.data() as CytoscapeNodeData, x: position.x, y: position.y });
-                cy.container()?.style.setProperty("cursor", "pointer");
-            });
-            cy.on("mouseout", "node", () => {
-                clearHighlight(cy);
-                setHover(null);
-                cy.container()?.style.removeProperty("cursor");
-            });
-            cy.on("pan zoom", () => setHover(null));
-            cy.on("tap", "node", (evt) => {
-                const node = evt.target as cytoscape.NodeSingular;
-                cy.nodes().removeClass("labeled");
-                node.addClass("labeled");
-                setSelectedId(node.id());
-            });
-            cy.on("tap", (evt) => {
-                if (evt.target === cy) {
-                    cy.nodes().unselect().removeClass("labeled");
-                    setSelectedId(null);
-                }
-            });
-        },
-        [clearHighlight],
-    );
 
     const clearSelection = () => {
         cyRef.current?.nodes().unselect().removeClass("labeled");
         setSelectedId(null);
     };
 
-    const zoomBy = (factor: number) => {
-        const cy = cyRef.current;
-        if (!cy) return;
-        cy.animate({ zoom: { level: cy.zoom() * factor, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }, duration: 180 });
-    };
+    const zoomBy = (factor: number) => zoomGraph(cyRef.current, factor);
 
-    const exportPng = () => {
-        if (!cyRef.current) return;
-        const link = document.createElement("a");
-        link.href = cyRef.current.png({ full: true, scale: 2, bg: palette.paper });
-        link.download = `${doi.replaceAll("/", "_")}-graph.png`;
-        link.click();
-    };
+    const exportPng = () => exportGraphPng(cyRef.current, palette.paper, doi);
 
     const hasGraph = !initialLoading && !isEmpty && elements.length > 0;
 
@@ -234,16 +244,7 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                     ))}
                 </TextTabs>
 
-                {rootRecord ? (
-                    <div className="-mr-2 ml-auto flex items-center">
-                        <IconButton label={t("refresh")} onClick={refresh}>
-                            <RotateCw className={cn(loadingDepth && "animate-spin")} />
-                        </IconButton>
-                        <IconButton label={t("exportPng")} onClick={exportPng} disabled={!hasGraph}>
-                            <Download />
-                        </IconButton>
-                    </div>
-                ) : null}
+                {rootRecord ? <GraphActions loading={loadingDepth} canExport={hasGraph} onRefresh={refresh} onExport={exportPng} /> : null}
             </div>
 
             <div className="grid lg:grid-cols-[minmax(0,1fr)_17rem]">
@@ -260,30 +261,13 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                     ) : null}
 
                     {hasGraph ? (
-                        <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-sm border border-border bg-card">
-                            <IconButton label={t("zoomIn")} onClick={() => zoomBy(1.25)} className="rounded-none">
-                                <Plus />
-                            </IconButton>
-                            <IconButton label={t("zoomOut")} onClick={() => zoomBy(0.8)} className="rounded-none border-y border-border">
-                                <Minus />
-                            </IconButton>
-                            <IconButton label={t("fit")} onClick={() => cyRef.current?.animate({ fit: { eles: cyRef.current.elements(), padding: 36 }, duration: 250 })} className="rounded-none">
-                                <Maximize2 />
-                            </IconButton>
-                        </div>
+                        <ZoomControls
+                            onZoom={zoomBy}
+                            onFit={() => cyRef.current?.animate({ fit: { eles: cyRef.current.elements(), padding: 36 }, duration: 250 })}
+                        />
                     ) : null}
 
-                    {hover && hover.node.id !== selectedNode?.id ? (
-                        <div
-                            className="pointer-events-none absolute z-10 max-w-64 -translate-x-1/2 -translate-y-full rounded-sm border border-border bg-popover px-3 py-2 text-xs text-popover-foreground"
-                            style={{ left: hover.x, top: hover.y - 14 }}
-                        >
-                            <p className="line-clamp-2 font-serif text-sm leading-snug">{hover.node.title ?? hover.node.doi}</p>
-                            <p className="mt-0.5 text-muted-foreground">
-                                {hover.node.kind === "root" ? t("legend.root") : t("depthBadge", { depth: hover.node.depth })}
-                            </p>
-                        </div>
-                    ) : null}
+                    {hover && hover.node.id !== selectedNode?.id ? <HoverCard hover={hover} /> : null}
 
                     {initialLoading ? (
                         <LoadingRegion label={t("loading")} className="absolute inset-0">
@@ -298,43 +282,159 @@ export default function ArticleGraph({ doi, initialLevel = 2 }: Readonly<{ doi: 
                     {isEmpty ? <CanvasState title={t("empty")} description={t("emptyHint")} /> : null}
                 </div>
 
-                <aside className="border-t border-border p-4 sm:p-5 lg:border-l lg:border-t-0">
-                    {expandError ? (
-                        <p role="alert" className="mb-3 text-xs text-destructive">
-                            {t("expandFailed")}
-                        </p>
-                    ) : null}
-                    {selectedNode ? (
-                        <NodeDetails
-                            node={selectedNode}
-                            expanding={selectedExpanded && !selectedRecord}
-                            canExpand={!selectedExpanded && selectedNode.depth >= citation.shownDepth && (selectedRecord?.references.length ?? 1) > 0}
-                            lookingUp={!selectedRecord && budgetLeft}
-                            onExpand={() => expandNode(selectedNode.id)}
-                            onClose={clearSelection}
-                        />
-                    ) : (
-                        <p className="flex h-full items-center text-sm text-muted-foreground">{t("selectHint")}</p>
-                    )}
-                </aside>
+                <GraphSidebar
+                    node={selectedNode}
+                    records={records}
+                    expandedIds={expanded}
+                    shownDepth={citation.shownDepth}
+                    budgetLeft={budgetLeft}
+                    onExpand={expandNode}
+                    onClose={clearSelection}
+                />
             </div>
 
-            {hasGraph ? (
-                <figcaption className="flex flex-wrap items-baseline gap-x-5 gap-y-1.5 border-t border-border px-4 py-3 text-sm text-muted-foreground sm:px-6">
-                    <span>
-                        <span className="font-serif italic text-foreground">{t("figure")}</span>{" "}
-                        {t("papers", { count: stats.papers })}, {t("links", { count: stats.links })}.
-                        {depthLimited ? ` ${t("depthLimited", { depth: citation.shownDepth })}` : null}
-                        {citation.hidden > 0 ? ` ${t("hiddenPapers", { count: citation.hidden })}.` : null}
-                    </span>
-                    <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                        <LegendItem kind="root" label={t("legend.root")} />
-                        <LegendItem kind="cited" label={t("legend.cited")} />
-                        {stats.missing > 0 ? <LegendItem kind="missing" label={t("legend.missing")} /> : null}
-                    </span>
-                </figcaption>
-            ) : null}
+            {hasGraph ? <GraphCaption stats={stats} shownDepth={citation.shownDepth} hidden={citation.hidden} depthLimited={depthLimited} /> : null}
         </figure>
+    );
+}
+
+function GraphSidebar({
+    node,
+    records,
+    expandedIds,
+    shownDepth,
+    budgetLeft,
+    onExpand,
+    onClose,
+}: Readonly<{
+    node: CytoscapeNodeData | null;
+    records: ReadonlyMap<string, DoiRecord>;
+    expandedIds: ReadonlySet<string>;
+    shownDepth: number;
+    budgetLeft: boolean;
+    onExpand: (nodeId: string) => void;
+    onClose: () => void;
+}>) {
+    const t = useTranslations("graph");
+    const record = node ? records.get(node.id) : undefined;
+    const expanded = node ? expandedIds.has(node.id) : false;
+    const expandError = expanded && record?.references.length === 0;
+    return (
+        <aside className="border-t border-border p-4 sm:p-5 lg:border-l lg:border-t-0">
+            {expandError ? (
+                <p role="alert" className="mb-3 text-xs text-destructive">
+                    {t("expandFailed")}
+                </p>
+            ) : null}
+            {node ? (
+                <NodeDetails
+                    node={node}
+                    expanding={expanded && !record}
+                    canExpand={!expanded && node.depth >= shownDepth && (record?.references.length ?? 1) > 0}
+                    lookingUp={!record && budgetLeft}
+                    onExpand={() => onExpand(node.id)}
+                    onClose={onClose}
+                />
+            ) : (
+                <p className="flex h-full items-center text-sm text-muted-foreground">{t("selectHint")}</p>
+            )}
+        </aside>
+    );
+}
+
+function GraphActions({
+    loading,
+    canExport,
+    onRefresh,
+    onExport,
+}: Readonly<{ loading: boolean; canExport: boolean; onRefresh: () => void; onExport: () => void }>) {
+    const t = useTranslations("graph");
+    return (
+        <div className="-mr-2 ml-auto flex items-center">
+            <IconButton label={t("refresh")} onClick={onRefresh}>
+                <RotateCw className={cn(loading && "animate-spin")} />
+            </IconButton>
+            <IconButton label={t("exportPng")} onClick={onExport} disabled={!canExport}>
+                <Download />
+            </IconButton>
+        </div>
+    );
+}
+
+function ZoomControls({ onZoom, onFit }: Readonly<{ onZoom: (factor: number) => void; onFit: () => void }>) {
+    const t = useTranslations("graph");
+    return (
+        <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-sm border border-border bg-card">
+            <IconButton label={t("zoomIn")} onClick={() => onZoom(1.25)} className="rounded-none">
+                <Plus />
+            </IconButton>
+            <IconButton label={t("zoomOut")} onClick={() => onZoom(0.8)} className="rounded-none border-y border-border">
+                <Minus />
+            </IconButton>
+            <IconButton label={t("fit")} onClick={onFit} className="rounded-none">
+                <Maximize2 />
+            </IconButton>
+        </div>
+    );
+}
+
+function HoverCard({ hover }: Readonly<{ hover: Hover }>) {
+    const t = useTranslations("graph");
+    return (
+        <div
+            className="pointer-events-none absolute z-10 max-w-64 -translate-x-1/2 -translate-y-full rounded-sm border border-border bg-popover px-3 py-2 text-xs text-popover-foreground"
+            style={{ left: hover.x, top: hover.y - 14 }}
+        >
+            <p className="line-clamp-2 font-serif text-sm leading-snug">{hover.node.title ?? hover.node.doi}</p>
+            <p className="mt-0.5 text-muted-foreground">
+                {hover.node.kind === "root" ? t("legend.root") : t("depthBadge", { depth: hover.node.depth })}
+            </p>
+        </div>
+    );
+}
+
+function GraphCaption({
+    stats,
+    shownDepth,
+    hidden,
+    depthLimited,
+}: Readonly<{ stats: ReturnType<typeof getGraphStats>; shownDepth: number; hidden: number; depthLimited: boolean }>) {
+    const t = useTranslations("graph");
+    return (
+        <figcaption className="flex flex-wrap items-baseline gap-x-5 gap-y-1.5 border-t border-border px-4 py-3 text-sm text-muted-foreground sm:px-6">
+            <span>
+                <span className="font-serif italic text-foreground">{t("figure")}</span>{" "}
+                {t("papers", { count: stats.papers })}, {t("links", { count: stats.links })}.
+                {depthLimited ? ` ${t("depthLimited", { depth: shownDepth })}` : null}
+                {hidden > 0 ? ` ${t("hiddenPapers", { count: hidden })}.` : null}
+            </span>
+            <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                <LegendItem kind="root" label={t("legend.root")} />
+                <LegendItem kind="cited" label={t("legend.cited")} />
+                {stats.missing > 0 ? <LegendItem kind="missing" label={t("legend.missing")} /> : null}
+            </span>
+        </figcaption>
+    );
+}
+
+function NodeSummary({ node, lookingUp }: Readonly<{ node: CytoscapeNodeData; lookingUp: boolean }>) {
+    const t = useTranslations("graph");
+    if (lookingUp) {
+        return (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Spinner className="size-3.5" /> {t("lookingUp")}
+            </p>
+        );
+    }
+    if (node.kind === "missing") return <p className="text-sm text-muted-foreground">{t("missingDescription")}</p>;
+    const shownAuthors = node.authors.slice(0, 3);
+    if (shownAuthors.length === 0) return null;
+    const moreAuthors = node.authors.length - shownAuthors.length;
+    return (
+        <p className="text-sm text-muted-foreground">
+            {shownAuthors.join(", ")}
+            {moreAuthors > 0 ? ` ${t("authorsMore", { count: moreAuthors })}` : ""}
+        </p>
     );
 }
 
@@ -355,8 +455,6 @@ function NodeDetails({
 }>) {
     const t = useTranslations("graph");
     const [copied, setCopied] = useState(false);
-    const shownAuthors = node.authors.slice(0, 3);
-    const moreAuthors = node.authors.length - shownAuthors.length;
 
     const copyDoi = async () => {
         try {
@@ -382,18 +480,7 @@ function NodeDetails({
 
             <p className="line-clamp-5 font-serif text-lg leading-snug text-foreground">{node.title ?? node.doi}</p>
 
-            {lookingUp ? (
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Spinner className="size-3.5" /> {t("lookingUp")}
-                </p>
-            ) : node.kind === "missing" ? (
-                <p className="text-sm text-muted-foreground">{t("missingDescription")}</p>
-            ) : shownAuthors.length > 0 ? (
-                <p className="text-sm text-muted-foreground">
-                    {shownAuthors.join(", ")}
-                    {moreAuthors > 0 ? ` ${t("authorsMore", { count: moreAuthors })}` : ""}
-                </p>
-            ) : null}
+            <NodeSummary node={node} lookingUp={lookingUp} />
 
             <div className="flex items-center gap-1">
                 <code className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">doi:{node.doi}</code>
@@ -423,9 +510,9 @@ function TextTabs({ label, hint, children }: Readonly<{ label: string; hint?: st
     return (
         <div className="flex items-baseline gap-3" title={hint}>
             <span className="text-sm text-muted-foreground">{label}</span>
-            <div role="group" aria-label={label} className="flex items-baseline gap-3">
+            <fieldset aria-label={label} className="flex min-w-0 items-baseline gap-3">
                 {children}
-            </div>
+            </fieldset>
         </div>
     );
 }
