@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import TermsDialog from "@/components/terms/termsDialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { type AuthMode, createHandleCredentialsSignIn, type LoginError } from "./loginCardController";
 
@@ -17,6 +19,8 @@ export default function LoginCard() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<LoginError | null>(null);
 
@@ -27,6 +31,7 @@ export default function LoginCard() {
     email,
     password,
     name,
+    acceptedTerms,
     isLoading,
     setError,
     setIsLoading,
@@ -83,10 +88,34 @@ export default function LoginCard() {
           />
         </div>
 
+        {mode === "register" ? (
+          <div className="flex items-start gap-2.5">
+            <Checkbox
+              id="accept-terms"
+              checked={acceptedTerms}
+              onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+              className="mt-0.5"
+            />
+            <p className="text-sm leading-5 text-foreground">
+              <label htmlFor="accept-terms">{t("acceptTerms")}</label>
+              <span aria-hidden> · </span>
+              <button
+                type="button"
+                onClick={() => setIsTermsOpen(true)}
+                className="font-medium text-link underline-offset-[3px] hover:underline"
+              >
+                {t("readTerms")}
+              </button>
+            </p>
+          </div>
+        ) : null}
+
         <Button type="submit" disabled={isLoading} className="mt-2 h-10 justify-self-start px-6">
           {isLoading ? `${actionLabel}…` : actionLabel}
         </Button>
       </form>
+
+      <TermsDialog open={isTermsOpen} onOpenChange={setIsTermsOpen} onAccept={() => setAcceptedTerms(true)} />
 
       {error ? (
         <p className="mt-4 text-sm text-destructive" role="alert">

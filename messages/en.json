@@ -53,7 +53,8 @@
     "dark": "Dark theme"
   },
   "footer": {
-    "tagline": "Educational and scientific articles for students and lecturers."
+    "tagline": "Educational and scientific articles for students and lecturers.",
+    "terms": "Terms of service"
   },
   "landing": {
     "title": "Articles for learning, with their sources in plain view.",
@@ -86,8 +87,225 @@
       "invalidCredentials": "Invalid e-mail or password.",
       "emailTaken": "An account with this e-mail already exists.",
       "backendUnavailable": "The server is unavailable. Please try again shortly.",
-      "loginFailed": "Sign-in failed. Please try again."
-    }
+      "loginFailed": "Sign-in failed. Please try again.",
+      "termsNotAccepted": "Accept the terms of service to create an account."
+    },
+    "acceptTerms": "I accept the terms of service",
+    "readTerms": "Read the terms"
+  },
+  "terms": {
+    "title": "Terms of service",
+    "description": "The rules for using Compendia: your account, publishing articles, comments, copyright, personal data and reporting content.",
+    "effective": "Effective from 11 October 2026.",
+    "sections": [
+      {
+        "title": "General provisions",
+        "body": [
+          "These terms set out the rules for using the Compendia website, the types and scope of services provided electronically, the conditions for entering into and terminating agreements for those services, and the complaint procedure. They are terms and conditions within the meaning of Article 8 of the Polish Act of 18 July 2002 on Providing Services by Electronic Means.",
+          "In these terms:",
+          [
+            "Service means the Compendia online platform for publishing, reading and discussing educational and scientific articles, including the citation graph of scientific publications;",
+            "Operator means the entity running the Service, identified in § 2;",
+            "User means a natural person using the Service, including a person who browses its public parts without signing in;",
+            "Account means individual, password-protected access to the Service's features, created at sign-up;",
+            "Content means any material posted to the Service by Users, in particular articles, comments, images, links, ratings and profile data;",
+            "Article means Content published as a regular or scientific article, including an article created from a PDF file;",
+            "Terms means this document."
+          ],
+          "Signing up for the Service requires reading and accepting these Terms. Using the Service without an Account means agreeing to the provisions of these Terms that apply to signed-out visitors.",
+          "These Terms are available free of charge at /terms in a form that allows them to be obtained, reproduced and stored, in particular by printing or saving the page in a browser."
+        ]
+      },
+      {
+        "title": "Operator and contact",
+        "body": [
+          "The Service is operated by [operator name, address]. The Service was created as part of a thesis project and is developed for educational, non-commercial purposes.",
+          "The Operator can be contacted at [contact e-mail address]. The same address is the single point of contact for Users and for the authorities of EU Member States under Articles 11 and 12 of Regulation (EU) 2022/2065 (the Digital Services Act). Correspondence may be in Polish or English."
+        ]
+      },
+      {
+        "title": "Types and scope of services",
+        "body": [
+          "Through the Service, the Operator provides the following services:",
+          [
+            "browsing the list of recently published articles without an Account;",
+            "creating and maintaining an Account, including changing your name, e-mail address and password;",
+            "publishing, editing and deleting your own regular and scientific articles, written in Markdown and with images;",
+            "adding a bibliography of DOI identifiers to scientific articles and exploring the citation graph built from it;",
+            "creating an article from an uploaded PDF file;",
+            "reading other Users' articles, rating them, and adding and deleting comments;",
+            "searching for articles and authors and viewing Users' public profiles;",
+            "generating a citation for an article (for example in APA style or as BibTeX)."
+          ],
+          "The services are free of charge. The Operator may extend, change or limit the Service's features, in particular as the Service develops. A change that restricts the rights of Users with an Account requires an amendment of these Terms under § 17.",
+          "The agreement to browse the Service without an Account is concluded when a page of the Service is opened and ends when the User leaves it. The Account agreement is concluded for an indefinite period when sign-up is completed."
+        ]
+      },
+      {
+        "title": "Technical requirements",
+        "body": [
+          "To use the Service you need a device with internet access, an up-to-date web browser (such as Chrome, Edge, Firefox or Safari) with JavaScript and cookies enabled, and, for an Account, an active e-mail address.",
+          "Using services provided electronically carries the usual risks, such as malware, phishing and interception of traffic on unsecured networks. The Operator recommends keeping your software and antivirus up to date, avoiding unencrypted public networks and never entering your password on sites other than the Service. The Operator will never ask for your password by e-mail."
+        ]
+      },
+      {
+        "title": "Sign-up and Account",
+        "body": [
+          "To sign up, you provide a name (or pseudonym), an e-mail address and a password of at least 8 characters, and accept these Terms. You must be at least 16 years old to create an Account; minors should use the Service with the knowledge of a parent or legal guardian.",
+          "You agree to provide accurate information, in particular an e-mail address you have access to, and to keep it up to date in your Account settings. The name you give at sign-up is shown publicly as the author of your articles and comments.",
+          "Your Account is personal. You may not share it with others or use someone else's Account. You are responsible for keeping your password secret and must tell the Operator without delay if you suspect someone else has accessed your Account.",
+          "An Account may have a role (such as student, lecturer or administrator). Roles are informational and organisational; the Operator may assign or change a role, in particular after verifying an academic affiliation.",
+          "For security, your session expires after a period of inactivity, after which you need to sign in again."
+        ]
+      },
+      {
+        "title": "Rules of use",
+        "body": [
+          "You must use the Service lawfully, in line with these Terms, good practice and the principles of academic integrity, and with respect for the rights of others.",
+          "You may not post Content that:",
+          [
+            "is unlawful, including Content that infringes copyright, image rights, personal rights or trade secrets;",
+            "is plagiarised, that is, claims authorship of someone else's work or part of it without citing the source;",
+            "incites hatred or violence, insults people or groups because of their characteristics, or contains threats or harassment;",
+            "contains pornography, graphic violence or material harmful to minors;",
+            "contains other people's personal data without a legal basis, in particular addresses, phone numbers or health data;",
+            "is spam, advertising or promotional material unrelated to the article's subject;",
+            "is knowingly misleading, for example falsified research results, quotations or DOI identifiers."
+          ],
+          "You also may not:",
+          [
+            "impersonate other people or institutions;",
+            "create Accounts automatically, or create multiple Accounts to manipulate ratings or get around a block;",
+            "bulk-download the Service's content with automated tools (scraping) in a way that puts load on the Service;",
+            "upload malware, attempt unauthorised access, bypass security measures or disrupt the Service;",
+            "use the Service for commercial purposes without the Operator's consent."
+          ],
+          "Ratings and comments should be about the article's content. Substantive criticism is welcome; personal attacks are not."
+        ]
+      },
+      {
+        "title": "User content and copyright",
+        "body": [
+          "You are responsible for the Content you post and confirm that you hold the rights needed to publish it in the Service and that publishing it does not infringe anyone else's rights.",
+          "Copyright in Content stays with its author. By posting Content, you grant the Operator a free, non-exclusive, worldwide licence to use it to the extent needed to provide the services, that is, to store it, copy it in computer memory, display it and make it available in the Service, for as long as the Content is published there. The licence also covers creating excerpts and previews (such as snippets in the article list).",
+          "Published articles are available to other Users of the Service, and their titles and excerpts are also visible to signed-out visitors. Other Users may use articles within the limits of fair use (permitted use under Polish law), in particular by quoting them with the author and source named.",
+          "When you use someone else's work, name its author and source. Scientific articles should include a bibliography of DOI identifiers wherever possible.",
+          "When you delete an article, it is removed from the Service together with its comments and ratings. Backups may contain deleted Content for as long as their rotation requires."
+        ]
+      },
+      {
+        "title": "Importing articles from PDF files",
+        "body": [
+          "The Service lets you create an article from an uploaded PDF file. The file is processed automatically on the Operator's server using a locally run language model; it is not sent to external AI providers.",
+          "The conversion may contain errors: missing or garbled text, misrecognised headings and tables and, in rare cases, passages that are not in the original. You must review an article created from a PDF and correct it where needed; you are responsible for its content as for any other article.",
+          "You may only upload files you have the right to publish, such as your own work, work released under a licence that allows redistribution, or works whose economic copyright has expired."
+        ]
+      },
+      {
+        "title": "Nature of content and liability",
+        "body": [
+          "Content in the Service is educational and created by Users. The Operator does not check its accuracy before publication and is not responsible for its truthfulness, completeness or fitness for a particular purpose. Content is not legal, medical, financial or other professional advice.",
+          "Publication metadata (titles, authors, links) and the citation graph come from external databases, in particular Crossref and DataCite. The Operator is not responsible for errors in that data or for its temporary unavailability.",
+          "As a hosting service provider, the Operator is not liable for Content stored at Users' request if it has no knowledge of its illegal nature and, once it obtains such knowledge, acts without delay to disable access to it, in accordance with Article 6 of the Digital Services Act.",
+          "The Operator makes every effort to keep the Service running continuously and securely, but does not guarantee constant availability. The Service may be temporarily unavailable because of maintenance, failures or causes beyond the Operator's control. The Operator recommends keeping copies of important Content outside the Service.",
+          "Provisions limiting the Operator's liability do not apply to damage caused intentionally, or to the extent that the law does not allow such limitation, in particular towards consumers."
+        ]
+      },
+      {
+        "title": "Reporting illegal content",
+        "body": [
+          "Anyone, including people without an Account, can report Content they consider illegal or in breach of these Terms by writing to the address given in § 2.",
+          "A report should include:",
+          [
+            "the exact address (URL) of the Content and, for a comment, also its author and date;",
+            "an explanation of why the Content is illegal or breaches these Terms;",
+            "the reporter's name and e-mail address, unless the report concerns child sexual abuse or exploitation offences;",
+            "a statement that the reporter believes in good faith that the information in the report is accurate and complete."
+          ],
+          "The Operator confirms receipt of the report, handles it without undue delay, diligently and objectively, and informs the reporter of its decision. The Operator does not use fully automated tools for this.",
+          "A person who misuses reporting, in particular by frequently submitting manifestly unfounded reports, may be warned, and after a warning their reports may not be processed for a period of time."
+        ]
+      },
+      {
+        "title": "Moderation, restrictions and Account suspension",
+        "body": [
+          "If the law or these Terms are breached, the Operator may, in proportion to the seriousness of the breach, hide or remove Content, restrict the ability to publish, temporarily suspend the Account or, for serious or repeated breaches, block it permanently.",
+          "The Operator informs the User of a restriction, stating its scope, its basis (a provision of law or of these Terms), the facts it relies on and how to appeal, unless the Operator does not know the User's e-mail address or the law prohibits informing them.",
+          "The User may appeal a decision within 6 months by writing to the address in § 2. The Operator reviews the case again within 14 days, where possible with someone other than the person who made the original decision. The User keeps the right to seek redress in court."
+        ]
+      },
+      {
+        "title": "Complaints",
+        "body": [
+          "You can submit a complaint about how the Service or its services work by writing to the e-mail address given in § 2.",
+          "A complaint should include the e-mail address linked to your Account (if applicable), a description of the problem, when it happened and how you would like it resolved. If information needed to handle the complaint is missing, the Operator will ask you to provide it.",
+          "The Operator handles a complaint within 14 days of receiving it and replies to the e-mail address it was sent from."
+        ]
+      },
+      {
+        "title": "Personal data",
+        "body": [
+          "The Operator is the controller of Users' personal data. Data is processed in accordance with Regulation (EU) 2016/679 (GDPR).",
+          "The Operator processes your name or pseudonym, e-mail address, password as a cryptographic hash (the Operator does not know your password), Account role, your Content and ratings, and technical data needed to run and protect the Service, such as IP addresses and request times.",
+          "Data is processed in order to:",
+          [
+            "enter into and perform the Account agreement and provide the services (Article 6(1)(b) GDPR);",
+            "keep the Service secure, prevent abuse, and establish, pursue and defend claims, which is the Operator's legitimate interest (Article 6(1)(f) GDPR);",
+            "handle reports, appeals and complaints and meet legal obligations, including those under the Digital Services Act (Article 6(1)(c) GDPR)."
+          ],
+          "Your name, role, articles and comments are visible to other Users. Your e-mail address is not shown publicly. Data may be disclosed to processors acting on the Operator's behalf: the provider of the server the Service runs on and the e-mail provider used to send Account e-mails (such as password resets or confirmations of an address change). If any of them transfers data outside the European Economic Area, this is based on standard contractual clauses or a European Commission adequacy decision.",
+          "Bibliography previews and the citation graph are fetched by your browser directly from doi.org, Crossref and DataCite. These services then receive your IP address and the DOI identifiers requested, and process them as separate controllers under their own privacy policies.",
+          "Data is kept for as long as the Account exists and, after it is deleted, for the limitation period of any claims, or for less if it is no longer needed. Technical data is kept only as long as needed to keep the Service secure. The Operator does not make decisions about Users based solely on automated processing, including profiling.",
+          "You have the right to access your data and to have it rectified, erased, restricted or transferred, and to object to processing based on legitimate interest. You also have the right to lodge a complaint with the President of the Polish Personal Data Protection Office (UODO). Providing data is voluntary but necessary to create an Account."
+        ]
+      },
+      {
+        "title": "Cookies and browser storage",
+        "body": [
+          "The Service uses only the cookies and browser storage it needs to work:",
+          [
+            "an encrypted session cookie that keeps you signed in;",
+            "cookies that protect sign-in against CSRF attacks and remember the page to return to after signing in;",
+            "a cookie with your chosen interface language;",
+            "the browser's local storage, which keeps your colour theme and drafts of articles you are editing so they are not lost."
+          ],
+          "The Service does not use analytics or advertising cookies. Apart from the Operator and those acting on its behalf, only the bibliographic services described in § 13 receive information about your use of the Service. Essential storage does not require consent, but you can clear it in your browser settings; doing so signs you out and removes your saved settings."
+        ]
+      },
+      {
+        "title": "Termination and Account deletion",
+        "body": [
+          "You may terminate the Account agreement at any time, without giving a reason and at no cost, by sending a request to delete your Account to the address in § 2 from the e-mail address linked to your Account. The Operator deletes the Account within 14 days.",
+          "Deleting an Account deletes the User's articles together with their comments and ratings. The User's comments under other people's articles may be deleted or kept without the author's name if deleting them would make the discussion hard to follow.",
+          "The Operator may terminate the agreement with 14 days' notice for good reason, in particular if the Service is shut down, and will inform the User by e-mail. The Operator may terminate the agreement without notice in the event of serious or persistent breaches of these Terms, after an unsuccessful request to stop, where such a request was possible."
+        ]
+      },
+      {
+        "title": "Consumers",
+        "body": [
+          "A consumer may withdraw from the Account agreement within 14 days of concluding it, without giving a reason and at no cost, and may also terminate it at any time as described in § 15.",
+          "Nothing in these Terms excludes or limits rights that consumers have under mandatory provisions of law. A consumer may use out-of-court dispute resolution, in particular the help of a municipal or district consumer ombudsman (rzecznik konsumentów) or the provincial Trade Inspection (Inspekcja Handlowa)."
+        ]
+      },
+      {
+        "title": "Changes to these Terms",
+        "body": [
+          "The Operator may change these Terms for good reason, such as changes in the law, new features of the Service, changes in how the services are provided, or the need to keep Users safe.",
+          "The Operator informs Users with an Account of a change at least 14 days before it takes effect, in the Service and by e-mail. The Terms state the date from which their current version applies.",
+          "A User who does not accept the changes may terminate the agreement under § 15 before they take effect. Continuing to use the Account after the changes take effect means accepting them. The Service may ask you to accept the Terms again the next time you sign in."
+        ]
+      },
+      {
+        "title": "Final provisions",
+        "body": [
+          "These Terms are governed by Polish law. This choice of law does not deprive a consumer of the protection given by provisions of the law of their country of habitual residence that cannot be excluded by agreement.",
+          "Disputes are settled by the court with jurisdiction under the general rules.",
+          "These Terms are available in Polish and English. If the versions differ, the Polish version prevails.",
+          "Matters not covered by these Terms are governed by Polish law, in particular the Civil Code, the Act on Providing Services by Electronic Means, the Act on Copyright and Related Rights, the Consumer Rights Act, the GDPR and the Digital Services Act."
+        ]
+      }
+    ],
+    "accept": "Accept the terms"
   },
   "articles": {
     "empty": "No articles to display.",

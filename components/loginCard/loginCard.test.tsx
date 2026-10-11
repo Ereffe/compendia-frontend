@@ -92,11 +92,41 @@ describe("LoginCard", () => {
         await user.type(screen.getByLabelText("Imię"), "Ala");
         await user.type(screen.getByLabelText("E-mail"), "ala@uczelnia.edu");
         await user.type(screen.getByLabelText("Hasło"), "secret123");
+        await user.click(screen.getByRole("checkbox", { name: "Akceptuję regulamin serwisu" }));
         await user.click(screen.getByRole("button", { name: "Zarejestruj się" }));
 
         expect(signIn).toHaveBeenCalledWith("credentials", expect.objectContaining({ mode: "register", name: "Ala" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("Konto z tym adresem e-mail już istnieje.");
         expect(replace).not.toHaveBeenCalled();
+    });
+
+    it("requires accepting the terms to sign up", async () => {
+        const user = userEvent.setup();
+
+        renderWithIntl(<LoginCard />);
+
+        await user.click(screen.getByRole("button", { name: "Zarejestruj się" }));
+        await user.type(screen.getByLabelText("Imię"), "Ala");
+        await user.type(screen.getByLabelText("E-mail"), "ala@uczelnia.edu");
+        await user.type(screen.getByLabelText("Hasło"), "secret123");
+        await user.click(screen.getByRole("button", { name: "Zarejestruj się" }));
+
+        expect(screen.getByRole("alert")).toHaveTextContent("Zaakceptuj regulamin, aby założyć konto.");
+        expect(signIn).not.toHaveBeenCalled();
+    });
+
+    it("accepts the terms from the terms dialog", async () => {
+        const user = userEvent.setup();
+
+        renderWithIntl(<LoginCard />);
+
+        await user.click(screen.getByRole("button", { name: "Zarejestruj się" }));
+        await user.click(screen.getByRole("button", { name: "Przeczytaj regulamin" }));
+        expect(screen.getByRole("dialog", { name: "Regulamin serwisu" })).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Akceptuję regulamin" }));
+
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(screen.getByRole("checkbox", { name: "Akceptuję regulamin serwisu" })).toBeChecked();
     });
 
     it("does not redirect when login fails", async () => {

@@ -65,5 +65,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/((?!$|login(?:/|$)|session-expired(?:/|$)|email-reset/|password-reset/|api/auth|_next/static|_next/image|favicon.ico).*)"],
+    matcher: ["/((?!$|login(?:/|$)|session-expired(?:/|$)|terms(?:/|$)|email-reset/|password-reset/|api/auth|_next/static|_next/image|favicon.ico).*)"],
 };

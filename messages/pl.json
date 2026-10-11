@@ -53,7 +53,8 @@
     "dark": "Ciemny motyw"
   },
   "footer": {
-    "tagline": "Artykuły edukacyjne i naukowe dla studentów i wykładowców."
+    "tagline": "Artykuły edukacyjne i naukowe dla studentów i wykładowców.",
+    "terms": "Regulamin"
   },
   "landing": {
     "title": "Artykuły do nauki, ze źródłami na wierzchu.",
@@ -86,8 +87,225 @@
       "invalidCredentials": "Nieprawidłowy e-mail lub hasło.",
       "emailTaken": "Konto z tym adresem e-mail już istnieje.",
       "backendUnavailable": "Serwer jest niedostępny. Spróbuj ponownie za chwilę.",
-      "loginFailed": "Nie udało się zalogować. Spróbuj ponownie."
-    }
+      "loginFailed": "Nie udało się zalogować. Spróbuj ponownie.",
+      "termsNotAccepted": "Zaakceptuj regulamin, aby założyć konto."
+    },
+    "acceptTerms": "Akceptuję regulamin serwisu",
+    "readTerms": "Przeczytaj regulamin"
+  },
+  "terms": {
+    "title": "Regulamin serwisu",
+    "description": "Zasady korzystania z Compendia: konto, publikowanie artykułów, komentarze, prawa autorskie, dane osobowe i zgłaszanie treści.",
+    "effective": "Obowiązuje od 11 października 2026 r.",
+    "sections": [
+      {
+        "title": "Postanowienia ogólne",
+        "body": [
+          "Niniejszy regulamin określa zasady korzystania z serwisu internetowego Compendia, rodzaje i zakres usług świadczonych drogą elektroniczną, warunki zawierania i rozwiązywania umów o świadczenie tych usług oraz tryb postępowania reklamacyjnego. Regulamin jest regulaminem w rozumieniu art. 8 ustawy z dnia 18 lipca 2002 r. o świadczeniu usług drogą elektroniczną.",
+          "Użyte w regulaminie pojęcia oznaczają:",
+          [
+            "Serwis – platforma internetowa Compendia służąca do publikowania, czytania i omawiania artykułów edukacyjnych i naukowych, wraz z grafem cytowań publikacji naukowych;",
+            "Operator – podmiot prowadzący Serwis, wskazany w § 2;",
+            "Użytkownik – osoba fizyczna, która korzysta z Serwisu, w tym osoba niezalogowana przeglądająca jego publiczne części;",
+            "Konto – indywidualny, chroniony hasłem dostęp do funkcji Serwisu, zakładany podczas rejestracji;",
+            "Treści – wszelkie materiały zamieszczane w Serwisie przez Użytkowników, w szczególności artykuły, komentarze, obrazy, odnośniki, oceny i dane profilu;",
+            "Artykuł – Treść publikowana jako artykuł zwykły albo naukowy, w tym artykuł utworzony z pliku PDF;",
+            "Regulamin – niniejszy dokument."
+          ],
+          "Rejestracja w Serwisie wymaga zapoznania się z Regulaminem i jego akceptacji. Korzystanie z Serwisu bez Konta oznacza zgodę na postanowienia Regulaminu w zakresie, w jakim dotyczą one osób niezalogowanych.",
+          "Regulamin jest udostępniany nieodpłatnie pod adresem /terms w sposób umożliwiający jego pozyskanie, odtwarzanie i utrwalanie, w szczególności przez wydrukowanie lub zapisanie strony w przeglądarce."
+        ]
+      },
+      {
+        "title": "Operator i kontakt",
+        "body": [
+          "Operatorem Serwisu jest [nazwa operatora, adres]. Serwis powstał jako projekt w ramach pracy dyplomowej i jest rozwijany w celach edukacyjnych i niekomercyjnych.",
+          "Z Operatorem można kontaktować się pod adresem e-mail [adres kontaktowy]. Ten sam adres jest punktem kontaktowym dla Użytkowników oraz organów państw członkowskich Unii Europejskiej w rozumieniu art. 11 i 12 rozporządzenia (UE) 2022/2065 (akt o usługach cyfrowych). Korespondencja może być prowadzona w języku polskim lub angielskim."
+        ]
+      },
+      {
+        "title": "Rodzaje i zakres usług",
+        "body": [
+          "Operator świadczy za pośrednictwem Serwisu następujące usługi:",
+          [
+            "przeglądanie listy ostatnio opublikowanych artykułów bez zakładania Konta;",
+            "założenie i prowadzenie Konta, w tym zmianę imienia, adresu e-mail i hasła;",
+            "publikowanie, edytowanie i usuwanie własnych artykułów zwykłych i naukowych, z treścią w formacie Markdown i obrazami;",
+            "dodawanie do artykułów naukowych bibliografii w postaci identyfikatorów DOI oraz przeglądanie grafu cytowań budowanego na ich podstawie;",
+            "tworzenie artykułu na podstawie przesłanego pliku PDF;",
+            "czytanie artykułów innych Użytkowników, ich ocenianie oraz dodawanie i usuwanie komentarzy;",
+            "wyszukiwanie artykułów i autorów oraz przeglądanie publicznych profili Użytkowników;",
+            "generowanie opisu bibliograficznego artykułu (np. w stylu APA lub BibTeX)."
+          ],
+          "Usługi są świadczone nieodpłatnie. Operator może rozszerzać, zmieniać lub ograniczać zakres funkcji Serwisu, w szczególności w związku z jego rozwojem. Zmiana, która ogranicza prawa Użytkowników posiadających Konto, wymaga zmiany Regulaminu w trybie § 17.",
+          "Umowa o świadczenie usługi przeglądania Serwisu bez Konta zostaje zawarta z chwilą otwarcia strony Serwisu i rozwiązuje się z chwilą jej opuszczenia. Umowa o prowadzenie Konta zostaje zawarta na czas nieokreślony z chwilą ukończenia rejestracji."
+        ]
+      },
+      {
+        "title": "Wymagania techniczne",
+        "body": [
+          "Do korzystania z Serwisu potrzebne są: urządzenie z dostępem do internetu, aktualna wersja przeglądarki internetowej (np. Chrome, Edge, Firefox lub Safari) z włączoną obsługą JavaScript i plików cookie oraz – w przypadku Konta – aktywny adres e-mail.",
+          "Korzystanie z usług drogą elektroniczną wiąże się z typowymi zagrożeniami, takimi jak złośliwe oprogramowanie, próby wyłudzenia danych (phishing) czy przechwycenie transmisji w niezabezpieczonej sieci. Operator zaleca korzystanie z aktualnego oprogramowania antywirusowego, unikanie publicznych sieci bez szyfrowania oraz niepodawanie hasła na stronach innych niż Serwis. Operator nigdy nie prosi o podanie hasła w wiadomości e-mail."
+        ]
+      },
+      {
+        "title": "Rejestracja i Konto",
+        "body": [
+          "Rejestracja polega na podaniu imienia (lub pseudonimu), adresu e-mail i hasła o długości co najmniej 8 znaków oraz zaakceptowaniu Regulaminu. Konto może założyć osoba, która ukończyła 16 lat; osoba niepełnoletnia powinna korzystać z Serwisu za wiedzą przedstawiciela ustawowego.",
+          "Użytkownik zobowiązuje się podawać prawdziwe dane, w szczególności adres e-mail, do którego ma dostęp, i aktualizować je w ustawieniach Konta. Imię podane przy rejestracji jest widoczne publicznie jako podpis autora artykułów i komentarzy.",
+          "Konto jest osobiste. Użytkownik nie może udostępniać go innym osobom ani korzystać z cudzego Konta. Użytkownik odpowiada za zachowanie hasła w tajemnicy i niezwłocznie informuje Operatora o podejrzeniu, że ktoś uzyskał dostęp do jego Konta.",
+          "Konto może mieć przypisaną rolę (np. student, wykładowca, administrator). Rola ma charakter informacyjny i organizacyjny; Operator może nadać lub zmienić rolę, w szczególności po weryfikacji afiliacji akademickiej.",
+          "Ze względów bezpieczeństwa sesja wygasa po okresie bezczynności, po czym konieczne jest ponowne zalogowanie."
+        ]
+      },
+      {
+        "title": "Zasady korzystania z Serwisu",
+        "body": [
+          "Użytkownik korzysta z Serwisu zgodnie z prawem, Regulaminem, dobrymi obyczajami i zasadami rzetelności naukowej, z poszanowaniem praw innych osób.",
+          "Zabronione jest zamieszczanie Treści, które:",
+          [
+            "są niezgodne z prawem, w tym naruszają prawa autorskie, prawa do wizerunku, dobra osobiste lub tajemnicę przedsiębiorstwa;",
+            "stanowią plagiat, czyli przypisują sobie autorstwo cudzego utworu lub jego części bez wskazania źródła;",
+            "nawołują do nienawiści lub przemocy, znieważają osoby lub grupy ze względu na ich cechy, zawierają groźby lub nękanie;",
+            "zawierają pornografię, treści drastyczne albo treści szkodliwe dla małoletnich;",
+            "zawierają dane osobowe innych osób bez podstawy prawnej, w szczególności adresy, numery telefonów czy dane dotyczące zdrowia;",
+            "są spamem, reklamą lub materiałem promocyjnym niezwiązanym z tematyką artykułu;",
+            "świadomie wprowadzają w błąd, np. fałszują wyniki badań, cytaty lub identyfikatory DOI."
+          ],
+          "Zabronione jest również:",
+          [
+            "podszywanie się pod inne osoby lub instytucje;",
+            "zakładanie Kont w sposób zautomatyzowany oraz zakładanie wielu Kont w celu manipulowania ocenami lub obejścia blokady;",
+            "masowe pobieranie zawartości Serwisu narzędziami automatycznymi (scraping) w sposób obciążający Serwis;",
+            "przesyłanie złośliwego oprogramowania, próby nieuprawnionego dostępu, omijania zabezpieczeń lub zakłócania działania Serwisu;",
+            "wykorzystywanie Serwisu do celów komercyjnych bez zgody Operatora."
+          ],
+          "Oceny i komentarze powinny dotyczyć treści artykułu. Krytyka merytoryczna jest dozwolona i pożądana, ataki osobiste – nie."
+        ]
+      },
+      {
+        "title": "Treści Użytkowników i prawa autorskie",
+        "body": [
+          "Użytkownik ponosi odpowiedzialność za Treści, które zamieszcza, i oświadcza, że przysługują mu do nich prawa niezbędne do ich publikacji w Serwisie, a ich publikacja nie narusza praw osób trzecich.",
+          "Prawa autorskie do Treści pozostają przy ich twórcy. Zamieszczając Treść, Użytkownik udziela Operatorowi nieodpłatnej, niewyłącznej, nieograniczonej terytorialnie licencji na korzystanie z niej w zakresie niezbędnym do świadczenia usług, tj. na przechowywanie, zwielokrotnianie w pamięci komputerów, wyświetlanie i publiczne udostępnianie w Serwisie, na czas, w którym Treść jest w nim opublikowana. Licencja obejmuje także sporządzanie wyciągów i podglądów (np. fragmentów na liście artykułów).",
+          "Opublikowane artykuły są dostępne dla innych Użytkowników Serwisu, a ich fragmenty i tytuły – również dla osób niezalogowanych. Inni Użytkownicy mogą korzystać z artykułów w zakresie dozwolonego użytku, w szczególności przytaczać je w ramach prawa cytatu ze wskazaniem autora i źródła.",
+          "Korzystając z cudzych utworów, Użytkownik wskazuje ich autora i źródło. Do artykułów naukowych należy dołączać bibliografię w postaci identyfikatorów DOI wszędzie tam, gdzie jest to możliwe.",
+          "Usunięcie artykułu przez Użytkownika powoduje jego usunięcie z Serwisu wraz z komentarzami i ocenami. Kopie zapasowe mogą zawierać usunięte Treści przez czas niezbędny do ich rotacji."
+        ]
+      },
+      {
+        "title": "Import artykułów z plików PDF",
+        "body": [
+          "Serwis umożliwia utworzenie artykułu na podstawie przesłanego pliku PDF. Plik jest przetwarzany automatycznie na serwerze Operatora, z wykorzystaniem modelu językowego uruchomionego lokalnie; plik nie jest przekazywany zewnętrznym dostawcom usług sztucznej inteligencji.",
+          "Wynik konwersji może zawierać błędy: pominięty lub zniekształcony tekst, błędnie rozpoznane nagłówki i tabele, a w skrajnych przypadkach fragmenty, których nie ma w oryginale. Użytkownik jest zobowiązany sprawdzić i w razie potrzeby poprawić artykuł utworzony z pliku PDF; odpowiada za jego treść tak jak za każdy inny artykuł.",
+          "Użytkownik może przesyłać wyłącznie pliki, do których publikacji ma prawo, np. własne prace, prace udostępnione na licencji pozwalającej na ich rozpowszechnianie lub utwory, których autorskie prawa majątkowe wygasły."
+        ]
+      },
+      {
+        "title": "Charakter treści i odpowiedzialność",
+        "body": [
+          "Treści w Serwisie mają charakter edukacyjny i są tworzone przez Użytkowników. Operator nie weryfikuje ich poprawności merytorycznej przed publikacją i nie odpowiada za ich prawdziwość, kompletność ani przydatność do określonego celu. Treści nie stanowią porady prawnej, medycznej, finansowej ani innej porady specjalistycznej.",
+          "Metadane publikacji (tytuły, autorzy, odnośniki) oraz graf cytowań są pobierane z zewnętrznych baz, w szczególności Crossref i DataCite. Operator nie odpowiada za błędy w tych danych ani za ich czasową niedostępność.",
+          "Operator, jako dostawca usługi hostingu, nie odpowiada za Treści przechowywane na żądanie Użytkowników, jeżeli nie wie o ich bezprawnym charakterze, a po uzyskaniu takiej wiedzy niezwłocznie uniemożliwia do nich dostęp, zgodnie z art. 6 aktu o usługach cyfrowych.",
+          "Operator dokłada starań, aby Serwis działał nieprzerwanie i bezpiecznie, ale nie gwarantuje stałej dostępności. Serwis może być czasowo niedostępny z powodu prac technicznych, awarii lub przyczyn niezależnych od Operatora. Operator zaleca przechowywanie kopii ważnych Treści poza Serwisem.",
+          "Postanowienia ograniczające odpowiedzialność Operatora nie mają zastosowania do szkód wyrządzonych umyślnie oraz w zakresie, w jakim przepisy prawa nie pozwalają na takie ograniczenie, w szczególności wobec konsumentów."
+        ]
+      },
+      {
+        "title": "Zgłaszanie nielegalnych treści",
+        "body": [
+          "Każdy, także osoba bez Konta, może zgłosić Operatorowi Treść, którą uważa za nielegalną lub sprzeczną z Regulaminem, pisząc na adres wskazany w § 2.",
+          "Zgłoszenie powinno zawierać:",
+          [
+            "dokładny adres (URL) Treści, a w przypadku komentarza – także jego autora i datę;",
+            "uzasadnienie, dlaczego Treść jest nielegalna lub narusza Regulamin;",
+            "imię i nazwisko oraz adres e-mail zgłaszającego, chyba że zgłoszenie dotyczy przestępstw związanych z seksualnym wykorzystywaniem dzieci;",
+            "oświadczenie, że zgłaszający w dobrej wierze uważa informacje w zgłoszeniu za prawidłowe i kompletne."
+          ],
+          "Operator potwierdza otrzymanie zgłoszenia, rozpatruje je bez zbędnej zwłoki, w sposób staranny i obiektywny, i informuje zgłaszającego o podjętej decyzji. Operator nie wykorzystuje do tego celu w pełni zautomatyzowanych narzędzi.",
+          "Osoba, która nadużywa możliwości zgłaszania, w szczególności często składa zgłoszenia oczywiście bezzasadne, może zostać ostrzeżona, a po ostrzeżeniu jej zgłoszenia mogą przez pewien czas nie być rozpatrywane."
+        ]
+      },
+      {
+        "title": "Moderacja, ograniczenia i blokada Konta",
+        "body": [
+          "W przypadku naruszenia prawa lub Regulaminu Operator może, proporcjonalnie do wagi naruszenia: ukryć lub usunąć Treść, ograniczyć możliwość publikowania, czasowo zawiesić Konto albo – przy poważnych lub powtarzających się naruszeniach – zablokować je na stałe.",
+          "Operator informuje Użytkownika o ograniczeniu, wskazując jego zakres, podstawę (przepis prawa lub postanowienie Regulaminu), fakty, na których się opiera, oraz sposób odwołania, chyba że nie zna adresu e-mail Użytkownika albo poinformowanie go jest zakazane przez prawo.",
+          "Użytkownik może odwołać się od decyzji w terminie 6 miesięcy, pisząc na adres z § 2. Operator ponownie rozpatruje sprawę w terminie 14 dni, w miarę możliwości z udziałem innej osoby niż ta, która podjęła pierwotną decyzję. Użytkownik zachowuje prawo do dochodzenia swoich praw przed sądem."
+        ]
+      },
+      {
+        "title": "Reklamacje",
+        "body": [
+          "Użytkownik może złożyć reklamację dotyczącą działania Serwisu lub świadczonych usług, pisząc na adres e-mail wskazany w § 2.",
+          "Reklamacja powinna zawierać adres e-mail powiązany z Kontem (jeśli dotyczy), opis problemu, datę jego wystąpienia oraz oczekiwany sposób rozwiązania. Jeśli reklamacja nie zawiera informacji niezbędnych do jej rozpatrzenia, Operator poprosi o ich uzupełnienie.",
+          "Operator rozpatruje reklamację w terminie 14 dni od jej otrzymania i przesyła odpowiedź na adres e-mail, z którego reklamacja została wysłana."
+        ]
+      },
+      {
+        "title": "Dane osobowe",
+        "body": [
+          "Administratorem danych osobowych Użytkowników jest Operator. Dane są przetwarzane zgodnie z rozporządzeniem (UE) 2016/679 (RODO).",
+          "Operator przetwarza: imię lub pseudonim, adres e-mail, hasło w postaci skrótu kryptograficznego (Operator nie zna hasła), rolę Konta, Treści i oceny Użytkownika oraz dane techniczne niezbędne do działania i ochrony Serwisu, takie jak adres IP i czas żądań.",
+          "Dane są przetwarzane w celu:",
+          [
+            "zawarcia i wykonania umowy o prowadzenie Konta oraz świadczenia usług (art. 6 ust. 1 lit. b RODO);",
+            "zapewnienia bezpieczeństwa Serwisu, przeciwdziałania nadużyciom oraz ustalenia, dochodzenia i obrony roszczeń, co jest prawnie uzasadnionym interesem Operatora (art. 6 ust. 1 lit. f RODO);",
+            "rozpatrywania zgłoszeń, odwołań i reklamacji oraz wypełniania obowiązków prawnych, w tym wynikających z aktu o usługach cyfrowych (art. 6 ust. 1 lit. c RODO)."
+          ],
+          "Imię Użytkownika, jego rola, artykuły i komentarze są widoczne dla innych Użytkowników. Adres e-mail nie jest wyświetlany publicznie. Odbiorcami danych mogą być podmioty przetwarzające je na zlecenie Operatora: dostawca serwera, na którym działa Serwis, oraz dostawca poczty elektronicznej, za pośrednictwem którego wysyłane są wiadomości dotyczące Konta (np. reset hasła lub potwierdzenie zmiany adresu). Jeżeli którykolwiek z nich przekazuje dane poza Europejski Obszar Gospodarczy, odbywa się to na podstawie standardowych klauzul umownych lub decyzji Komisji Europejskiej stwierdzającej odpowiedni stopień ochrony.",
+          "Podgląd bibliografii i graf cytowań są pobierane przez przeglądarkę Użytkownika bezpośrednio z serwisów doi.org, Crossref i DataCite. Serwisy te otrzymują wtedy adres IP Użytkownika oraz identyfikatory DOI, których dotyczy zapytanie, i przetwarzają je jako odrębni administratorzy, zgodnie z własnymi politykami prywatności.",
+          "Dane są przechowywane przez czas istnienia Konta, a po jego usunięciu – przez okres przedawnienia ewentualnych roszczeń lub krócej, jeśli nie są już potrzebne. Dane techniczne są przechowywane tylko tak długo, jak jest to potrzebne do zapewnienia bezpieczeństwa Serwisu. Operator nie podejmuje wobec Użytkowników decyzji opartych wyłącznie na zautomatyzowanym przetwarzaniu, w tym profilowaniu.",
+          "Użytkownik ma prawo dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia oraz wniesienia sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie. Ma też prawo wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych. Podanie danych jest dobrowolne, ale niezbędne do założenia Konta."
+        ]
+      },
+      {
+        "title": "Pliki cookie i pamięć przeglądarki",
+        "body": [
+          "Serwis używa wyłącznie plików cookie i pamięci przeglądarki niezbędnych do działania:",
+          [
+            "zaszyfrowanego pliku cookie sesji, który utrzymuje zalogowanie;",
+            "plików cookie zabezpieczających logowanie przed atakami CSRF i zapamiętujących stronę, na którą Użytkownik wraca po zalogowaniu;",
+            "pliku cookie z wybranym językiem interfejsu;",
+            "pamięci lokalnej przeglądarki, w której zapisywane są wybrany motyw kolorystyczny i robocze wersje edytowanych artykułów, aby nie zostały utracone."
+          ],
+          "Serwis nie używa plików cookie analitycznych ani reklamowych. Poza Operatorem i podmiotami działającymi na jego zlecenie dane o korzystaniu z Serwisu otrzymują jedynie serwisy bibliograficzne opisane w § 13. Pliki niezbędne nie wymagają zgody, ale Użytkownik może je usunąć w ustawieniach przeglądarki – spowoduje to wylogowanie i utratę zapisanych ustawień."
+        ]
+      },
+      {
+        "title": "Rozwiązanie umowy i usunięcie Konta",
+        "body": [
+          "Użytkownik może w każdej chwili, bez podawania przyczyny i bez kosztów, rozwiązać umowę o prowadzenie Konta, przesyłając na adres z § 2 żądanie usunięcia Konta z adresu e-mail powiązanego z Kontem. Operator usuwa Konto w terminie 14 dni.",
+          "Wraz z Kontem usuwane są artykuły Użytkownika, ich komentarze i oceny. Komentarze Użytkownika pod artykułami innych osób mogą zostać usunięte albo pozostawione bez wskazania autora, jeśli ich usunięcie zaburzyłoby zrozumiałość dyskusji.",
+          "Operator może rozwiązać umowę z zachowaniem 14-dniowego okresu wypowiedzenia z ważnych przyczyn, w szczególności w razie zakończenia działalności Serwisu, informując o tym Użytkownika e-mailem. Bez okresu wypowiedzenia Operator może rozwiązać umowę w przypadku poważnego lub uporczywego naruszania Regulaminu, po bezskutecznym wezwaniu do zaprzestania naruszeń, o ile było ono możliwe."
+        ]
+      },
+      {
+        "title": "Konsumenci",
+        "body": [
+          "Konsument może odstąpić od umowy o prowadzenie Konta w terminie 14 dni od jej zawarcia, bez podawania przyczyny i bez kosztów, a także w każdym czasie rozwiązać ją w sposób opisany w § 15.",
+          "Postanowienia Regulaminu nie wyłączają ani nie ograniczają praw, które przysługują konsumentom na podstawie bezwzględnie obowiązujących przepisów prawa. Konsument może skorzystać z pozasądowych sposobów rozpatrywania sporów, w szczególności z pomocy miejskiego lub powiatowego rzecznika konsumentów albo wojewódzkiego inspektoratu Inspekcji Handlowej."
+        ]
+      },
+      {
+        "title": "Zmiany Regulaminu",
+        "body": [
+          "Operator może zmienić Regulamin z ważnych przyczyn, takich jak zmiana przepisów prawa, wprowadzenie nowych funkcji Serwisu, zmiana sposobu świadczenia usług lub konieczność zapewnienia bezpieczeństwa Użytkowników.",
+          "O zmianie Operator informuje Użytkowników posiadających Konto co najmniej 14 dni przed jej wejściem w życie – w Serwisie oraz e-mailem. Do Regulaminu dołączona jest data, od której obowiązuje jego aktualna wersja.",
+          "Użytkownik, który nie akceptuje zmian, może przed ich wejściem w życie rozwiązać umowę zgodnie z § 15. Dalsze korzystanie z Konta po wejściu zmian w życie oznacza ich akceptację. Serwis może poprosić o ponowne zaakceptowanie Regulaminu przy następnym logowaniu."
+        ]
+      },
+      {
+        "title": "Postanowienia końcowe",
+        "body": [
+          "Regulamin podlega prawu polskiemu. Wybór prawa nie pozbawia konsumenta ochrony przysługującej mu na podstawie przepisów, których nie można wyłączyć w drodze umowy, prawa państwa jego zwykłego pobytu.",
+          "Spory rozstrzyga sąd właściwy według przepisów ogólnych.",
+          "Regulamin jest dostępny w języku polskim i angielskim. W razie rozbieżności rozstrzygająca jest wersja polska.",
+          "W sprawach nieuregulowanych Regulaminem stosuje się przepisy prawa polskiego, w szczególności Kodeksu cywilnego, ustawy o świadczeniu usług drogą elektroniczną, ustawy o prawie autorskim i prawach pokrewnych, ustawy o prawach konsumenta, RODO oraz aktu o usługach cyfrowych."
+        ]
+      }
+    ],
+    "accept": "Akceptuję regulamin"
   },
   "articles": {
     "empty": "Brak artykułów do wyświetlenia.",

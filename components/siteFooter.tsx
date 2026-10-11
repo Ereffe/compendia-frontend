@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 export default function SiteFooter({ className = "" }: Readonly<{ className?: string }>) {
@@ -11,7 +12,12 @@ export default function SiteFooter({ className = "" }: Readonly<{ className?: st
           <span aria-hidden> · </span>
           {t("tagline")}
         </p>
-        <p className="tabular-nums">© {new Date().getFullYear()}</p>
+        <p className="flex items-baseline gap-4">
+          <Link href="/terms" className="underline-offset-[3px] hover:text-foreground hover:underline">
+            {t("terms")}
+          </Link>
+          <span className="tabular-nums">© {new Date().getFullYear()}</span>
+        </p>
       </div>
     </footer>
   );

@@ -14,6 +14,7 @@ type CreateHandleCredentialsSignInParams = {
     email: string;
     password: string;
     name: string;
+    acceptedTerms: boolean;
     isLoading: boolean;
     setError: Dispatch<SetStateAction<LoginError | null>>;
     setIsLoading: Dispatch<SetStateAction<boolean>>;
@@ -22,7 +23,7 @@ type CreateHandleCredentialsSignInParams = {
 
 export type LoginError = { key: LoginErrorKey; values?: Record<string, number> };
 
-export const validateCredentials = (email: string, password: string, name: string, mode: AuthMode): LoginError | null => {
+export const validateCredentials = (email: string, password: string, name: string, mode: AuthMode, acceptedTerms: boolean): LoginError | null => {
     if (!email.trim() || !password || (mode === "register" && !name.trim())) {
         return { key: mode === "register" ? "missingFieldsRegister" : "missingFieldsLogin" };
     }
@@ -33,6 +34,10 @@ export const validateCredentials = (email: string, password: string, name: strin
 
     if (mode === "register" && password.length < MIN_PASSWORD_LENGTH) {
         return { key: "passwordTooShort", values: { min: MIN_PASSWORD_LENGTH } };
+    }
+
+    if (mode === "register" && !acceptedTerms) {
+        return { key: "termsNotAccepted" };
     }
 
     return null;
@@ -57,6 +62,7 @@ export const createHandleCredentialsSignIn =
         email,
         password,
         name,
+        acceptedTerms,
         isLoading,
         setError,
         setIsLoading,
@@ -69,7 +75,7 @@ export const createHandleCredentialsSignIn =
                 return;
             }
 
-            const validationError = validateCredentials(email, password, name, mode);
+            const validationError = validateCredentials(email, password, name, mode, acceptedTerms);
             if (validationError) {
                 setError(validationError);
                 return;

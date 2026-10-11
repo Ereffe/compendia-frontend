@@ -13,3 +13,9 @@ if (!globalThis.matchMedia) {
             dispatchEvent: () => false,
         }) as MediaQueryList;
 }
+
+globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+};
