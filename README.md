@@ -8,6 +8,11 @@ PDF import.
 
 The interface is bilingual: Polish (default) and English.
 
+# Architecture diagram
+
+<img width="11351" height="7439" alt="diagram2" src="https://github.com/user-attachments/assets/aac24fe6-b494-4f56-ab03-234a27386fc7" />
+
+
 ## Features
 
 - **Articles:** Markdown editor with images, math (KaTeX) and a contents list; three difficulty levels;
