@@ -81,7 +81,7 @@ describe("ArticleComments", () => {
 
         await user.click(screen.getAllByRole("button", { name: "Odpowiedz" })[0]);
 
-        const replyBox = screen.getByPlaceholderText("Napisz odpowiedź...");
+        const replyBox = screen.getByPlaceholderText("Napisz odpowiedź…");
         await user.type(replyBox, "Nowa odpowiedź");
         await user.click(screen.getByRole("button", { name: "Dodaj odpowiedź" }));
 

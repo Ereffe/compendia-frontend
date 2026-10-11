@@ -11,7 +11,8 @@
     "authorBy": "By {name}",
     "unknownAuthor": "Unknown author",
     "close": "Close",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "showAllArticles": "Show all articles"
   },
   "header": {
     "allArticles": "All articles",
@@ -34,7 +35,10 @@
     "articleCount": "{count, plural, =0 {No articles} one {# article} other {# articles}}",
     "articlesHeading": "Articles",
     "noArticles": "This user hasn't published any articles yet.",
-    "accountSettings": "Account settings"
+    "accountSettings": "Account settings",
+    "createFirst": "Create the first article",
+    "showAll": "Show all authors",
+    "noOwnArticles": "You haven’t published any articles yet."
   },
   "language": {
     "label": "Language",
@@ -108,7 +112,8 @@
     "emptyFiltered": "No articles at this level.",
     "emptyRated": "No article matching these filters has been rated yet.",
     "ratingSummary": "Ratings: {positive} positive, {negative} negative",
-    "commentCount": "{count, plural, =0 {No comments} one {# comment} other {# comments}}"
+    "commentCount": "{count, plural, =0 {No comments} one {# comment} other {# comments}}",
+    "createFirst": "Create the first article"
   },
   "archive": {
     "title": "All articles",
@@ -118,7 +123,8 @@
     "previous": "Previous",
     "next": "Next",
     "morePages": "More pages",
-    "pagination": "Pagination"
+    "pagination": "Pagination",
+    "createFirst": "Create the first article"
   },
   "article": {
     "notFoundTitle": "Article not found",
@@ -151,18 +157,17 @@
   "comments": {
     "title": "Comments",
     "count": "{count, plural, =0 {Be the first to comment on this article.} one {# comment} other {# comments}}",
-    "checkingSession": "Checking session...",
+    "checkingSession": "Checking session…",
     "mustSignIn": "You need to be signed in to comment.",
-    "placeholder": "Write a comment...",
+    "placeholder": "Write a comment…",
     "placeholderSignedOut": "Sign in to write a comment",
     "submit": "Add comment",
-    "submitting": "Publishing...",
-    "replyPlaceholder": "Write a reply...",
+    "submitting": "Publishing…",
+    "replyPlaceholder": "Write a reply…",
     "submitReply": "Add reply",
     "reply": "Reply",
     "cancel": "Cancel",
     "edited": "edited",
-    "empty": "No comments yet.",
     "shownOf": "Showing {shown} of {total} comments.",
     "loadMore": "Show more comments",
     "loadingMore": "Loading…",
@@ -188,7 +193,7 @@
     "example": "e.g. SQL optimization, process scheduling, linked lists",
     "title": "Article search",
     "description": "Start typing to search the titles and content of all articles.",
-    "placeholder": "Search articles...",
+    "placeholder": "Search articles…",
     "searching": "Searching…",
     "results": "{count, plural, =0 {No results} one {# result} other {# results}}",
     "noResults": "No articles found for this query.",
@@ -202,11 +207,11 @@
     "titlePlaceholder": "E.g. Introduction to data structures",
     "contentLabel": "Content",
     "scientificContentLabel": "Commentary on the scientific article",
-    "contentPlaceholder": "Start writing markdown...",
+    "contentPlaceholder": "Start writing markdown…",
     "complexityLabel": "Difficulty",
     "redirectHint": "After submitting you will be redirected to the new article.",
     "submit": "Create article",
-    "submitting": "Creating...",
+    "submitting": "Creating…",
     "typeLabel": "Article type",
     "typeRegular": "Regular article",
     "typeRegularHint": "Notes, explanations and study materials.",
@@ -266,9 +271,9 @@
       "hint": "The article content can be generated from a PDF. Enter a title and difficulty, and the import does the rest.",
       "selectedHint": "The content will be generated from the PDF. The editor text and references won't be used.",
       "submit": "Create article from PDF",
-      "submitting": "Creating from PDF...",
+      "submitting": "Creating from PDF…",
       "progress": {
-        "PENDING": "File sent. Waiting in the queue...",
+        "PENDING": "File sent. Waiting in the queue…",
         "PROCESSING": "Processing the PDF. This can take a few minutes, don't close this page."
       },
       "editorLocked": "The content will come from the PDF. Remove the file to write it yourself.",
@@ -277,7 +282,7 @@
     "images": {
       "insert": "Insert image",
       "hint": "Paste or drop an image into the editor, or use \"Insert image\". PNG, JPG or GIF, up to 10 MB.",
-      "uploading": "{count, plural, one {Uploading image...} other {Uploading # images...}}",
+      "uploading": "{count, plural, one {Uploading image…} other {Uploading # images…}}",
       "defaultAlt": "image"
     }
   },
@@ -285,7 +290,7 @@
     "title": "Edit article",
     "description": "Fix the content, title or difficulty. Every reader will see the changes.",
     "submit": "Save changes",
-    "submitting": "Saving...",
+    "submitting": "Saving…",
     "redirectHint": "After saving you'll return to the article.",
     "cancel": "Cancel",
     "backToArticle": "Back to the article"
@@ -469,6 +474,10 @@
       "submit": "Change password",
       "submitting": "Changing…",
       "done": "Your password has been changed. Sign in with the new password."
+    },
+    "invalid": {
+      "title": "This link no longer works",
+      "description": "It may have expired or been used already. Send a new one from your account page."
     }
   },
   "toasts": {

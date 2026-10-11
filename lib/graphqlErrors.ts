@@ -25,7 +25,13 @@ export const toReferenceErrorKey = (error: unknown): ErrorKey | null => {
     return null;
 };
 
-export const isEmailTakenError = (error: unknown): boolean =>
+// The backend answers unknown or expired action links with INTERNAL_ERROR (backend issue 14); only the message says why.
+export const isActionLinkGone = (error: unknown): boolean =>
+    getGraphqlClassification(error) === "NOT_FOUND" ||
+    (CombinedGraphQLErrors.is(error) &&
+        error.errors.some((graphqlError) => /^(Invalid action id|Request has expired)/.test(graphqlError.message)));
+
+export const isEmailTakenError =(error: unknown): boolean =>
     getGraphqlClassification(error) === "BAD_REQUEST" &&
     CombinedGraphQLErrors.is(error) &&
     error.errors.some((graphqlError) => graphqlError.message.includes("already taken"));

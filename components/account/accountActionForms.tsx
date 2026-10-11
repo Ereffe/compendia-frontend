@@ -59,6 +59,20 @@ function FormFooter({ error, pending, label, pendingLabel }: Readonly<{ error: E
   );
 }
 
+export function ActionLinkInvalid() {
+  const t = useTranslations("accountAction");
+  const { status } = useSession();
+  const signedIn = status === "authenticated";
+
+  return (
+    <ActionSheet title={t("invalid.title")} description={t("invalid.description")}>
+      <Button asChild>
+        <Link href={signedIn ? "/profile" : "/"}>{signedIn ? t("goToAccount") : t("goToSignIn")}</Link>
+      </Button>
+    </ActionSheet>
+  );
+}
+
 export function ConfirmEmailChangeForm({ actionId }: Readonly<{ actionId: string }>) {
   const t = useTranslations("accountAction");
   const { status: sessionStatus, update } = useSession();

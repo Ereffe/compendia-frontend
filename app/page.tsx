@@ -61,51 +61,51 @@ export default async function Home({
           </p>
         ) : null}
 
-        <div className="grid flex-1 gap-12 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start lg:gap-20">
+        <div className="grid flex-1 content-start gap-10 lg:grid-cols-[minmax(0,1fr)_26rem] lg:grid-rows-[auto_1fr] lg:gap-x-20 lg:gap-y-12">
           <div className="max-w-2xl">
             <h1 className="title-display">
               {t("title")}
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">{t("subtitle")}</p>
-
-            {articles.length > 0 ? (
-              <section aria-labelledby="recent-articles" className="mt-12">
-                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b-2 border-foreground pb-2">
-                  <h2 id="recent-articles" className="text-xs font-semibold uppercase tracking-[0.12em]">
-                    {t("recent")}
-                  </h2>
-                  <p className="text-xs text-muted-foreground">{t("recentHint")}</p>
-                </div>
-                <ol>
-                  {articles.map((article) => {
-                    const excerpt = toExcerpt(article.content);
-                    return (
-                      <li key={article.id} className="border-b border-border py-5">
-                        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                          <time dateTime={article.datePosted}>
-                            {format.dateTime(new Date(article.datePosted), articleDateFormat)}
-                          </time>
-                          <span aria-hidden>·</span>
-                          <span>{tComplexity(article.complexity)}</span>
-                        </p>
-                        <h3 className="mt-2 font-serif text-xl font-medium leading-snug wrap-break-word">{article.title}</h3>
-                        {excerpt ? (
-                          <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted-foreground wrap-anywhere">{excerpt}</p>
-                        ) : null}
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          {tCommon("authorBy", { name: article.author ?? tCommon("unknownAuthor") })}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </section>
-            ) : null}
           </div>
 
-          <div className="flex justify-center lg:sticky lg:top-8 lg:justify-end">
+          <div className="flex justify-center lg:sticky lg:top-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start lg:justify-end">
             <LoginCard />
           </div>
+
+          {articles.length > 0 ? (
+            <section aria-labelledby="recent-articles" className="max-w-2xl">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b-2 border-foreground pb-2">
+                <h2 id="recent-articles" className="font-serif text-2xl font-medium">
+                  {t("recent")}
+                </h2>
+                <p className="text-xs text-muted-foreground">{t("recentHint")}</p>
+              </div>
+              <ol>
+                {articles.map((article) => {
+                  const excerpt = toExcerpt(article.content);
+                  return (
+                    <li key={article.id} className="border-b border-border py-5">
+                      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                        <time dateTime={article.datePosted}>
+                          {format.dateTime(new Date(article.datePosted), articleDateFormat)}
+                        </time>
+                        <span aria-hidden>·</span>
+                        <span>{tComplexity(article.complexity)}</span>
+                      </p>
+                      <h3 className="mt-2 font-serif text-xl font-medium leading-snug wrap-break-word">{article.title}</h3>
+                      {excerpt ? (
+                        <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted-foreground wrap-anywhere">{excerpt}</p>
+                      ) : null}
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {tCommon("authorBy", { name: article.author ?? tCommon("unknownAuthor") })}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          ) : null}
         </div>
       </section>
     </>

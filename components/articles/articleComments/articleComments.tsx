@@ -418,13 +418,11 @@ export default function ArticleComments({ articleId, initialComments, totalCount
                 {error ? <p className="text-sm text-destructive" role="alert">{tErrors(error)}</p> : null}
             </form>
 
-            <div className="mt-8 divide-y divide-border border-t border-border">
-                {comments.length === 0 ? (
-                    <p className="py-6 text-sm text-muted-foreground">{t("empty")}</p>
-                ) : (
-                    comments.map((comment) => renderComment(comment))
-                )}
-            </div>
+            {comments.length > 0 ? (
+                <div className="mt-8 divide-y divide-border border-t border-border">
+                    {comments.map((comment) => renderComment(comment))}
+                </div>
+            ) : null}
             {hasMore ? (
                 <div className="mt-4 flex flex-col items-center gap-2">
                     <p className="text-sm text-muted-foreground">

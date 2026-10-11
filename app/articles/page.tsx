@@ -5,6 +5,7 @@ import ArticleSearchModal from "@/components/articleSearchModal/articleSearchMod
 import { ARTICLE_SORT_FIELDS, type ArticleFilters as Filters, isRated, parseArticleFilters } from "@/lib/articleFilters";
 import { authedQuery, requireAccessToken } from "@/lib/server/session";
 import ArticleCard from "@/components/articleCard";
+import EmptyState from "@/components/emptyState";
 import { ARTICLES_QUERY, mapArticleToSearchItem } from "@/services/graphql/articles";
 import type { ArticleSearchItem } from "@/types/articles";
 
@@ -31,9 +32,14 @@ export default async function ArticlesPage({
   const articles = await getArticles(accessToken, filters);
   const t = await getTranslations("articles");
 
+  const tCommon = await getTranslations("common");
   let emptyMessage = t("empty");
   if (filters.sort !== "newest") emptyMessage = t("emptyRated");
   else if (filters.level) emptyMessage = t("emptyFiltered");
+  const emptyAction =
+    filters.sort === "newest" && !filters.level
+      ? { href: "/articles/create", label: t("createFirst") }
+      : { href: "/articles", label: tCommon("showAllArticles") };
 
   return (
     <section id="articles" className="container-page pb-6 pt-10 sm:pt-14">
@@ -52,7 +58,7 @@ export default async function ArticlesPage({
       </div>
 
       {articles.length === 0 ? (
-        <p className="py-16 text-center text-muted-foreground">{emptyMessage}</p>
+        <EmptyState message={emptyMessage} action={emptyAction} />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {articles.map((article) => (

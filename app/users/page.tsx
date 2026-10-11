@@ -2,6 +2,7 @@ import Form from "next/form";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
+import EmptyState from "@/components/emptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import UserAvatar from "@/components/userAvatar";
@@ -17,6 +18,9 @@ export default async function UsersPage({ searchParams }: Readonly<{ searchParam
   const users = findAuthors(data.articles.content.map((article) => article.author), query);
   const t = await getTranslations("users");
   const tRoles = await getTranslations("account.roles");
+  const emptyState = query.trim()
+    ? { message: t("noResults"), action: { href: "/users", label: t("showAll") } }
+    : { message: t("empty"), action: { href: "/articles/create", label: t("createFirst") } };
 
   return (
     <section className="container-page pb-6 pt-10 sm:pt-14">
@@ -35,7 +39,7 @@ export default async function UsersPage({ searchParams }: Readonly<{ searchParam
       </div>
 
       {users.length === 0 ? (
-        <p className="py-16 text-center text-muted-foreground">{query.trim() ? t("noResults") : t("empty")}</p>
+        <EmptyState {...emptyState} />
       ) : (
         <ul className="grid gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
           {users.map((user) => (

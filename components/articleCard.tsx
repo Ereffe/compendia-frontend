@@ -38,8 +38,8 @@ export default function ArticleCard({ article }: Readonly<{ article: ArticleSear
           <span className="min-w-0 truncate">{t("authorBy", { name: t("unknownAuthor") })}</span>
         )}
         <span className="flex shrink-0 items-center gap-3">
-          <ArticleRatingBadge rating={article.rating} />
-          {article.commentCount === null ? null : (
+          {article.rating.positive + article.rating.negative > 0 ? <ArticleRatingBadge rating={article.rating} /> : null}
+          {!article.commentCount ? null : (
             <span
               className="inline-flex items-center gap-1 tabular-nums"
               role="img"

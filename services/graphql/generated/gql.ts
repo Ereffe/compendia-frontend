@@ -38,6 +38,7 @@ type Documents = {
     "\n    mutation ChangeUsersPassword($password: String!, $actionId: String!) {\n        changeUsersPassword(password: $password, actionId: $actionId) {\n            id\n        }\n    }\n": typeof types.ChangeUsersPasswordDocument,
     "\n    query User($id: String!) {\n        getUserById(id: $id) {\n            id\n            name\n            role\n        }\n    }\n": typeof types.UserDocument,
     "\n    query ArticleAuthors($size: Int!) {\n        articles(page: 0, size: $size) {\n            content {\n                author {\n                    id\n                    name\n                    role\n                }\n            }\n        }\n    }\n": typeof types.ArticleAuthorsDocument,
+    "\n    query ActionDetails($actionId: String!) {\n        getActionDetails(actionId: $actionId) {\n            type\n        }\n    }\n": typeof types.ActionDetailsDocument,
 };
 const documents: Documents = {
     "\n    query Articles(\n        $search: String\n        $complexity: String\n        $page: Int!\n        $size: Int!\n        $sortBy: String\n        $ascending: Boolean\n        $withCommentCount: Boolean!\n    ) {\n        articles(\n            search: $search\n            complexity: $complexity\n            page: $page\n            size: $size\n            sortBy: $sortBy\n            ascending: $ascending\n        ) {\n            content {\n                id\n                title\n                content\n                datePosted\n                complexity\n                rating {\n                    positive\n                    negative\n                }\n                author {\n                    id\n                    name\n                }\n                comments(page: 0, size: 1) @include(if: $withCommentCount) {\n                    totalElements\n                }\n            }\n            totalPages\n            totalElements\n            page\n            size\n        }\n    }\n": types.ArticlesDocument,
@@ -64,6 +65,7 @@ const documents: Documents = {
     "\n    mutation ChangeUsersPassword($password: String!, $actionId: String!) {\n        changeUsersPassword(password: $password, actionId: $actionId) {\n            id\n        }\n    }\n": types.ChangeUsersPasswordDocument,
     "\n    query User($id: String!) {\n        getUserById(id: $id) {\n            id\n            name\n            role\n        }\n    }\n": types.UserDocument,
     "\n    query ArticleAuthors($size: Int!) {\n        articles(page: 0, size: $size) {\n            content {\n                author {\n                    id\n                    name\n                    role\n                }\n            }\n        }\n    }\n": types.ArticleAuthorsDocument,
+    "\n    query ActionDetails($actionId: String!) {\n        getActionDetails(actionId: $actionId) {\n            type\n        }\n    }\n": types.ActionDetailsDocument,
 };
 
 /**
@@ -176,6 +178,10 @@ export function graphql(source: "\n    query User($id: String!) {\n        getUs
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n    query ArticleAuthors($size: Int!) {\n        articles(page: 0, size: $size) {\n            content {\n                author {\n                    id\n                    name\n                    role\n                }\n            }\n        }\n    }\n"): (typeof documents)["\n    query ArticleAuthors($size: Int!) {\n        articles(page: 0, size: $size) {\n            content {\n                author {\n                    id\n                    name\n                    role\n                }\n            }\n        }\n    }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    query ActionDetails($actionId: String!) {\n        getActionDetails(actionId: $actionId) {\n            type\n        }\n    }\n"): (typeof documents)["\n    query ActionDetails($actionId: String!) {\n        getActionDetails(actionId: $actionId) {\n            type\n        }\n    }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

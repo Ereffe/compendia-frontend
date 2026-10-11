@@ -17,7 +17,7 @@ export const markdownToPlainText = (markdown: string): string =>
         .trim();
 
 export const toExcerpt = (markdown: string, maxLength = EXCERPT_LENGTH): string => {
-    const text = markdownToPlainText(cleanArticleMarkdown(markdown));
+    const text = markdownToPlainText(cleanArticleMarkdown(markdown).replace(/^ {0,3}#{1,6} [^\n]*$/gm, ""));
     if (text.length <= maxLength) return text;
     const cut = text.slice(0, maxLength);
     const lastSpace = cut.lastIndexOf(" ");

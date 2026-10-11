@@ -11,7 +11,8 @@
     "authorBy": "Autor: {name}",
     "unknownAuthor": "Nieznany autor",
     "close": "Zamknij",
-    "loading": "Wczytywanie…"
+    "loading": "Wczytywanie…",
+    "showAllArticles": "Pokaż wszystkie artykuły"
   },
   "header": {
     "allArticles": "Wszystkie artykuły",
@@ -34,7 +35,10 @@
     "articleCount": "{count, plural, =0 {Brak artykułów} one {# artykuł} few {# artykuły} many {# artykułów} other {# artykułu}}",
     "articlesHeading": "Artykuły",
     "noArticles": "Ten użytkownik nie opublikował jeszcze artykułów.",
-    "accountSettings": "Ustawienia konta"
+    "accountSettings": "Ustawienia konta",
+    "createFirst": "Utwórz pierwszy artykuł",
+    "showAll": "Pokaż wszystkich autorów",
+    "noOwnArticles": "Nie masz jeszcze opublikowanych artykułów."
   },
   "language": {
     "label": "Język",
@@ -108,7 +112,8 @@
     "emptyFiltered": "Brak artykułów na tym poziomie.",
     "emptyRated": "Żaden artykuł spełniający te kryteria nie ma jeszcze ocen.",
     "ratingSummary": "Oceny: {positive} pozytywnych, {negative} negatywnych",
-    "commentCount": "{count, plural, =0 {Brak komentarzy} one {# komentarz} few {# komentarze} many {# komentarzy} other {# komentarza}}"
+    "commentCount": "{count, plural, =0 {Brak komentarzy} one {# komentarz} few {# komentarze} many {# komentarzy} other {# komentarza}}",
+    "createFirst": "Utwórz pierwszy artykuł"
   },
   "archive": {
     "title": "Wszystkie artykuły",
@@ -118,7 +123,8 @@
     "previous": "Poprzednia",
     "next": "Następna",
     "morePages": "Więcej stron",
-    "pagination": "Paginacja"
+    "pagination": "Paginacja",
+    "createFirst": "Utwórz pierwszy artykuł"
   },
   "article": {
     "notFoundTitle": "Artykuł nie znaleziony",
@@ -151,18 +157,17 @@
   "comments": {
     "title": "Komentarze",
     "count": "{count, plural, =0 {Bądź pierwszą osobą, która skomentuje ten artykuł.} one {# komentarz} few {# komentarze} many {# komentarzy} other {# komentarza}}",
-    "checkingSession": "Sprawdzanie sesji...",
+    "checkingSession": "Sprawdzanie sesji…",
     "mustSignIn": "Musisz być zalogowany, aby komentować.",
-    "placeholder": "Napisz komentarz...",
+    "placeholder": "Napisz komentarz…",
     "placeholderSignedOut": "Zaloguj się, aby napisać komentarz",
     "submit": "Dodaj komentarz",
-    "submitting": "Publikowanie...",
-    "replyPlaceholder": "Napisz odpowiedź...",
+    "submitting": "Publikowanie…",
+    "replyPlaceholder": "Napisz odpowiedź…",
     "submitReply": "Dodaj odpowiedź",
     "reply": "Odpowiedz",
     "cancel": "Anuluj",
     "edited": "edytowano",
-    "empty": "Brak komentarzy.",
     "shownOf": "Wyświetlono {shown} z {total} komentarzy.",
     "loadMore": "Pokaż więcej komentarzy",
     "loadingMore": "Wczytywanie…",
@@ -188,7 +193,7 @@
     "example": "np. optymalizacja SQL, planowanie procesów, listy wiązane",
     "title": "Wyszukiwanie artykułów",
     "description": "Zacznij pisać, aby przeszukać tytuły i treść wszystkich artykułów.",
-    "placeholder": "Szukaj artykułów...",
+    "placeholder": "Szukaj artykułów…",
     "searching": "Szukanie…",
     "results": "{count, plural, =0 {Brak wyników} one {# wynik} few {# wyniki} many {# wyników} other {# wyniku}}",
     "noResults": "Nie znaleziono artykułów dla tego zapytania.",
@@ -202,11 +207,11 @@
     "titlePlaceholder": "Np. Wprowadzenie do struktur danych",
     "contentLabel": "Treść",
     "scientificContentLabel": "Komentarz do artykułu naukowego",
-    "contentPlaceholder": "Rozpocznij pisać markdown...",
+    "contentPlaceholder": "Rozpocznij pisać markdown…",
     "complexityLabel": "Poziom trudności",
     "redirectHint": "Po wysłaniu formularza zostaniesz przekierowany do nowo utworzonego artykułu.",
     "submit": "Utwórz artykuł",
-    "submitting": "Tworzenie...",
+    "submitting": "Tworzenie…",
     "typeLabel": "Typ artykułu",
     "typeRegular": "Zwykły artykuł",
     "typeRegularHint": "Notatki, wyjaśnienia i materiały do nauki.",
@@ -266,9 +271,9 @@
       "hint": "Treść artykułu może zostać wygenerowana z pliku PDF. Podaj tytuł i poziom trudności, a resztę przygotuje import.",
       "selectedHint": "Treść zostanie wygenerowana z PDF. Tekst z edytora i źródła nie zostaną użyte.",
       "submit": "Utwórz artykuł z PDF",
-      "submitting": "Tworzenie z PDF...",
+      "submitting": "Tworzenie z PDF…",
       "progress": {
-        "PENDING": "Plik wysłany. Czeka w kolejce na przetworzenie...",
+        "PENDING": "Plik wysłany. Czeka w kolejce na przetworzenie…",
         "PROCESSING": "Przetwarzanie PDF. To może potrwać kilka minut, nie zamykaj tej strony."
       },
       "editorLocked": "Treść powstanie z pliku PDF. Usuń plik, żeby pisać samodzielnie.",
@@ -277,7 +282,7 @@
     "images": {
       "insert": "Wstaw obraz",
       "hint": "Wklej lub upuść obraz w edytorze albo użyj przycisku „Wstaw obraz”. PNG, JPG lub GIF, do 10 MB.",
-      "uploading": "{count, plural, one {Wysyłanie obrazu...} few {Wysyłanie # obrazów...} many {Wysyłanie # obrazów...} other {Wysyłanie # obrazu...}}",
+      "uploading": "{count, plural, one {Wysyłanie obrazu…} few {Wysyłanie # obrazów…} many {Wysyłanie # obrazów…} other {Wysyłanie # obrazu…}}",
       "defaultAlt": "obraz"
     }
   },
@@ -285,7 +290,7 @@
     "title": "Edytuj artykuł",
     "description": "Popraw treść, tytuł lub poziom trudności. Zmiany zobaczą wszyscy czytelnicy.",
     "submit": "Zapisz zmiany",
-    "submitting": "Zapisywanie...",
+    "submitting": "Zapisywanie…",
     "redirectHint": "Po zapisaniu wrócisz do artykułu.",
     "cancel": "Anuluj",
     "backToArticle": "Wróć do artykułu"
@@ -469,6 +474,10 @@
       "submit": "Zmień hasło",
       "submitting": "Zmienianie…",
       "done": "Hasło zostało zmienione. Zaloguj się nowym hasłem."
+    },
+    "invalid": {
+      "title": "Ten link już nie działa",
+      "description": "Mógł wygasnąć albo został już użyty. Wyślij nowy ze strony konta."
     }
   },
   "toasts": {

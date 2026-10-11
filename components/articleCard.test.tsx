@@ -25,7 +25,7 @@ describe("ArticleCard", () => {
         renderWithIntl(<ArticleCard article={article} />);
 
         expect(screen.getByRole("link", { name: "Grafy cytowań" })).toHaveAttribute("href", "/articles/abc123");
-        expect(screen.getByText("Wstęp To krótki opis grafów.")).toBeInTheDocument();
+        expect(screen.getByText("To krótki opis grafów.")).toBeInTheDocument();
         expect(screen.getByText("Średnie")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "Autor: Anna" })).toHaveAttribute("href", "/users/u-anna");
         expect(screen.getByRole("img", { name: "5 komentarzy" })).toBeInTheDocument();
@@ -37,5 +37,12 @@ describe("ArticleCard", () => {
 
         expect(screen.queryByRole("img", { name: /komentarz/ })).not.toBeInTheDocument();
         expect(screen.getByText("Autor: Nieznany autor")).toBeInTheDocument();
+    });
+
+    it("hides zero votes and zero comments", () => {
+        renderWithIntl(<ArticleCard article={{ ...article, commentCount: 0, rating: { positive: 0, negative: 0 } }} />);
+
+        expect(screen.queryByRole("img", { name: /komentarz/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("img", { name: /Oceny/ })).not.toBeInTheDocument();
     });
 });

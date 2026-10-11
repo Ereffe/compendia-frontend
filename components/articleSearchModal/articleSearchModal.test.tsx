@@ -47,7 +47,7 @@ describe("ArticleSearchModal", () => {
 
         renderWithIntl(<ArticleSearchModal articles={[]} />, { locale: "en" });
         await user.click(screen.getByRole("button", { name: "Open article search" }));
-        await user.type(await screen.findByPlaceholderText("Search articles..."), "graphs");
+        await user.type(await screen.findByPlaceholderText("Search articles…"), "graphs");
 
         expect(await screen.findByText("2 results")).toBeInTheDocument();
         expect(screen.getByText("By Ewa")).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe("ArticleSearchModal", () => {
 
         renderWithIntl(<ArticleSearchModal articles={newest} />);
         await user.click(screen.getByRole("button", { name: "Otwórz wyszukiwarkę artykułów" }));
-        await user.type(await screen.findByPlaceholderText("Szukaj artykułów..."), "grafy");
+        await user.type(await screen.findByPlaceholderText("Szukaj artykułów…"), "grafy");
 
         expect(await screen.findByRole("link", { name: /Grafy skierowane/i })).toHaveAttribute("href", "/articles/9");
         expect(screen.getByText("1 wynik")).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe("ArticleSearchModal", () => {
 
         renderWithIntl(<ArticleSearchModal articles={newest} />);
         await user.click(screen.getByRole("button", { name: "Otwórz wyszukiwarkę artykułów" }));
-        await user.type(await screen.findByPlaceholderText("Szukaj artykułów..."), "programowanie funkcyjne");
+        await user.type(await screen.findByPlaceholderText("Szukaj artykułów…"), "programowanie funkcyjne");
 
         expect(await screen.findByText("Nie znaleziono artykułów dla tego zapytania.")).toBeInTheDocument();
     });
@@ -99,7 +99,7 @@ describe("ArticleSearchModal", () => {
 
         renderWithIntl(<ArticleSearchModal articles={newest} />);
         await user.click(screen.getByRole("button", { name: "Otwórz wyszukiwarkę artykułów" }));
-        await user.type(await screen.findByPlaceholderText("Szukaj artykułów..."), "sql");
+        await user.type(await screen.findByPlaceholderText("Szukaj artykułów…"), "sql");
 
         expect(await screen.findByText("Wyszukiwanie nie powiodło się. Spróbuj ponownie.")).toBeInTheDocument();
     });

@@ -14,7 +14,7 @@ export default function ArticleCitation({ parts }: Readonly<{ parts: CitationPar
     return (
         <div>
             <SectionHeading title={t("title")} />
-            <dl className="mt-6 grid gap-6">
+            <dl className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6">
                 <div>
                     <CitationLabel label="APA" text={apaCitation(parts)} />
                     <dd className="mt-2 font-serif text-[1.0625rem] leading-relaxed text-foreground wrap-anywhere">

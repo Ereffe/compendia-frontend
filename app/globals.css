@@ -57,7 +57,7 @@
 }
 
 @utility title-page {
-  font-family: var(--font-serif);
+  font-family: --theme(--font-serif);
   font-size: 2.25rem;
   font-weight: 500;
   line-height: 1.25;
@@ -69,7 +69,7 @@
 }
 
 @utility title-display {
-  font-family: var(--font-serif);
+  font-family: --theme(--font-serif);
   font-size: 2.25rem;
   font-weight: 500;
   line-height: 1.08;
@@ -81,7 +81,7 @@
 }
 
 @utility title-section {
-  font-family: var(--font-serif);
+  font-family: --theme(--font-serif);
   font-size: 1.5rem;
   font-weight: 500;
   line-height: 1.375;
@@ -92,7 +92,7 @@
 }
 
 @utility title-item {
-  font-family: var(--font-serif);
+  font-family: --theme(--font-serif);
   font-size: 1.125rem;
   font-weight: 500;
   line-height: 1.375;
@@ -239,9 +239,9 @@
   --color-prettylights-syntax-comment: var(--muted-foreground);
   --md-editor-background-color: var(--card);
   --md-editor-box-shadow-color: var(--border);
-  --md-editor-font-family: var(--font-mono);
+  --md-editor-font-family: --theme(--font-mono);
 }
 
 [data-color-mode][data-color-mode] .w-md-editor-preview .wmde-markdown {
-  font-family: var(--font-serif);
+  font-family: --theme(--font-serif);
 }

@@ -454,7 +454,7 @@ describe("ArticleCreateForm images", () => {
         await user.upload(screen.getByLabelText("Wstaw obraz"), png());
 
         expect((screen.getByLabelText("markdown-editor") as HTMLTextAreaElement).value).toMatch(/^Wstęp!\[wykres\]\(compendia-upload:[a-z0-9]+\)$/);
-        expect(screen.getByText("Wysyłanie obrazu...")).toBeInTheDocument();
+        expect(screen.getByText("Wysyłanie obrazu…")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Utwórz artykuł" })).toBeDisabled();
 
         finish({ ok: true, data: { assetId: ASSET_ID } });

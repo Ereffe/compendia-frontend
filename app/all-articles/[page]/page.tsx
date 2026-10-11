@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
 import ArticleCard from "@/components/articleCard";
+import EmptyState from "@/components/emptyState";
 import {
   Pagination,
   PaginationContent,
@@ -167,7 +168,7 @@ export default async function AllArticlesPage({
         </div>
 
         {data.content.length === 0 ? (
-          <p className="py-16 text-center text-muted-foreground">{t("empty")}</p>
+          <EmptyState message={t("empty")} action={{ href: "/articles/create", label: t("createFirst") }} />
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

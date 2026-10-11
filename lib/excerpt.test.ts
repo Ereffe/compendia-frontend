@@ -37,4 +37,8 @@ describe("toExcerpt", () => {
     it("drops block formulas, which read as noise in a card", () => {
         expect(toExcerpt(String.raw`Całka $$\int_0^1 x \, dx$$ wynosi $\frac{1}{2}$.`)).toBe(String.raw`Całka wynosi $\frac{1}{2}$.`);
     });
+
+    it("drops headings so a section title doesn't run into the first sentence", () => {
+        expect(toExcerpt("## Wprowadzenie\n\nW typowym przypadku.")).toBe("W typowym przypadku.");
+    });
 });

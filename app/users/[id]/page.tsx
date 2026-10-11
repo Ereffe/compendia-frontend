@@ -3,6 +3,7 @@ import { notFound, unstable_rethrow } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import ArticleCard from "@/components/articleCard";
+import EmptyState from "@/components/emptyState";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "@/components/userAvatar";
 import { isNotFoundError } from "@/lib/graphqlErrors";
@@ -53,6 +54,7 @@ export default async function UserPage({ params }: Readonly<{ params: Promise<{ 
 
   const t = await getTranslations("users");
   const tRoles = await getTranslations("account.roles");
+  const isOwnProfile = user.id === currentUserId;
 
   return (
     <section className="container-page flex flex-col gap-8 pb-6 pt-10 sm:pt-14">
@@ -66,7 +68,7 @@ export default async function UserPage({ params }: Readonly<{ params: Promise<{ 
             {t("articleCount", { count: articles.length })}
           </p>
         </div>
-        {user.id === currentUserId ? (
+        {isOwnProfile ? (
           <Button asChild variant="outline" size="sm">
             <Link href="/profile">{t("accountSettings")}</Link>
           </Button>
@@ -76,7 +78,10 @@ export default async function UserPage({ params }: Readonly<{ params: Promise<{ 
       <div>
         <h2 className="title-section">{t("articlesHeading")}</h2>
         {articles.length === 0 ? (
-          <p className="py-16 text-center text-muted-foreground">{t("noArticles")}</p>
+          <EmptyState
+            message={isOwnProfile ? t("noOwnArticles") : t("noArticles")}
+            action={isOwnProfile ? { href: "/articles/create", label: t("createFirst") } : undefined}
+          />
         ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {articles.map((article) => (

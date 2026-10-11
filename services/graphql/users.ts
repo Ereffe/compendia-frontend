@@ -71,3 +71,11 @@ export const ARTICLE_AUTHORS_QUERY = graphql(`
         }
     }
 `);
+
+export const ACTION_DETAILS_QUERY = graphql(`
+    query ActionDetails($actionId: String!) {
+        getActionDetails(actionId: $actionId) {
+            type
+        }
+    }
+`);
